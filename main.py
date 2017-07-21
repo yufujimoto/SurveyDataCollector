@@ -18,10 +18,10 @@ from sqlite3 import Error
 
 # Import GUI window.
 import mainWindow
+import checkTetheredImageDialog
 
 # Import camera and image processing library.
 import imageProcessing
-
 
 # Define the default path.
 SRC_DIR = None
@@ -188,39 +188,34 @@ def createDirectories(item_dir, isConsolidation):
         
         return(None)
 
-class MyDialog(QDialog):
+class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
     def __init__(self, parent=None, path=None):
-        super(MyDialog, self).__init__(parent)
+        super(CheckImageDialog, self).__init__(parent)
+        self.setupUi(self)
         
-        self.setWindowTitle(self.tr("Hoge Hoge"))
+        # Initialize the window.
+        self.setWindowTitle(self.tr("Check Tethered Image"))
         self.setWindowState(Qt.WindowMaximized)
-        # self.resize(800, 600)
-        # self.setWindowState(Qt.WindowFullScreen)
         
+        # Get the path of the tethered image.
         self.tethered = path
         
-        self.buttonBox = QDialogButtonBox(self)
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
-        
+        # Define the return values.
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
-
-        #self.textBrowser = QTextBrowser(self)
-        self.image_panel = QLabel(self)
+        
+        # Initialyze the image panel.
         self.image_panel.resize(800, 600)
         self.image_panel.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-        #self.image_panel.setScaledContents(True)
         
-        self.lst_fls = QListWidget(self)
+        # Initialyze the image info view.
+        self.tre_img_info.setMaximumSize(QSize(300, 16777215))
+        
+        # Initialyze the file information view.
         self.lst_fls.setMaximumSize(QSize(16777215, 100))
         self.lst_fls.itemSelectionChanged.connect(self.showImage)
         
-        self.verticalLayout = QVBoxLayout(self)
-        self.verticalLayout.addWidget(self.image_panel)
-        self.verticalLayout.addWidget(self.lst_fls)
-        self.verticalLayout.addWidget(self.buttonBox)
-        
+        # Get tethered image files.
         self.getImageFiles()
         
     def getImageFiles(self):
@@ -242,6 +237,67 @@ class MyDialog(QDialog):
             for img_raw in img_lst_raw:
                 img_item = QListWidgetItem(img_raw)
                 self.lst_fls.addItem(img_raw)
+    
+    def getImageFileInfo(self):
+        # Get the path to the image directory of the tethered imagesw
+        img_path = self.tethered
+        
+        # Get the tree view for the metadata of consolidation.
+        tre_fl = self.tre_img_info
+        
+        # Get the selected image file.
+        lst_fls = self.lst_fls.currentItem().text()
+        
+        # Get the file name which is currently selected.
+        img_file_name = lst_fls
+        
+        # Make the full path of the selected image file.
+        img_file_path = os.path.join(img_path,img_file_name)
+        
+        if os.path.exists(img_file_path):
+            # Clear the image file information.
+            tre_fl.clear()
+            
+            # Get file information by using "dcraw" library.
+            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
+            
+            # Get each metadata entry.
+            for entry in img_stat:
+                # Split metadata entry by ":".
+                entry_line = entry.split(":")
+                
+                # Get the metadata key.
+                entry_key = entry_line[0]
+                
+                # Get the metadata value.
+                entry_val = entry_line[1]
+                
+                # Add file information to the tree list.
+                tre_fl.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
+            
+            # Get file information by using python "stat" library.
+            fl_stat = os.stat(img_file_path)
+            
+            # Get file size.
+            fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
+            
+            # Get time for last access, modified and creat.
+            fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
+            fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
+            fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
+            
+            # Add file information to the tree list.
+            tre_fl.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
+            tre_fl.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
+            tre_fl.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
+            tre_fl.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
+            
+            # Refresh the tree view.
+            tre_fl.show()
+        else:
+            # Deselect the item.
+            tre_fl.clearSelection()
+            tre_fl.clear()
     
     def showImage(self):
         panel_w = self.image_panel.width()
@@ -326,6 +382,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Make this class as the super class and initialyze the class.
         super(mainPanel, self).__init__(parent)
         self.setupUi(self)
+        
+        # Initialyze the window.
+        self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
         
         #========================================
         # Initialyze objects for project
@@ -445,6 +504,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Initialyze the tree view.
         self.tre_prj_item.clear()
+        
+        # Reflesh the last selection.
+        self.refreshItemInfo()
         
         # Define directories for storing files.
         ROOT_DIR = QFileDialog.getExistingDirectory(self, "プロジェクト・ディレクトリの選択")
@@ -683,10 +745,72 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Refresh the tree view.
             tre_fl.show()
+            
+            # Show preview.
+            self.showImage(select_type, img_file_path)
         else:
             # Deselect the item.
             tre_fl.clearSelection()
             tre_fl.clear()
+    
+    def showImage(self, select_type, img_file_path):
+        if select_type == "consolidation":
+            lbl_img_preview = self.lbl_con_img_preview
+            
+        elif select_type == "material":
+            lbl_img_preview = self.lbl_mat_img_preview
+            
+        else:
+            return(None)
+        
+        # Get the file path to show.
+        img_path = img_file_path
+        
+        # Check the image file can be displayed directry.
+        img_base, img_ext = os.path.splitext(img_path)
+        img_valid = False
+        
+        # Get container size.
+        panel_w = lbl_img_preview.width()
+        panel_h = lbl_img_preview.height()
+        
+        for qt_ext in QT_IMG:
+            # Exit loop if extension is matched with Qt supported image.
+            if img_ext.lower() == qt_ext.lower():
+                img_valid = True
+                break
+        
+        # Check whether the image is Raw image or not.
+        if not img_valid == True:
+            # Extract the thumbnail image from the RAW image by using "dcraw".
+            imageProcessing.getThumbnail(img_path)
+            
+            # Get the extracted thumbnail image.
+            img_path = img_base + ".thumb.jpg"
+        
+        if os.path.exists(img_path):
+            # Create the container for displaying the image
+            org_pixmap = QPixmap(img_path)
+            scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
+            
+            # Set the image file to the image view container.
+            lbl_img_preview.setPixmap(scl_pixmap)
+            
+            # Show the selected image.
+            lbl_img_preview.show()
+        else:
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "このファイルはプレビューに対応していません。"
+            error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
     
     def toggleSelectedItem(self):
         # Check the selection status.
@@ -823,6 +947,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 raw_item = QListWidgetItem(os.path.join("Raw", raw_file))
                 lst_fls.addItem(raw_item)
     
+    def refreshItemInfo(self):
+        self.tre_mat_fl.clear()
+        self.lst_mat_fls.clear()
+        self.lbl_mat_img_preview.setText("")
+        
+        self.tre_con_fl.clear()
+        self.lst_con_fls.clear()
+        self.lbl_con_img_preview.setText("")
+        
+        return(None)
+        
     # ==========================
     # object operation
     # ==========================
@@ -978,6 +1113,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def getConsolidation(self):
         global DATABASE
         
+        # Reflesh the last selection.
+        self.refreshItemInfo()
+        
         # Set active control tab for consolidation.
         self.tab_target.setCurrentIndex(0)
         
@@ -1065,6 +1203,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def getMaterial(self):
         global DATABASE
+        
+        # Reflesh the last selection.
+        self.refreshItemInfo()
         
         # Set active control tab for consolidation.
         self.tab_target.setCurrentIndex(1)
@@ -1451,12 +1592,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Initialyze the consolidation ID.
             con_uuid = select_uuid
             
-            # Create the SQL query for deleting the existing consolidation.
-            sql_con_del = """DELETE FROM consolidation WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_con_del, [con_uuid])
-            
             # Remove the consolidation from the tree view.
             root = self.tre_prj_item.invisibleRootItem()
             
@@ -1471,6 +1606,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Delete all files from consolidation directory.
             shutil.rmtree(os.path.join(CON_DIR,con_uuid))
+            
+            # Create the SQL query for deleting the existing consolidation.
+            sql_con_del = """DELETE FROM consolidation WHERE uuid = ?"""
+            
+            # Execute the query.
+            self.executeSqlQuery(sql_con_del, [con_uuid])
+            
+            # Reflesh the last selection.
+            self.refreshItemInfo()
     
     def deleteMaterial(self):
         global CON_DIR
@@ -1505,12 +1649,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Initialyze the consolidation ID.
             mat_uuid = select_uuid
             
-            # Create the SQL query for deleting the existing consolidation.
-            sql_mat_del = """DELETE FROM material WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_mat_del, [mat_uuid])
-            
             # Update the tree view.
             select_item.parent().removeChild(select_item)
             
@@ -1524,7 +1662,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
             mat_path = os.path.join(con_mat_path, mat_uuid)
             
+            # Delete files.
             shutil.rmtree(mat_path)
+            
+            # Create the SQL query for deleting the existing consolidation.
+            sql_mat_del = """DELETE FROM material WHERE uuid = ?"""
+            
+            # Execute the query.
+            self.executeSqlQuery(sql_mat_del, [mat_uuid])
+            
+            # Reflesh the last selection.
+            self.refreshItemInfo()
     
     # ==========================
     # Cemera operation
@@ -1665,7 +1813,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Generate the GUID for the consolidation
         pht_uuid = str(uuid.uuid4()) 
         
-        if not self.detectCamera() == None:
+        if not imageProcessing.detectCam() == None:
             # Define the temporal path for the tethered shooting.
             tmp_path = os.path.join(tethered_path, pht_uuid)
             
@@ -1677,7 +1825,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             img_lst_raw = getFilesWithExtensionList(tethered_path, RAW_EXT)
             
             # Check the result of the tethered image.
-            self.dialogTetheredShooting = MyDialog(parent=self, path=tethered_path)
+            self.dialogTetheredShooting = CheckImageDialog(parent=self, path=tethered_path)
             isAccepted = self.dialogTetheredShooting.exec_()
             
             if isAccepted == 1:
@@ -1717,7 +1865,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Handle error.
             alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
+           
             # Returns nothing.
             return(None)
 
