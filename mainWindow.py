@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/Desktop/tetheredShooting/Source/mainWindow.ui'
+# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/mainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1027, 590)
+        MainWindow.resize(1124, 695)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -282,6 +282,9 @@ class Ui_MainWindow(object):
         self.btn_con_take = QtWidgets.QPushButton(self.tab_con)
         self.btn_con_take.setObjectName("btn_con_take")
         self.lay_h_con_ctrl.addWidget(self.btn_con_take)
+        self.btn_con_rec = QtWidgets.QPushButton(self.tab_con)
+        self.btn_con_rec.setObjectName("btn_con_rec")
+        self.lay_h_con_ctrl.addWidget(self.btn_con_rec)
         self.btn_con_del = QtWidgets.QPushButton(self.tab_con)
         self.btn_con_del.setObjectName("btn_con_del")
         self.lay_h_con_ctrl.addWidget(self.btn_con_del)
@@ -458,6 +461,9 @@ class Ui_MainWindow(object):
         self.btn_mat_take = QtWidgets.QPushButton(self.tab_mat)
         self.btn_mat_take.setObjectName("btn_mat_take")
         self.lay_h_mat_ctrl.addWidget(self.btn_mat_take)
+        self.btn_mat_rec = QtWidgets.QPushButton(self.tab_mat)
+        self.btn_mat_rec.setObjectName("btn_mat_rec")
+        self.lay_h_mat_ctrl.addWidget(self.btn_mat_rec)
         self.btn_mat_del = QtWidgets.QPushButton(self.tab_mat)
         self.btn_mat_del.setObjectName("btn_mat_del")
         self.lay_h_mat_ctrl.addWidget(self.btn_mat_del)
@@ -499,7 +505,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addLayout(self.lay_v_item_info)
         MainWindow.setCentralWidget(self.centralwidget)
         self.bar_menu = QtWidgets.QMenuBar(MainWindow)
-        self.bar_menu.setGeometry(QtCore.QRect(0, 0, 1027, 27))
+        self.bar_menu.setGeometry(QtCore.QRect(0, 0, 1124, 28))
         self.bar_menu.setObjectName("bar_menu")
         self.men_prj = QtWidgets.QMenu(self.bar_menu)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
@@ -523,9 +529,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tab_control.setCurrentIndex(0)
-        self.tab_target.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(1)
-        self.tab_img_info.setCurrentIndex(1)
+        self.tab_target.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
+        self.tab_img_info.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -559,6 +565,7 @@ class Ui_MainWindow(object):
         self.btn_con_add.setText(_translate("MainWindow", "統合体の追加"))
         self.btn_con_update.setText(_translate("MainWindow", "統合体の更新"))
         self.btn_con_take.setText(_translate("MainWindow", "撮影する"))
+        self.btn_con_rec.setText(_translate("MainWindow", "録音する"))
         self.btn_con_del.setText(_translate("MainWindow", "統合体の削除"))
         self.lst_con_fls.setSortingEnabled(True)
         self.tre_con_fl.headerItem().setText(0, _translate("MainWindow", "プロパティ"))
@@ -579,6 +586,7 @@ class Ui_MainWindow(object):
         self.btn_mat_add.setText(_translate("MainWindow", "資料の追加"))
         self.btn_mat_update.setText(_translate("MainWindow", "資料の更新"))
         self.btn_mat_take.setText(_translate("MainWindow", "撮影する"))
+        self.btn_mat_rec.setText(_translate("MainWindow", "録音する"))
         self.btn_mat_del.setText(_translate("MainWindow", "資料の削除"))
         self.lst_mat_fls.setSortingEnabled(True)
         self.tre_mat_fl.headerItem().setText(0, _translate("MainWindow", "プロパティ"))

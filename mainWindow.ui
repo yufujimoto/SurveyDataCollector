@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
-    <height>590</height>
+    <width>1124</width>
+    <height>695</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -590,6 +590,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="btn_con_rec">
+              <property name="text">
+               <string>録音する</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="btn_con_del">
               <property name="text">
                <string>統合体の削除</string>
@@ -971,6 +978,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="btn_mat_rec">
+              <property name="text">
+               <string>録音する</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="btn_mat_del">
               <property name="text">
                <string>資料の削除</string>
@@ -1061,8 +1075,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
-     <height>27</height>
+     <width>1124</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">

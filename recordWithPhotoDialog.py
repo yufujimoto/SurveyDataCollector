@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/checkTetheredImageDialog.ui'
+# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/recordWithPhotoDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -28,15 +28,33 @@ class Ui_testDialog(object):
         self.horizontalLayout_2.setContentsMargins(-1, 0, -1, -1)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.lst_fls = QtWidgets.QListWidget(testDialog)
-        self.lst_fls.setObjectName("lst_fls")
-        self.verticalLayout.addWidget(self.lst_fls)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3.setContentsMargins(-1, 0, -1, -1)
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.btn_rec_start = QtWidgets.QPushButton(testDialog)
+        self.btn_rec_start.setObjectName("btn_rec_start")
+        self.horizontalLayout_3.addWidget(self.btn_rec_start)
+        self.btn_rec_stop = QtWidgets.QPushButton(testDialog)
+        self.btn_rec_stop.setObjectName("btn_rec_stop")
+        self.horizontalLayout_3.addWidget(self.btn_rec_stop)
+        self.btn_play = QtWidgets.QPushButton(testDialog)
+        self.btn_play.setObjectName("btn_play")
+        self.horizontalLayout_3.addWidget(self.btn_play)
+        self.btn_refresh = QtWidgets.QPushButton(testDialog)
+        self.btn_refresh.setObjectName("btn_refresh")
+        self.horizontalLayout_3.addWidget(self.btn_refresh)
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setContentsMargins(0, 0, -1, -1)
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.lst_img_fls = QtWidgets.QListWidget(testDialog)
+        self.lst_img_fls.setObjectName("lst_img_fls")
+        self.horizontalLayout_4.addWidget(self.lst_img_fls)
+        self.lst_snd_fls = QtWidgets.QListWidget(testDialog)
+        self.lst_snd_fls.setObjectName("lst_snd_fls")
+        self.horizontalLayout_4.addWidget(self.lst_snd_fls)
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
         self.horizontalLayout.addLayout(self.verticalLayout)
-        self.tre_img_info = QtWidgets.QTreeWidget(testDialog)
-        self.tre_img_info.setObjectName("tre_img_info")
-        self.tre_img_info.headerItem().setText(0, "プロパティ")
-        self.tre_img_info.header().setDefaultSectionSize(100)
-        self.horizontalLayout.addWidget(self.tre_img_info)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.buttonBox = QtWidgets.QDialogButtonBox(testDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -53,5 +71,8 @@ class Ui_testDialog(object):
         _translate = QtCore.QCoreApplication.translate
         testDialog.setWindowTitle(_translate("testDialog", "Dialog"))
         self.image_panel.setText(_translate("testDialog", "TextLabel"))
-        self.tre_img_info.headerItem().setText(1, _translate("testDialog", "値"))
+        self.btn_rec_start.setText(_translate("testDialog", "Record"))
+        self.btn_rec_stop.setText(_translate("testDialog", "Stop"))
+        self.btn_play.setText(_translate("testDialog", "Play"))
+        self.btn_refresh.setText(_translate("testDialog", "Refresh"))
 

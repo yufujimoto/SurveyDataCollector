@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math
+import sys, os, uuid, shutil, time, math, tempfile, logging
 
 # Import the library for acquiring file information.
 from stat import *
@@ -11,6 +11,7 @@ from stat import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import DB libraries
 import sqlite3 as sqlite
@@ -19,9 +20,15 @@ from sqlite3 import Error
 # Import GUI window.
 import mainWindow
 import checkTetheredImageDialog
+import recordWithPhotoDialog
 
 # Import camera and image processing library.
 import imageProcessing
+
+# Import libraries for sound recording. 
+import Queue as queue
+import sounddevice as sd
+import soundfile as sf
 
 # Define the default path.
 SRC_DIR = None
@@ -40,6 +47,7 @@ CAMERA = None
 QT_IMG = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
 IMG_EXT = [".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG", ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"]
 RAW_EXT = [".RAW", ".ARW"]
+SND_EXT = [".WAV"]
 
 def alert(title, message, icon, info, detailed):
     # Create a message box object.
@@ -187,6 +195,196 @@ def createDirectories(item_dir, isConsolidation):
         alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
         
         return(None)
+
+class RecordThreading(QThread):
+    def __init__(self, path):
+        QThread.__init__(self)
+        self.path_snd = path
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        try:
+            # Set the unique identifier for the sound data.
+            snd_uuid = str(uuid.uuid4())
+            
+            # Set the sound file parameters.
+            subtype = "PCM_24"
+            channels = 2
+            device_info = sd.query_devices(None, 'input')
+            samplerate = int(device_info['default_samplerate'])
+            
+            # Give the original file name by using uuid of the sound file.
+            filename = tempfile.mktemp(prefix=snd_uuid, suffix='.wav', dir=self.path_snd)
+            
+            # Set the Queue for the threading.
+            q = queue.Queue()
+            
+            def callback(indata, frames, time, status):
+                """This is called (from a separate thread) for each audio block."""
+                if status:
+                    print(status, sys.stderr)
+                q.put(indata.copy())
+            
+            # Make sure the file is opened before recording anything:
+            with sf.SoundFile(filename, mode='x', samplerate=samplerate, channels=channels, subtype=subtype) as file:
+                with sd.InputStream(samplerate=samplerate, device=None, channels=channels, callback=callback):
+                    while True:
+                        file.write(q.get())
+        except Exception as e:
+            print(type(e).__name__ + ': ' + str(e))
+
+class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
+    def __init__(self, parent=None, path=None):
+        super(RecordWithImage, self).__init__(parent)
+        self.setupUi(self)
+        
+        # Initialize the window.
+        self.setWindowTitle(self.tr("Check Tethered Image"))
+        self.setWindowState(Qt.WindowMaximized)
+        
+        # Get the path of the tethered image.
+        self.path_img = os.path.join(os.path.join(path, "Images"),"Main")
+        self.path_snd = os.path.join(path, "Sounds")
+        
+        # Initialyze the sound file control objects.
+        self.btn_refresh.clicked.connect(self.getSoundFiles)
+        self.btn_play.clicked.connect(self.playing)
+        self.btn_rec_start.clicked.connect(self.recording)
+        
+        # Define the return values.
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        
+        # Initialyze the image panel.
+        self.image_panel.resize(800, 600)
+        self.image_panel.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        
+        # Initialyze the file information view.
+        self.lst_snd_fls.setMaximumSize(QSize(16777215, 100))
+        
+        self.lst_img_fls.setMaximumSize(QSize(16777215, 100))
+        self.lst_img_fls.itemSelectionChanged.connect(self.showImage)
+        
+        # Get tethered image files.
+        self.getImageFiles()
+        self.getSoundFiles()
+        
+        #========================================
+        # Initialyze objects for Sound recorder
+        #========================================
+        self.recThread = RecordThreading(self.path_snd)
+        
+    def recording(self):
+        # Start the recording thread.
+        self.recThread.start()
+        
+        # Stop the threading.
+        self.btn_rec_stop.clicked.connect(self.recThread.terminate)
+    
+    def playing(self):
+        # Get the path to the sound path.
+        if not self.lst_snd_fls.currentItem() == None:
+            snd_file_name = self.lst_snd_fls.currentItem().text()
+            snd_path = os.path.join(self.path_snd, snd_file_name)
+        
+        data, fs = sf.read(snd_path, dtype='float32')
+        sd.play(data, fs)
+        
+        self.btn_rec_stop.clicked.connect(self.stopping)
+    
+    def stopping(self):
+        sd.stop()
+        
+    def getSoundFiles(self):
+        global SND_EXT
+        self.lst_snd_fls.clear()
+        
+        # Get the file list with given path.
+        snd_lst = getFilesWithExtensionList(self.path_snd, SND_EXT)
+        
+        # Add each image file name to the list box.
+        if snd_lst > 0:
+            for snd_fl in snd_lst:
+                snd_item = QListWidgetItem(snd_fl)
+                self.lst_snd_fls.addItem(snd_item)
+    
+    def getImageFiles(self):
+        global IMG_EXT
+        global RAW_EXT
+        
+        # Get the file list with given path.
+        img_lst_main = getFilesWithExtensionList(self.path_img, IMG_EXT)
+        img_lst_raw = getFilesWithExtensionList(self.path_img, RAW_EXT)
+        
+        # Add each image file name to the list box.
+        if img_lst_main > 0:
+            for img_main in img_lst_main:
+                img_item = QListWidgetItem(img_main)
+                self.lst_img_fls.addItem(img_item)
+        
+        # Add each RAW file name to the list box.
+        if img_lst_raw > 0:
+            for img_raw in img_lst_raw:
+                img_item = QListWidgetItem(img_raw)
+                self.lst_img_fls.addItem(img_raw)
+    
+    def showImage(self):
+        panel_w = self.image_panel.width()
+        panel_h = self.image_panel.height()
+        
+        if not self.lst_img_fls.currentItem() == None:
+            # Get the file name and its path.
+            img_file_name = self.lst_img_fls.currentItem().text()
+            img_path = os.path.join(self.path_img, img_file_name)
+            
+            # Check the image file can be displayed directry.
+            img_base, img_ext = os.path.splitext(img_file_name)
+            img_valid = False
+            
+            for qt_ext in QT_IMG:
+                # Exit loop if extension is matched with Qt supported image.
+                if img_ext.lower() == qt_ext.lower():
+                    img_valid = True
+                    break
+            
+            # Check whether the image is Raw image or not.
+            if not img_valid == True:
+                # Extract the thumbnail image from the RAW image by using "dcraw".
+                imageProcessing.getThumbnail(img_path)
+                
+                # Get the extracted thumbnail image.
+                img_file_name = img_base + ".thumb.jpg"
+                
+                # Get the full path of the thumbnail image.
+                img_path = os.path.join(self.tethered, img_file_name)
+            
+            if os.path.exists(img_path):
+                # Create the container for displaying the image
+                org_pixmap = QPixmap(img_path)
+                scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
+                
+                # Set the image file to the image view container.
+                self.image_panel.setPixmap(scl_pixmap)
+                
+                # Show the selected image.
+                self.image_panel.show()
+            else:
+                # Create error messages.
+                error_title = "エラーが発生しました"
+                error_msg = "このファイルはプレビューに対応していません。"
+                error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
+                error_icon = QMessageBox.Critical
+                error_detailed = None
+                
+                # Handle error.
+                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+        else:
+            return(None)
 
 class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
     def __init__(self, parent=None, path=None):
@@ -354,7 +552,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
                 return(None)
         else:
             return(None)
-
+    
 class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def __init__(self, parent=None):
         # Get the root directory for this script.
@@ -491,6 +689,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
+        
+        self.btn_con_rec.clicked.connect(self.recordWithPhoto)
+        self.btn_mat_rec.clicked.connect(self.recordWithPhoto)
     
     # ==========================
     # General operation
@@ -1760,6 +1961,50 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Returns nothing.
             return(None)
         
+    def recordWithPhoto(self):
+        global TMP_DIR
+        global CON_DIR
+        global TETHERED
+                
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        # Get the current consolidation.
+        item_uuid = select_uuid
+        
+        if select_type == "consolidation":
+            # Define the path to the consolidation.
+            item_path = os.path.join(CON_DIR, item_uuid)
+            lst_fls = self.lst_con_fls
+            
+        elif select_type == "material":
+            # Get the consolidation uuid.
+            con_uuid = select_item.parent().text(0)
+            con_path = os.path.join(CON_DIR, con_uuid)
+            
+            # Get the item path under the consolidaiton path.
+            item_path = os.path.join(os.path.join(con_path, "Materials"),item_uuid)
+            lst_fls = self.lst_mat_fls
+        else:
+            return(None)
+        
+        # Check the result of the tethered image.
+        print(os.path.exists(item_path))
+        
+        self.dialogRecording = RecordWithImage(parent=self, path=item_path)
+        
+        isAccepted = self.dialogRecording.exec_()
+    
     def tetheredShooting(self):
         global TMP_DIR
         global CON_DIR
