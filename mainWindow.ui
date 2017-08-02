@@ -1103,7 +1103,22 @@
     </property>
     <addaction name="act_prj_open"/>
    </widget>
+   <widget class="QMenu" name="men_dat">
+    <property name="title">
+     <string>データ</string>
+    </property>
+    <widget class="QMenu" name="men_dat_imp">
+     <property name="title">
+      <string>インポート</string>
+     </property>
+     <addaction name="act_imp_db"/>
+     <addaction name="act_imp_txt"/>
+     <addaction name="act_imp_fls"/>
+    </widget>
+    <addaction name="men_dat_imp"/>
+   </widget>
    <addaction name="men_prj"/>
+   <addaction name="men_dat"/>
   </widget>
   <action name="actionCreate_New_Project">
    <property name="text">
@@ -1124,6 +1139,21 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="act_imp_db">
+   <property name="text">
+    <string>データベース</string>
+   </property>
+  </action>
+  <action name="act_imp_txt">
+   <property name="text">
+    <string>テキストデータ</string>
+   </property>
+  </action>
+  <action name="act_imp_fls">
+   <property name="text">
+    <string>ファイルシステム</string>
    </property>
   </action>
  </widget>

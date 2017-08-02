@@ -27,7 +27,7 @@
        <item>
         <widget class="QLabel" name="image_panel">
          <property name="text">
-          <string>TextLabel</string>
+          <string/>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -49,28 +49,28 @@
          <item>
           <widget class="QPushButton" name="btn_rec_start">
            <property name="text">
-            <string>Record</string>
+            <string>録音する</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_rec_stop">
            <property name="text">
-            <string>Stop</string>
+            <string>停止する</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_play">
            <property name="text">
-            <string>Play</string>
+            <string>再生する</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_refresh">
            <property name="text">
-            <string>Refresh</string>
+            <string>リスト更新</string>
            </property>
           </widget>
          </item>

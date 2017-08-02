@@ -21,6 +21,7 @@ class Ui_testDialog(object):
         self.verticalLayout.setContentsMargins(0, -1, -1, -1)
         self.verticalLayout.setObjectName("verticalLayout")
         self.image_panel = QtWidgets.QLabel(testDialog)
+        self.image_panel.setText("")
         self.image_panel.setAlignment(QtCore.Qt.AlignCenter)
         self.image_panel.setObjectName("image_panel")
         self.verticalLayout.addWidget(self.image_panel)
@@ -70,9 +71,8 @@ class Ui_testDialog(object):
     def retranslateUi(self, testDialog):
         _translate = QtCore.QCoreApplication.translate
         testDialog.setWindowTitle(_translate("testDialog", "Dialog"))
-        self.image_panel.setText(_translate("testDialog", "TextLabel"))
-        self.btn_rec_start.setText(_translate("testDialog", "Record"))
-        self.btn_rec_stop.setText(_translate("testDialog", "Stop"))
-        self.btn_play.setText(_translate("testDialog", "Play"))
-        self.btn_refresh.setText(_translate("testDialog", "Refresh"))
+        self.btn_rec_start.setText(_translate("testDialog", "録音する"))
+        self.btn_rec_stop.setText(_translate("testDialog", "停止する"))
+        self.btn_play.setText(_translate("testDialog", "再生する"))
+        self.btn_refresh.setText(_translate("testDialog", "リスト更新"))
 

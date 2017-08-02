@@ -213,7 +213,7 @@ class RecordThreading(QThread):
             subtype = "PCM_24"
             channels = 2
             device_info = sd.query_devices(None, 'input')
-            samplerate = int(device_info['default_samplerate'])
+            samplerate = 48000  #samplerate = int(device_info['default_samplerate'])
             
             # Give the original file name by using uuid of the sound file.
             filename = tempfile.mktemp(prefix=snd_uuid, suffix='.wav', dir=self.path_snd)
@@ -237,6 +237,15 @@ class RecordThreading(QThread):
 
 class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
     def __init__(self, parent=None, path=None):
+        # Get the root directory for this script.
+        global SRC_DIR
+        global TMP_DIR
+        
+        # Set the source directory which this program located.
+        SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+        
+        icon_path = os.path.join(SRC_DIR, "icon")
+        
         super(RecordWithImage, self).__init__(parent)
         self.setupUi(self)
         
@@ -249,9 +258,20 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.path_snd = os.path.join(path, "Sounds")
         
         # Initialyze the sound file control objects.
+        self.btn_refresh.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_sync_black_24dp_1x.png'))))
+        self.btn_refresh.setIconSize(QSize(24,24))
         self.btn_refresh.clicked.connect(self.getSoundFiles)
+        
+        self.btn_play.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_play_circle_filled_black_24dp_1x.png'))))
+        self.btn_play.setIconSize(QSize(24,24))
         self.btn_play.clicked.connect(self.playing)
+        
+        self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_fiber_manual_record_black_24dp_1x.png'))))
+        self.btn_rec_start.setIconSize(QSize(24,24))
         self.btn_rec_start.clicked.connect(self.recording)
+        
+        self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_pause_circle_filled_black_24dp_1x.png'))))
+        self.btn_rec_stop.setIconSize(QSize(24,24))
         
         # Define the return values.
         self.buttonBox.accepted.connect(self.accept)
@@ -628,6 +648,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_con_take.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_con_take.setIconSize(QSize(24,24))
         
+        # Activate the opening recording dialog button.
+        self.btn_con_rec.clicked.connect(self.recordWithPhoto)
+        self.btn_con_rec.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_keyboard_voice_black_24dp_1x.png'))))
+        self.btn_con_rec.setIconSize(QSize(24,24))
+        
         # Handle current selection of files for consolidations.
         self.lst_con_fls.itemSelectionChanged.connect(self.getImageFileInfo)
         
@@ -665,6 +690,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_mat_take.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_mat_take.setIconSize(QSize(24,24))
         
+        # Activate the opening recording dialog button.
+        self.btn_mat_rec.clicked.connect(self.recordWithPhoto)
+        self.btn_mat_rec.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_keyboard_voice_black_24dp_1x.png'))))
+        self.btn_mat_rec.setIconSize(QSize(24,24))
+        
         # Handle current selection of files for consolidations.
         self.lst_mat_fls.itemSelectionChanged.connect(self.getImageFileInfo)
         
@@ -689,9 +719,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
-        
-        self.btn_con_rec.clicked.connect(self.recordWithPhoto)
-        self.btn_mat_rec.clicked.connect(self.recordWithPhoto)
     
     # ==========================
     # General operation
