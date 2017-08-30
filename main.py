@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2
 
 # Import the library for acquiring file information.
 from stat import *
@@ -21,6 +21,7 @@ from sqlite3 import Error
 import mainWindow
 import checkTetheredImageDialog
 import recordWithPhotoDialog
+import recordWithPhotoWindow
 
 # Import camera and image processing library.
 import imageProcessing
@@ -39,6 +40,7 @@ CON_DIR = None
 
 DATABASE = None
 TETHERED = None
+IMGPROC = None
 
 # Define the equipments.
 CAMERA = None
@@ -262,14 +264,17 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.btn_refresh.setIconSize(QSize(24,24))
         self.btn_refresh.clicked.connect(self.getSoundFiles)
         
+        # Initialyze the play button.
         self.btn_play.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_play_circle_filled_black_24dp_1x.png'))))
         self.btn_play.setIconSize(QSize(24,24))
         self.btn_play.clicked.connect(self.playing)
         
+        # Initialyze the record button.
         self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_fiber_manual_record_black_24dp_1x.png'))))
         self.btn_rec_start.setIconSize(QSize(24,24))
         self.btn_rec_start.clicked.connect(self.recording)
         
+        # Initialyze the stop button.
         self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_pause_circle_filled_black_24dp_1x.png'))))
         self.btn_rec_stop.setIconSize(QSize(24,24))
         
@@ -283,7 +288,6 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         
         # Initialyze the file information view.
         self.lst_snd_fls.setMaximumSize(QSize(16777215, 100))
-        
         self.lst_img_fls.setMaximumSize(QSize(16777215, 100))
         self.lst_img_fls.itemSelectionChanged.connect(self.showImage)
         
@@ -295,7 +299,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         # Initialyze objects for Sound recorder
         #========================================
         self.recThread = RecordThreading(self.path_snd)
-        
+    
     def recording(self):
         # Start the recording thread.
         self.recThread.start()
@@ -557,6 +561,9 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
                 
                 # Show the selected image.
                 self.image_panel.show()
+                
+                self.getImageFileInfo()
+                
             else:
                 # Create error messages.
                 error_title = "エラーが発生しました"
@@ -695,6 +702,43 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_mat_rec.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_keyboard_voice_black_24dp_1x.png'))))
         self.btn_mat_rec.setIconSize(QSize(24,24))
         
+        # Activate image proccessing tool buttons.
+        self.btn_mat_img_cnt.clicked.connect(self.extractContour)
+        self.btn_mat_img_cnt.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_crop_black_24dp_1x.png'))))
+        self.btn_mat_img_cnt.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_inv.clicked.connect(self.negativeToPositive)
+        self.btn_mat_img_inv.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_compare_black_24dp_1x.png'))))
+        self.btn_mat_img_inv.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_del.clicked.connect(self.deleteSelectedImage)
+        self.btn_mat_img_del.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_delete_forever_black_24dp_1x.png'))))
+        self.btn_mat_img_del.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_rot_r.clicked.connect(self.rotateImageRight)
+        self.btn_mat_img_rot_r.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_rotate_right_black_24dp_1x.png'))))
+        self.btn_mat_img_rot_r.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_rot_l.clicked.connect(self.rotateImageLeft)
+        self.btn_mat_img_rot_l.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_rotate_left_black_24dp_1x.png'))))
+        self.btn_mat_img_rot_l.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_rot_u.clicked.connect(self.rotateImageInvert)
+        self.btn_mat_img_rot_u.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_sync_black_24dp_1x.png'))))
+        self.btn_mat_img_rot_u.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_mno.clicked.connect(self.makeMonoImage)
+        self.btn_mat_img_mno.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_monochrome_photos_black_24dp_1x.png'))))
+        self.btn_mat_img_mno.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_enh.clicked.connect(self.enhanceImage)
+        self.btn_mat_img_enh.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_photo_filter_black_24dp_1x.png'))))
+        self.btn_mat_img_enh.setIconSize(QSize(24,24))
+        
+        self.btn_mat_gimp.clicked.connect(self.openWithGimp)
+        self.btn_mat_gimp.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'gimp-icon.png'))))
+        self.btn_mat_gimp.setIconSize(QSize(24,24))
+        
         # Handle current selection of files for consolidations.
         self.lst_mat_fls.itemSelectionChanged.connect(self.getImageFileInfo)
         
@@ -721,8 +765,345 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.detectCamera()
     
     # ==========================
+    # Image processing tools
+    # ==========================
+    def getCurrentImage(self):
+        global CON_DIR
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        # Get uuid of the consolidation or the material.
+        item_uuid = select_uuid
+        
+        if select_type == "consolidation":
+            if not self.lst_con_fls.currentItem() == None:
+                # Get the path to the consolidation.
+                con_path = os.path.join(CON_DIR,item_uuid)
+                
+                # Get the path to the image directory of the consolidation.
+                img_path = os.path.join(con_path, "Images")
+                
+                # Get the selected image file.
+                lst_fls = self.lst_con_fls.currentItem().text()
+            else:
+                return(None)
+        elif select_type == "material":
+            if not self.lst_mat_fls.currentItem() == None:
+                # Get uuid of the consolidation.
+                con_uuid = select_item.parent().text(0)
+                
+                # Get the consolidation path.
+                con_path = os.path.join(CON_DIR, con_uuid)
+                mat_path = os.path.join(os.path.join(con_path, "Materials"), select_uuid)
+                
+                # Get the path to the image directory of the consolidation.
+                img_path = os.path.join(mat_path, "Images")
+                
+                # Get the selected image file.
+                lst_fls = self.lst_mat_fls
+            else:
+                return(None)
+        else:
+            return(None)
+        
+        # Get the file name which is currently selected.
+        img_file_name = lst_fls.currentItem().text()
+        
+        # Make the full path of the selected image file.
+        img_file_path = os.path.join(img_path,img_file_name)
+        
+        # Return values.
+        return([select_type, select_uuid, img_path, img_file_path, lst_fls])
+        
+    def openWithGimp(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_org, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_org))
+        
+        if os.path.exists(img_file_path_org):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_org)
+            
+            # Make a copy of the original.
+            img_file_path_new = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
+            shutil.copy(img_file_path_org, img_file_path_new)
+            
+            # Invert the negative image.
+            imageProcessing.openWithGimp(img_file_path_new)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+        
+    def rotateImageLeft(self):
+        self.rotateImage(-90)
+    
+    def rotateImageRight(self):
+        self.rotateImage(90)
+    
+    def rotateImageInvert(self):
+        self.rotateImage(180)
+    
+    def rotateImage(self, angle):
+        global TMP_DIR
+        
+        # Initialyze the temporal directory.
+        imgproc_path = os.path.join(TMP_DIR, "imgproc")
+        
+        if not os.path.exists(imgproc_path):
+            # Create the temporal directory if not exists.
+            os.mkdir(imgproc_path)
+        else:
+            # Delete the existing temporal directory before create.
+            shutil.rmtree(imgproc_path)
+            os.mkdir(imgproc_path)
+        
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Exit if the mime type is not match.
+        img_file_ext = os.path.splitext(img_file_path_in)[1]
+        
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_in))
+        
+        if os.path.exists(img_file_path_in):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_in)
+            
+            # Rotate the image 90 degree.
+            img_file_path_out = imageProcessing.rotation(img_file_path_in, imgproc_path, angle)
+            
+            # Copy exif information.
+            self.copyExif(img_file_path_in, img_file_path_out)
+            
+            # Over write original image with rotated image.
+            shutil.copy(img_file_path_out, img_file_path_in)
+            os.remove(img_file_path_out)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+            self.showImage(select_type, img_file_path_in)
+    
+    def makeMonoImage(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Exit if the mime type is not match.
+        img_file_ext = os.path.splitext(img_file_path_in)[1]
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_in))
+        
+        if os.path.exists(img_file_path_in):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_in)
+            
+            # Invert the negative image.
+            img_file_path_out = imageProcessing.makeMono(img_file_path_in, out_dir)
+            
+            # Copy exif information.
+            self.copyExif(img_file_path_in, img_file_path_out)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+    
+    def enhanceImage(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Exit if the mime type is not match.
+        img_file_ext = os.path.splitext(img_file_path_in)[1]
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_in))
+        
+        if os.path.exists(img_file_path_in):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_in)
+            
+            # Invert the negative image.
+            img_file_path_out = imageProcessing.enhance(img_file_path_in, out_dir)
+            
+            # Copy exif information.
+            self.copyExif(img_file_path_in, img_file_path_out)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+    
+    def extractContour(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Exit if the mime type is not match.
+        img_file_ext = os.path.splitext(img_file_path_in)[1]
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_in))
+        
+        if os.path.exists(img_file_path_in):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_in)
+            
+            # Extract contour and save the inner frame of the contour.
+            img_file_path_out = imageProcessing.extractInnerFrame(img_file_path_in, out_dir, ratio = 0.05)
+            
+            # Copy exif information.
+            self.copyExif(img_file_path_in, img_file_path_out)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+    
+    def negativeToPositive(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Exit if the mime type is not match.
+        img_file_ext = os.path.splitext(img_file_path_in)[1]
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        
+        # Get the image path.
+        img_path = os.path.dirname(os.path.dirname(img_file_path_in))
+        
+        if os.path.exists(img_file_path_in):
+            # Get the parent directory of the original image.
+            out_dir = os.path.dirname(img_file_path_in)
+            
+            # Invert the negative image.
+            img_file_path_out = imageProcessing.negaToPosi(img_file_path_in, out_dir)
+            
+            # Copy exif information.
+            self.copyExif(img_file_path_in, img_file_path_out)
+            
+            # Refresh the image file list.
+            self.refreshImageFileList(img_path, select_uuid, lst_fls)
+    
+    def copyExif(self, org_file, dst_file):
+        # Get the exif information for the original image.
+        meta_org = pyexiv2.ImageMetadata(org_file)
+        meta_org.read()
+        meta_org.modified = True
+        
+        # Get the exif information for the cropped image.
+        meta_dst = pyexiv2.metadata.ImageMetadata(dst_file)
+        meta_dst.read()
+        
+        # Copy the original exif information to the cropped image.
+        meta_org.copy(meta_dst)
+        meta_dst.write()
+    
+    # ==========================
     # General operation
     # ==========================
+    def deleteSelectedImage(self):
+        global CON_DIR
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        # Get uuid of the consolidation or the material.
+        item_uuid = select_uuid
+        
+        if select_type == "consolidation":
+            if not self.lst_con_fls.currentItem() == None:
+                # Get the path to the consolidation.
+                con_path = os.path.join(CON_DIR,item_uuid)
+                
+                # Get the path to the image directory of the consolidation.
+                img_path = os.path.join(con_path, "Images")
+                
+                # Get the selected image file.
+                lst_fls = self.lst_con_fls.currentItem().text()
+            else:
+                return(None)
+        elif select_type == "material":
+            if not self.lst_mat_fls.currentItem() == None:
+                # Get uuid of the consolidation.
+                con_uuid = select_item.parent().text(0)
+                
+                # Get the consolidation path.
+                con_path = os.path.join(CON_DIR, con_uuid)
+                mat_path = os.path.join(os.path.join(con_path, "Materials"), select_uuid)
+                
+                # Get the path to the image directory of the consolidation.
+                img_path = os.path.join(mat_path, "Images")
+                
+                # Get the selected image file.
+                lst_fls = self.lst_mat_fls
+            else:
+                return(None)
+        else:
+            return(None)
+        
+        # Get the file name which is currently selected.
+        img_file_name = lst_fls.currentItem().text()
+        
+        # Make the full path of the selected image file.
+        img_file_path = os.path.join(img_path,img_file_name)
+        
+        # Confirm deletion.
+        reply = QMessageBox.question(
+                self, 
+                '画像の削除', 
+                '選択されたファイルを本当に削除しますか？', 
+                QMessageBox.Yes, 
+                QMessageBox.No
+            )
+        
+        # Confirm deleting the consolidation.
+        if not reply == QMessageBox.Yes: return(None)
+        
+        # Delete the selected file.
+        os.remove(img_file_path)
+        
+        # Refresh the image file list.
+        self.refreshImageFileList(img_path, select_uuid, self.lst_mat_fls)
+    
     def getTheRootDirectory(self):
         # Define constants.
         global ROOT_DIR
@@ -1023,7 +1404,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Set the image file to the image view container.
             lbl_img_preview.setPixmap(scl_pixmap)
-            
+                        
             # Show the selected image.
             lbl_img_preview.show()
         else:
@@ -1153,16 +1534,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Clear the item list.
         lst_fls.clear()
-        
+        print("hoge")
         # Define the search path to the medium.
         path_img_main = os.path.join(search_dir, "Main")
         path_img_raw = os.path.join(search_dir, "Raw")
         path_img_thumb = os.path.join(search_dir, "Thumbs")
-        
+        print("fuga")
         # Get image files from the given directory.
         img_fls = getFilesWithExtensionList(path_img_main, IMG_EXT)
         raw_fls = getFilesWithExtensionList(path_img_raw, RAW_EXT)
-        
+        print("bar")
         # Get general files from "Main".
         if img_fls > 0:
             for img_file in img_fls:
@@ -1412,6 +1793,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Refresh the consolidation files.
                     con_img_path = os.path.join(os.path.join(CON_DIR, con_uuid), "Images")
                     self.refreshImageFileList(con_img_path, con_uuid, self.lst_con_fls)
+                    
+                    # Set the first image for the preview image.
+                    self.lst_con_fls.setCurrentRow(0)
             except Error as e:
                 # Create error messages.
                 error_title = "エラーが発生しました"
@@ -1513,8 +1897,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     self.tbx_mat_geo_lat.setText(mat_geo_lat)
                     self.tbx_mat_geo_lon.setText(mat_geo_lon)
                     self.tbx_mat_geo_alt.setText(mat_geo_alt)
+                    
                     # self.tbx_mat_num.setText(mat_num)
-                    self.tbx_con_description.setText(mat_description)
+                    self.tbx_mat_description.setText(mat_description)
                     
                     # Refresh the material image files.
                     con_path = os.path.join(CON_DIR, con_uuid)
@@ -1522,6 +1907,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     mat_img_path = os.path.join(con_mat,"Images")
                     
                     self.refreshImageFileList(mat_img_path, mat_uuid, self.lst_mat_fls)
+                    
+                    # Set the first image for the preview image.
+                    self.lst_mat_fls.setCurrentRow(0)
             except Error as e:
                 # Create error messages.
                 error_title = "エラーが発生しました"
