@@ -429,8 +429,3 @@ def ihsConvert(img, high):
     # Return converted image.
     return Image.merge('RGB',(r,g,b))
 
-def showImage(rawfile):
-    cmd_show = ["geeqie"]
-    cmd_show.append(rawfile)
-    
-    subprocess.call(cmd_show)

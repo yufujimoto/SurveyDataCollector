@@ -635,6 +635,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Initialyze objects for consolidation
         #========================================
         
+        self.tab_mat_src.setTabIcon(0, QIcon(QPixmap(os.path.join(icon_path, 'ic_collections_black_24dp_1x.png'))))
+        self.tab_mat_src.setTabIcon(1, QIcon(QPixmap(os.path.join(icon_path, 'ic_library_music_black_24dp_1x.png'))))
+        self.tab_mat_src.setCurrentIndex(0)
+        
         # Activate the adding a consolidation button.
         self.btn_con_add.clicked.connect(self.addConsolidation)
         self.btn_con_add.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_add_box_black_24dp_1x.png'))))
@@ -738,6 +742,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_mat_gimp.clicked.connect(self.openWithGimp)
         self.btn_mat_gimp.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'gimp-icon.png'))))
         self.btn_mat_gimp.setIconSize(QSize(24,24))
+        
+        self.btn_mat_img_sav.clicked.connect(self.saveImageAs)
+        self.btn_mat_img_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_move_to_inbox_black_24dp_1x.png'))))
+        self.btn_mat_img_sav.setIconSize(QSize(24,24))
         
         # Handle current selection of files for consolidations.
         self.lst_mat_fls.itemSelectionChanged.connect(self.getImageFileInfo)
@@ -882,7 +890,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Exit if the mime type is not match.
         img_file_ext = os.path.splitext(img_file_path_in)[1]
         
-        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg":
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "対応していないファイル形式です"
+            error_info = "RAWデータはRawtherapee等のツールで編集してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+           
+            # Returns nothing.
+            return(None)
         
         # Get the image path.
         img_path = os.path.dirname(os.path.dirname(img_file_path_in))
@@ -914,7 +934,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the mime type is not match.
         img_file_ext = os.path.splitext(img_file_path_in)[1]
-        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg":
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "対応していないファイル形式です"
+            error_info = "RAWデータはRawtherapee等のツールで編集してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+           
+            # Returns nothing.
+            return(None)
         
         # Get the image path.
         img_path = os.path.dirname(os.path.dirname(img_file_path_in))
@@ -941,7 +973,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the mime type is not match.
         img_file_ext = os.path.splitext(img_file_path_in)[1]
-        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg":
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "対応していないファイル形式です"
+            error_info = "RAWデータはRawtherapee等のツールで編集してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+           
+            # Returns nothing.
+            return(None)
         
         # Get the image path.
         img_path = os.path.dirname(os.path.dirname(img_file_path_in))
@@ -968,7 +1012,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the mime type is not match.
         img_file_ext = os.path.splitext(img_file_path_in)[1]
-        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg":
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "対応していないファイル形式です"
+            error_info = "RAWデータはRawtherapee等のツールで編集してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+           
+            # Returns nothing.
+            return(None)
         
         # Get the image path.
         img_path = os.path.dirname(os.path.dirname(img_file_path_in))
@@ -995,7 +1051,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the mime type is not match.
         img_file_ext = os.path.splitext(img_file_path_in)[1]
-        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg": return(None)
+        if not img_file_ext.lower() == ".jpg" or img_file_ext == "jpeg":
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "対応していないファイル形式です"
+            error_info = "RAWデータはRawtherapee等のツールで編集してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+           
+            # Returns nothing.
+            return(None)
         
         # Get the image path.
         img_path = os.path.dirname(os.path.dirname(img_file_path_in))
@@ -1026,6 +1094,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Copy the original exif information to the cropped image.
         meta_org.copy(meta_dst)
         meta_dst.write()
+    
+    def saveImageAs(self):
+        # Make the full path of the selected image file.
+        if not self.getCurrentImage() == None:
+            select_type, select_uuid, img_path, img_file_path_in, lst_fls = self.getCurrentImage()
+        else:
+            return(None)
+        
+        # Get the output file name by using file save dialog.
+        img_file_path_out, img_file_type = QFileDialog.getSaveFileName(self, "保存先の選択", "output.jpg","Images (*.jpg)")
+        
+        if img_file_path_out:
+            if not os.path.exists(img_file_path_out):
+                print(img_file_path_out)
+                shutil.copyfile(img_file_path_in, img_file_path_out)
     
     # ==========================
     # General operation
