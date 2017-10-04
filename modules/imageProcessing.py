@@ -12,6 +12,8 @@ from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 
 def detectCam():
+    cams = list()
+    
     # Define the subprocess for detecting connected camera.
     cmd_detect = ["gphoto2"]
     
@@ -19,25 +21,36 @@ def detectCam():
     cmd_detect.append("--auto-detect")
     cmd_detect.append("--quiet")
     
-    # Execute the subprocess. 
-    cam = subprocess.check_output(cmd_detect)
-    
-    # Edit the output strings.
-    cam = cam.replace("-","")
-    cam = cam.replace("\n","")
-    cam = cam.replace("\t",",")
-    cam = cam.replace("  "," ")
-    cam = cam.replace("Model","")
-    cam = cam.replace("Port","")
-    cam = cam.strip()
-    
-    # Returns camera information if succusessfully detected.
-    # Otherwise, returns nothing. 
-    if cam == "":
-        print("Error: No Camera detected")
+    try:
+        # Execute the subprocess. 
+        output = subprocess.check_output(cmd_detect)
+        
+        splitter = "----------------------------------------------------------"
+        
+        cams_list = output.split(splitter)[1].split("\n")
+        
+        for cam in cams_list:
+            # Edit the output strings.
+            cam = cam.replace("-","")
+            cam = cam.replace("\n","")
+            cam = cam.replace("\t",",")
+            cam = cam.replace("  "," ")
+            cam = cam.replace("Model","")
+            cam = cam.replace("Port","")
+            cam = cam.strip()
+            
+            if not cam == "":
+                cams.append(cam)
+        
+        # Returns camera information if succusessfully detected.
+        # Otherwise, returns nothing. 
+        if len(cams) == 0:
+            print("Error: No Camera detected")
+            return(None)
+        else:
+            return(cams)
+    except:
         return(None)
-    else:
-        return(cam)
 
 def openWithGimp(in_file):
     # Define the subprocess for tethered shooting by using gphoto2
@@ -56,10 +69,13 @@ def takePhoto(output):
     cmd_taking.append("--capture-image-and-download")
     cmd_taking.append("--filename="+output+".%C")
     
-    # Execute the command.
-    result = subprocess.check_output(cmd_taking)
-    
-    return(result)
+    try:
+        # Execute the command.
+        result = subprocess.check_output(cmd_taking)
+        
+        return(result)
+    except:
+        return(None)
 
 def getConfig(param):
     # Define the subprocess for getting the camera configuration by using gphoto2.
@@ -69,43 +85,46 @@ def getConfig(param):
     cmd_getConfig.append("--get-config")
     cmd_getConfig.append(param)
     
-    # Execute the command.
-    params = subprocess.check_output(cmd_getConfig)
-    params = params.split("\n")
-    
-    result = dict()
-    
-    label = ""
-    current = ""
-    choice = list()
-    
-    for param in params:
-        item = param.split(":")
-        label = item[0]
+    try:
+        # Execute the command.
+        params = subprocess.check_output(cmd_getConfig)
+        params = params.split("\n")
         
-        if label == "Label":
-            entry = item[1].strip()
-            result["label"] = entry
-        elif label == "Current":
-            entry = item[1].strip()
-            result["current"] = entry
-        elif label == "Choice":
-            # Split the text with white space.
-            entry = item[1].strip().split(" ")
+        result = dict()
+        
+        label = ""
+        current = ""
+        choice = list()
+        
+        for param in params:
+            item = param.split(":")
+            label = item[0]
             
-            # Get the first item as the value.
-            entry_val = entry[0]
-            
-            # Remove the first item from the entry.
-            entry_txt = str(entry.pop(0))
-            
-            # Append the entry to the choice list.
-            choice.append({str(entry.pop(0)):entry_val})
-    
-    result["choice"] = choice
-    
-    # Returns configuration list.
-    return(result)
+            if label == "Label":
+                entry = item[1].strip()
+                result["label"] = entry
+            elif label == "Current":
+                entry = item[1].strip()
+                result["current"] = entry
+            elif label == "Choice":
+                # Split the text with white space.
+                entry = item[1].strip().split(" ")
+                
+                # Get the first item as the value.
+                entry_val = entry[0]
+                
+                # Remove the first item from the entry.
+                entry_txt = str(entry.pop(0))
+                
+                # Append the entry to the choice list.
+                choice.append({str(entry.pop(0)):entry_val})
+        
+        result["choice"] = choice
+        
+        # Returns configuration list.
+        return(result)
+    except:
+        return(None)
 
 def getConfigurations():
     # Define the subprocess for getting the camera configuration by using gphoto2.

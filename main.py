@@ -17,14 +17,17 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import sqlite3 as sqlite
 from sqlite3 import Error
 
+# Import general operations.
+import modules.general as general
+import modules.features as features
+
 # Import GUI window.
-import mainWindow
-import checkTetheredImageDialog
-import recordWithPhotoDialog
-import recordWithPhotoWindow
+import modules.mainWindow as mainWindow
+import modules.checkTetheredImageDialog as checkTetheredImageDialog
+import modules.recordWithPhotoDialog as recordWithPhotoDialog
 
 # Import camera and image processing library.
-import imageProcessing
+import modules.imageProcessing as imageProcessing
 
 # Import libraries for sound recording. 
 import Queue as queue
@@ -45,158 +48,15 @@ IMGPROC = None
 # Define the equipments.
 CAMERA = None
 
+# Labels for Consolidation and Material
+LAB_CON = "統合体"
+LAB_MAT = "資料"
+
 # Define the default extensions.
 QT_IMG = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
 IMG_EXT = [".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG", ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"]
 RAW_EXT = [".RAW", ".ARW"]
 SND_EXT = [".WAV"]
-
-def alert(title, message, icon, info, detailed):
-    # Create a message box object.
-    msg = QMessageBox()
-    
-    # Set parameters for the message box.
-    msg.setIcon(icon)
-    msg.setWindowTitle(title)
-    msg.setText(message)
-    
-    # Generate additional information if exists.
-    if not info == None:
-        msg.setInformativeText(info)
-    if not detailed == None:
-        msg.setDetailedText(detailed)
-    
-    # Show the message box.    
-    msg.exec_()
-
-def getFilesWithExtensionList(dir_search, ext_list_search):
-    result = list()
-    for ext_search in ext_list_search:
-        if os.path.exists(dir_search):
-            # Get files from the given directory.
-            filenames = os.listdir(dir_search)
-            
-            for filename in filenames:
-                # Get the full path of the file.
-                full_path = os.path.join(dir_search, filename)
-                
-                if not os.path.isdir(full_path):
-                    # Split file path into file name and file path.
-                    basename, extension = os.path.splitext(filename)
-                    
-                    # Check the file extension.
-                    if extension.lower() == ext_search.lower():
-                        result.append(filename)
-                else:
-                    # Search files recursively if the full path is directory.
-                    getFilesWithExtension(full_path, ext_search)
-        
-        else:
-            print("No such path.")
-            return(None)
-    return(result)
-
-def createTables(db_file):
-    # Define the create table query for consolidation class.
-    sql_con = """CREATE TABLE consolidation (
-                    id INTEGER PRIMARY KEY,
-                    uuid text NOT NULL,
-                    name text,
-                    geographic_annotation text,
-                    temporal_annotation text,
-                    description text
-                );"""
-    
-    # Define the create table query for material class.
-    sql_mat = """CREATE TABLE material (
-                    id integer PRIMARY KEY,
-                    uuid text NOT NULL,
-                    con_id integer NOT NULL,
-                    name text,
-                    estimated_period_beginning character varying(255),
-                    estimated_period_ending character varying(255),
-                    latitude real,
-                    longitude real,
-                    altitude real,
-                    material_number text,
-                    descriptions text,
-                    FOREIGN KEY (con_id) REFERENCES consolidation (id) ON UPDATE CASCADE ON DELETE CASCADE
-                );"""
-    
-    # Create tables by using SQL queries.
-    try:
-        # Connect to the DataBase file for SQLite.
-        conn = sqlite.connect(db_file)
-        
-        # Create tables if if connection successfully established
-        if conn is not None:
-            # Instantiate the cursor.
-            curs = conn.cursor()
-            
-            # Execute the SQL queries.
-            curs.execute(sql_con)
-            curs.execute(sql_mat)
-            
-            # Commit the queries.
-            conn.commit()
-            
-    except Error as e:
-        # Create error messages.
-        error_title = "エラーが発生しました"
-        error_msg = "テーブルは作成されませんでした!!"
-        error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-        error_icon = QMessageBox.Critical
-        error_detailed = e.args[0]
-        
-        # Handle error.
-        alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-        
-        # Returns nothing.
-        return(None)
-    finally:
-        # Finally close the connection.
-        conn.close()
-
-def createDirectories(item_dir, isConsolidation):
-    try:
-        # Define the root path and create the root directory.
-        sop_dir_root = item_dir
-        os.mkdir(sop_dir_root)
-        
-        # Define path of directories for each medium.
-        sop_dir_txt = os.path.join(sop_dir_root, "Texts")
-        sop_dir_img = os.path.join(sop_dir_root, "Images")
-        sop_dir_snd = os.path.join(sop_dir_root, "Sounds")
-        sop_dir_mov = os.path.join(sop_dir_root, "Movies")
-        sop_dir_lnk = os.path.join(sop_dir_root, "Linkages")
-        
-        # Make directories for each medium.
-        os.mkdir(sop_dir_txt)
-        os.mkdir(sop_dir_img)
-        os.mkdir(sop_dir_snd)
-        os.mkdir(sop_dir_mov)
-        os.mkdir(sop_dir_lnk)
-        
-        # Make directories for images.
-        os.mkdir(os.path.join(sop_dir_img, "Main"))
-        os.mkdir(os.path.join(sop_dir_img, "Raw"))
-        os.mkdir(os.path.join(sop_dir_img, "Thumbs"))
-        
-        # In case consolidation, create a directory for materials.
-        if isConsolidation:
-            os.mkdir(os.path.join(sop_dir_root, "Materials"))
-    except:
-        # Create error messages.
-        error_title = "エラーが発生しました"
-        error_msg = "ディレクトリの作成に失敗しました。"
-        error_info = "不明のエラーです。"
-        error_icon = QMessageBox.Critical
-        error_detailed = None
-        
-        # Handle error.
-        alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-        
-        return(None)
 
 class RecordThreading(QThread):
     def __init__(self, path):
@@ -326,7 +186,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.lst_snd_fls.clear()
         
         # Get the file list with given path.
-        snd_lst = getFilesWithExtensionList(self.path_snd, SND_EXT)
+        snd_lst = general.getFilesWithExtensionList(self.path_snd, SND_EXT)
         
         # Add each image file name to the list box.
         if snd_lst > 0:
@@ -339,8 +199,8 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         global RAW_EXT
         
         # Get the file list with given path.
-        img_lst_main = getFilesWithExtensionList(self.path_img, IMG_EXT)
-        img_lst_raw = getFilesWithExtensionList(self.path_img, RAW_EXT)
+        img_lst_main = general.getFilesWithExtensionList(self.path_img, IMG_EXT)
+        img_lst_raw = general.getFilesWithExtensionList(self.path_img, RAW_EXT)
         
         # Add each image file name to the list box.
         if img_lst_main > 0:
@@ -403,7 +263,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
                 error_detailed = None
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
@@ -445,8 +305,8 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
         global RAW_EXT
         
         # Get the file list with given path.
-        img_lst_main = getFilesWithExtensionList(self.tethered, IMG_EXT)
-        img_lst_raw = getFilesWithExtensionList(self.tethered, RAW_EXT)
+        img_lst_main = general.getFilesWithExtensionList(self.tethered, IMG_EXT)
+        img_lst_raw = general.getFilesWithExtensionList(self.tethered, RAW_EXT)
         
         # Add each image file name to the list box.
         if img_lst_main > 0:
@@ -573,7 +433,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_testDialog):
                 error_detailed = None
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
@@ -620,6 +480,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Handle current selection of consolidations and materials.
         self.tre_prj_item.itemSelectionChanged.connect(self.toggleSelectedItem)
+        self.tre_prj_item.itemDoubleClicked.connect(self.test)
         
         # Activate the tab for grouping manupilating consolidations and materials.
         self.tab_target.setTabIcon(0, QIcon(QPixmap(os.path.join(icon_path, 'ic_apps_black_24dp_1x.png'))))
@@ -771,6 +632,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
+        
+    def test(self):
+        itm = self.tre_prj_item.itemFromIndex(self.tree.selectedIndexes()[0])
+        column = self.tre_prj_item.currentColumn()
+        edit = QtWidgets.QLineEdit()
+        edit.returnPressed.connect(lambda*_:self.project.setData(column,edit.text(),itm,column,self.tre_prj_item))
+        edit.returnPressed.connect(lambda*_:self.update())
+        self.tre_prj_item.setItemWidget(itm,column,edit)
     
     # ==========================
     # Image processing tools
@@ -899,7 +768,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
@@ -943,7 +812,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
@@ -982,7 +851,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
@@ -1021,7 +890,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
@@ -1060,7 +929,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
@@ -1237,7 +1106,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     conn = sqlite.connect(DATABASE)
                     
                     # Create new tables which defined by Simple Object Profile(SOP).
-                    createTables(DATABASE)
+                    general.createTables(DATABASE)
                 except Error as e:
                     # Create error messages.
                     error_title = "エラーが発生しました"
@@ -1247,7 +1116,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_detailed = e.args[0]
                     
                     # Handle error.
-                    alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                     
                     # Returns nothing.
                     return(None)
@@ -1325,7 +1194,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 error_detailed = e.args[0]
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
@@ -1499,7 +1368,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
             
             # Returns nothing.
             return(None)
@@ -1557,7 +1426,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 error_detailed = None
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 result["selection"] = [None, None, None]
@@ -1571,44 +1440,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
             
             # Returns nothing.
             result["selection"] = [None, None, None]
             return(result)
-    
-    def executeSqlQuery(self, query, value):
-        global DATABASE
-        
-        try:
-            # Establish the connection to the DataBase file.
-            conn = sqlite.connect(DATABASE)
-            
-            if conn is not None:
-                # Instantiate the cursor for query.
-                cur = conn.cursor()
-                
-                # Execute the query.
-                cur.execute(query, value)
-                
-                # Commit the result of the query.
-                conn.commit()
-        except Error as e:
-            # Create error messages.
-            error_title = "エラーが発生しました"
-            error_msg = "データベースに統合体の情報を挿入できませんでした。"
-            error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = e.args[0]
-            
-            # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-        finally:
-            # Finally close the connection.
-            conn.close()
     
     def refreshImageFileList(self, search_dir, uuid, lst_fls):
         global CON_DIR
@@ -1617,16 +1453,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Clear the item list.
         lst_fls.clear()
-        print("hoge")
+        
         # Define the search path to the medium.
         path_img_main = os.path.join(search_dir, "Main")
         path_img_raw = os.path.join(search_dir, "Raw")
         path_img_thumb = os.path.join(search_dir, "Thumbs")
-        print("fuga")
+        
         # Get image files from the given directory.
-        img_fls = getFilesWithExtensionList(path_img_main, IMG_EXT)
-        raw_fls = getFilesWithExtensionList(path_img_raw, RAW_EXT)
-        print("bar")
+        img_fls = general.getFilesWithExtensionList(path_img_main, IMG_EXT)
+        raw_fls = general.getFilesWithExtensionList(path_img_raw, RAW_EXT)
+        
         # Get general files from "Main".
         if img_fls > 0:
             for img_file in img_fls:
@@ -1716,7 +1552,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 error_detailed = None
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
@@ -1797,7 +1633,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 error_detailed = None
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
@@ -1837,64 +1673,35 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
         if select_type == "consolidation":
-            # Create the SQL query for selecting the consolidation.
-            sql_con_sel = """SELECT 
-                                name,
-                                geographic_annotation,
-                                temporal_annotation,
-                                description
-                            FROM consolidation WHERE uuid=?"""
             try:
-                # Get the uuid of the consolidation from the selected object.
-                con_uuid = select_uuid
+                # Instantiate by the DB record.
+                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
                 
-                # Establish the connection to the DataBase file.
-                conn = sqlite.connect(DATABASE)
+                # Set attributes to text boxes.
+                self.tbx_con_name.setText(con.name)
+                self.tbx_con_geoname.setText(con.geographic_annotation)
+                self.tbx_con_temporal.setText(con.temporal_annotation)
+                self.tbx_con_description.setText(con.description)
                 
-                if conn is not None:
-                    # Instantiate the cursor for query.
-                    cur = conn.cursor()
-                    
-                    # Execute the query.
-                    cur.execute(sql_con_sel, [con_uuid])
-                    
-                    # Fetch one row.
-                    row = cur.fetchone()
-                    
-                    # Get attributes from the row.
-                    con_name = row[0]
-                    con_geoname = row[1]
-                    con_temporal = row[2]
-                    con_description = row[3]
-                    
-                    # Set attributes to text boxes.
-                    self.tbx_con_name.setText(con_name)
-                    self.tbx_con_geoname.setText(con_geoname)
-                    self.tbx_con_temporal.setText(con_temporal)
-                    self.tbx_con_description.setText(con_description)
-                    
-                    # Refresh the consolidation files.
-                    con_img_path = os.path.join(os.path.join(CON_DIR, con_uuid), "Images")
-                    self.refreshImageFileList(con_img_path, con_uuid, self.lst_con_fls)
-                    
-                    # Set the first image for the preview image.
-                    self.lst_con_fls.setCurrentRow(0)
+                # Refresh the consolidation files.
+                con_img_path = os.path.join(os.path.join(CON_DIR, con.uuid), "Images")
+                self.refreshImageFileList(con_img_path, con.uuid, self.lst_con_fls)
+                
+                # Set the first image for the preview image.
+                self.lst_con_fls.setCurrentRow(0)
             except Error as e:
                 # Create error messages.
                 error_title = "エラーが発生しました"
-                error_msg = "データベースに統合体の情報を挿入できませんでした。"
+                error_msg = "インスタンスを取得することができませんでした。"
                 error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
                 error_icon = QMessageBox.Critical
                 error_detailed = e.args[0]
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
-            finally:
-                # Finally close the connection.
-                conn.close()
     
     def getMaterial(self):
         global DATABASE
@@ -1931,124 +1738,67 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
         if select_type == "material":
-            
-            # Create the SQL query for selecting the consolidation.
-            sql_mat_sel = """SELECT 
-                                con_id,
-                                name,
-                                estimated_period_beginning,
-                                estimated_period_ending,
-                                latitude,
-                                longitude,
-                                altitude,
-                                material_number,
-                                descriptions
-                            FROM material WHERE uuid=?"""
             try:
-                # Get the uuid of the consolidation and the material from the selected object.
-                con_uuid = select_item.parent().text(0)
-                mat_uuid = select_uuid
+                # Instantiate by the DB record.
+                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
                 
-                # Establish the connection to the DataBase file.
-                conn = sqlite.connect(DATABASE)
+                # Set attributes to text boxes.
+                self.tbx_mat_name.setText(mat.name)
+                self.tbx_mat_tmp_bgn.setText(mat.estimated_period_beginning)
+                self.tbx_mat_tmp_end.setText(mat.estimated_period_ending)
+                self.tbx_mat_geo_lat.setText(mat.latitude)
+                self.tbx_mat_geo_lon.setText(mat.longitude)
+                self.tbx_mat_geo_alt.setText(mat.altitude)
+                # self.tbx_mat_num.setText(mat_num)
+                self.tbx_mat_description.setText(mat.description)
                 
-                if conn is not None:
-                    # Instantiate the cursor for query.
-                    cur = conn.cursor()
-                    
-                    # Execute the query.
-                    cur.execute(sql_mat_sel, [mat_uuid])
-                    
-                    # Fetch one row.
-                    row = cur.fetchone()
-                    
-                    # Get attributes from the row.
-                    con_uuid = row[0]
-                    mat_name = row[1]
-                    mat_est_tmp_bgn = row[2]
-                    mat_est_tmp_end = row[3]
-                    mat_geo_lat = str(row[4])
-                    mat_geo_lon = str(row[5])
-                    mat_geo_alt = str(row[6])
-                    mat_num = row[7]
-                    mat_description = row[8]
-                    
-                    # Set attributes to text boxes.
-                    self.tbx_mat_name.setText(mat_name)
-                    self.tbx_mat_tmp_bgn.setText(mat_est_tmp_bgn)
-                    self.tbx_mat_tmp_end.setText(mat_est_tmp_end)
-                    self.tbx_mat_geo_lat.setText(mat_geo_lat)
-                    self.tbx_mat_geo_lon.setText(mat_geo_lon)
-                    self.tbx_mat_geo_alt.setText(mat_geo_alt)
-                    
-                    # self.tbx_mat_num.setText(mat_num)
-                    self.tbx_mat_description.setText(mat_description)
-                    
-                    # Refresh the material image files.
-                    con_path = os.path.join(CON_DIR, con_uuid)
-                    con_mat = os.path.join(os.path.join(con_path, "Materials"), mat_uuid)
-                    mat_img_path = os.path.join(con_mat,"Images")
-                    
-                    self.refreshImageFileList(mat_img_path, mat_uuid, self.lst_mat_fls)
-                    
-                    # Set the first image for the preview image.
-                    self.lst_mat_fls.setCurrentRow(0)
+                # Refresh the material image files.
+                con_path = os.path.join(CON_DIR, mat.consolidation)
+                con_mat = os.path.join(os.path.join(con_path, "Materials"), mat.uuid)
+                mat_img_path = os.path.join(con_mat,"Images")
+                
+                self.refreshImageFileList(mat_img_path, mat.uuid, self.lst_mat_fls)
+                
+                # Set the first image for the preview image.
+                self.lst_mat_fls.setCurrentRow(0)
             except Error as e:
                 # Create error messages.
                 error_title = "エラーが発生しました"
-                error_msg = "データベースに統合体の情報を挿入できませんでした。"
+                error_msg = "インスタンスを取得することができませんでした。"
                 error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
                 error_icon = QMessageBox.Critical
                 error_detailed = e.args[0]
                 
                 # Handle error.
-                alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                 
                 # Returns nothing.
                 return(None)
-            finally:
-                # Finally close the connection.
-                conn.close()
     
     def addConsolidation(self):
         global CON_DIR
         
-        # Check the selection state.
-        self.checkSelection()
-        
         try:
-            # Generate the GUID for the consolidation
-            con_uuid = str(uuid.uuid4())
+            # Initialize the Consolidation Class.
+            con = features.Consolidation(is_new=True, uuid=None, dbfile=None)
             
-            # Get attributes from text boxes.
-            con_name = self.tbx_con_name.text()
-            con_geoname = self.tbx_con_geoname.text()
-            con_temporal = self.tbx_con_temporal.text()
-            con_description = self.tbx_con_description.text()
+            # Instantiate the consolidation class
+            con.name = self.tbx_con_name.text()
+            con.geographic_annotation = self.tbx_con_geoname.text()
+            con.temporal_annotation = self.tbx_con_temporal.text()
+            con.description = self.tbx_con_description.text()
             
-            # Insert a new record into the database
-            con_vals = [con_uuid, con_name, con_geoname, con_temporal, con_description]
-            
-            # Create the SQL query for inserting the new consolidation.
-            sql_con_ins = """INSERT INTO consolidation (
-                        uuid, 
-                        name, 
-                        geographic_annotation, 
-                        temporal_annotation, 
-                        description
-                    ) VALUES (?,?,?,?,?)"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_con_ins, con_vals)
+            # Insert the instance into DBMS.
+            con.dbInsert(DATABASE)
             
             # Create a directory to store consolidation.
-            createDirectories(os.path.join(CON_DIR,con_uuid), True)
+            general.createDirectories(os.path.join(CON_DIR,con.uuid), True)
             
             # Update the tree view.
             tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
-            tre_prj_item_items.setText(0, con_uuid)
-            tre_prj_item_items.setText(1, con_name)
-            tre_prj_item_items.setText(2, con_description)
+            tre_prj_item_items.setText(0, con.uuid)
+            tre_prj_item_items.setText(1, con.name)
+            tre_prj_item_items.setText(2, con.description)
             
             # Refresh the tree view.
             self.tre_prj_item.show()
@@ -2065,7 +1815,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
             
             # Returns nothing.
             return(None)
@@ -2083,10 +1833,20 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             select_item = check_select["selection"][2]
         else:
             # Exit if something happened in checking the selection status on tree view.
+            # Create error messages.
+            error_title = "資料の作成エラー"
+            error_msg = "資料の作成ができません。"
+            error_info = "資料を包括する統合体を選択してください。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
             return(None)
         
         if select_type == "material":
-            # Get the consolidaiton uuid.
+            # Initialize the Consolidation Class.
             con_uuid = select_item.parent().text(0)
             
             # Confirm whether select the parent consolidations.
@@ -2111,49 +1871,50 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             tre_prj_item_items = QTreeWidgetItem(select_item)
         else:
             return(None)
-        # Generate the GUID for the material
-        mat_uuid = str(uuid.uuid4())
         
-        # Get attributes from text boxes.
-        mat_name = self.tbx_mat_name.text()
-        mat_geo_lat = self.tbx_mat_geo_lat.text()
-        mat_geo_lon = self.tbx_mat_geo_lon.text()
-        mat_geo_alt = self.tbx_mat_geo_alt.text()
-        mat_tmp_bgn = self.tbx_mat_tmp_bgn.text()
-        mat_tmp_end = self.tbx_mat_tmp_end.text()
-        mat_description = self.tbx_mat_description.text()
-        
-        # Insert a new record into the database
-        mat_vals = [mat_uuid, con_uuid, mat_name, mat_geo_lat, mat_geo_lon, mat_geo_alt, mat_tmp_bgn, mat_tmp_end, mat_description]
-        
-        # Create the SQL query for inserting the new consolidation.
-        sql_mat_ins = """INSERT INTO material (
-                    uuid,
-                    con_id, 
-                    name, 
-                    latitude,
-                    longitude,
-                    altitude,
-                    estimated_period_beginning,
-                    estimated_period_ending,
-                    descriptions
-                ) VALUES (?,?,?,?,?,?,?,?,?)"""
-        
-        # Execute the query.
-        self.executeSqlQuery(sql_mat_ins, mat_vals)
-        
-        # Create a directory to store consolidation.
-        con_dir = os.path.join(CON_DIR, con_uuid)
-        mat_dir = os.path.join(con_dir, "Materials")
-        
-        createDirectories(os.path.join(mat_dir, mat_uuid), False)
-        
-        # Update the tree view.
-        tre_prj_item_items.setText(0, mat_uuid)
-        tre_prj_item_items.setText(1, mat_name)
-        tre_prj_item_items.setText(2, mat_description)
-        
-        self.tre_prj_item.show()
+        try:
+            # Generate the GUID for the material
+            mat = features.Material(is_new=True, uuid=None, dbfile=None)
+            
+            # Get attributes from text boxes.
+            mat.consolidation = con_uuid
+            mat.name = self.tbx_mat_name.text()
+            mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
+            mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
+            mat.latitude = self.tbx_mat_geo_lat.text()
+            mat.longitude = self.tbx_mat_geo_lon.text()
+            mat.altitude = self.tbx_mat_geo_alt.text()
+            # mat.material_number = 
+            mat.description = self.tbx_mat_description.text()
+            
+            # Create the SQL query for inserting the new consolidation.
+            mat.dbInsert(DATABASE)
+            
+            # Create a directory to store consolidation.
+            con_dir = os.path.join(CON_DIR, mat.consolidation)
+            mat_dir = os.path.join(con_dir, "Materials")
+            
+            general.createDirectories(os.path.join(mat_dir, mat.uuid), False)
+            
+            # Update the tree view.
+            tre_prj_item_items.setText(0, mat.uuid)
+            tre_prj_item_items.setText(1, mat.name)
+            tre_prj_item_items.setText(2, mat.description)
+            
+            self.tre_prj_item.show()
+        except:
+            # Create error messages.
+            error_title = "資料の作成エラー"
+            error_msg = "資料の作成に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
     
     def updateConsolidation(self):
         # Check the selection state.
@@ -2169,37 +1930,38 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
         if select_type == "consolidation":
-            # Initialyze the consolidation ID.
-            con_uuid = select_uuid
-            
-            # Get params from text input box.
-            con_name = self.tbx_con_name.text()
-            con_geoname = self.tbx_con_geoname.text()
-            con_temporal = self.tbx_con_temporal.text()
-            con_description = self.tbx_con_description.text()
-            
-            # Update the existing record.
-            con_vals = [con_name, con_geoname, con_temporal, con_description, con_uuid]
-            
-            # Create the SQL query for updating the new consolidation.
-            sql_con_update = """UPDATE consolidation
-                        SET 
-                            name = ?, 
-                            geographic_annotation = ?, 
-                            temporal_annotation = ?, 
-                            description = ?
-                        WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_con_update, con_vals)
-            
-            # Update the tree view.
-            select_item.setText(0, con_uuid)
-            select_item.setText(1, con_name)
-            select_item.setText(2, con_description)
-                        
-            # Refresh the tree view.
-            self.tre_prj_item.show()
+            try:
+                # Initialize the Consolidation Class.
+                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Instantiate the consolidation class
+                con.name = self.tbx_con_name.text()
+                con.geographic_annotation = self.tbx_con_geoname.text()
+                con.temporal_annotation = self.tbx_con_temporal.text()
+                con.description = self.tbx_con_description.text()
+                
+                # Update the instance into DBMS.
+                con.dbUpdate(DATABASE)
+                
+                # Update the tree view.
+                select_item.setText(1, con.name)
+                select_item.setText(2, con.description)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+            except:
+                # Create error messages.
+                error_title = "統合体の更新エラー"
+                error_msg = "統合体の更新に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
         else:
             # Returns nothing.
             return(None)
@@ -2215,47 +1977,67 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             select_item = check_select["selection"][2]
         else:
             # Exit if something happened in checking the selection status on tree view.
+            # Create error messages.
+            error_title = "資料の更新エラー"
+            error_msg = "資料の更新ができません。"
+            error_info = "資料を包括する統合体を選択してください。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
             return(None)
         
         if select_type == "material":
-            # Generate the GUID for the material
-            mat_uuid = select_uuid
-            
-            # Get attributes from text boxes.
-            mat_name = self.tbx_mat_name.text()
-            mat_geo_lat = self.tbx_mat_geo_lat.text()
-            mat_geo_lon = self.tbx_mat_geo_lon.text()
-            mat_geo_alt = self.tbx_mat_geo_alt.text()
-            mat_tmp_bgn = self.tbx_mat_tmp_bgn.text()
-            mat_tmp_end = self.tbx_mat_tmp_end.text()
-            mat_description = self.tbx_mat_description.text()
-            
-            # Insert a new record into the database
-            mat_vals = [mat_name, mat_geo_lat, mat_geo_lon, mat_geo_alt, mat_tmp_bgn, mat_tmp_end, mat_description, mat_uuid]
-            
-            # Create the SQL query for updating the new consolidation.
-            sql_mat_update = """UPDATE material
-                        SET
-                            name = ?, 
-                            latitude = ?,
-                            longitude = ?,
-                            altitude = ?,
-                            estimated_period_beginning = ?,
-                            estimated_period_ending = ?,
-                            descriptions = ?
-                        WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_mat_update, mat_vals)
-            
-            # Update the tree view.
-            select_item.setText(0, mat_uuid)
-            select_item.setText(1, mat_name)
-            select_item.setText(2, mat_description)
-                        
-            # Refresh the tree view.
-            self.tre_prj_item.show()
+            try:
+                # Generate the GUID for the material
+                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Get attributes from text boxes.
+                mat.name = self.tbx_mat_name.text()
+                mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
+                mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
+                mat.latitude = self.tbx_mat_geo_lat.text()
+                mat.longitude = self.tbx_mat_geo_lon.text()
+                mat.altitude = self.tbx_mat_geo_alt.text()
+                # mat.material_number = 
+                mat.description = self.tbx_mat_description.text()
+                
+                # Create the SQL query for updating the new consolidation.
+                mat.dbUpdate(DATABASE)
+                
+                # Update the tree view.
+                select_item.setText(1, mat.name)
+                select_item.setText(2, mat.description)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+            except:
+                # Create error messages.
+                error_title = "資料の更新エラー"
+                error_msg = "資料の更新に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
         else:
+            # Create error messages.
+            error_title = "資料の更新エラー"
+            error_msg = "資料の更新に失敗しました。"
+            error_info = "更新対象の資料が選択されていません。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
             # Returns nothing.
             return(None)
     
@@ -2286,34 +2068,46 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 )
             
             # Confirm deleting the consolidation.
-            if not reply == QMessageBox.Yes: return(None)
+            if not reply == QMessageBox.Yes:
+                return(None)
             
-            # Initialyze the consolidation ID.
-            con_uuid = select_uuid
-            
-            # Remove the consolidation from the tree view.
-            root = self.tre_prj_item.invisibleRootItem()
-            
-            # Update the tree view.
-            root.removeChild(select_item)
-            
-            # Clear selection.
-            self.tre_prj_item.clearSelection()
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            
-            # Delete all files from consolidation directory.
-            shutil.rmtree(os.path.join(CON_DIR,con_uuid))
-            
-            # Create the SQL query for deleting the existing consolidation.
-            sql_con_del = """DELETE FROM consolidation WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_con_del, [con_uuid])
-            
-            # Reflesh the last selection.
-            self.refreshItemInfo()
+            try:
+                # Remove the consolidation from the tree view.
+                root = self.tre_prj_item.invisibleRootItem()
+                
+                # Update the tree view.
+                root.removeChild(select_item)
+                
+                # Clear selection.
+                self.tre_prj_item.clearSelection()
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                # Delete all files from consolidation directory.
+                shutil.rmtree(os.path.join(CON_DIR,select_uuid))
+                
+                # Initialize the Consolidation Class.
+                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Drop the consolidation from the DB table.
+                con.dbDrop(DATABASE)
+                
+                # Reflesh the last selection.
+                self.refreshItemInfo()
+            except:
+                # Create error messages.
+                error_title = "統合体の削除エラー"
+                error_msg = "統合体の削除に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
     
     def deleteMaterial(self):
         global CON_DIR
@@ -2340,45 +2134,62 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     QMessageBox.Yes, 
                     QMessageBox.No
                 )
-            if not reply == QMessageBox.Yes: return(None)
+            if not reply == QMessageBox.Yes:
+                return(None)
             
-            # Get the directory storing information about the material
-            con_uuid = select_item.parent().text(0)
-            
-            # Initialyze the consolidation ID.
-            mat_uuid = select_uuid
-            
-            # Update the tree view.
-            select_item.parent().removeChild(select_item)
-            
-            # Clear selection.
-            self.tre_prj_item.clearSelection()
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            
-            # Delete all files from consolidation directory.
-            con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
-            mat_path = os.path.join(con_mat_path, mat_uuid)
-            
-            # Delete files.
-            shutil.rmtree(mat_path)
-            
-            # Create the SQL query for deleting the existing consolidation.
-            sql_mat_del = """DELETE FROM material WHERE uuid = ?"""
-            
-            # Execute the query.
-            self.executeSqlQuery(sql_mat_del, [mat_uuid])
-            
-            # Reflesh the last selection.
-            self.refreshItemInfo()
+            try:
+                # Get the directory storing information about the material
+                con_uuid = select_item.parent().text(0)
+                
+                # Update the tree view.
+                select_item.parent().removeChild(select_item)
+                
+                # Clear selection.
+                self.tre_prj_item.clearSelection()
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                # Delete all files from consolidation directory.
+                con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
+                mat_path = os.path.join(con_mat_path, select_uuid)
+                
+                # Delete files.
+                shutil.rmtree(mat_path)
+                
+                # Generate the GUID for the material
+                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Drop the consolidation from the DB table.
+                mat.dbDrop(DATABASE)
+                
+                # Reflesh the last selection.
+                self.refreshItemInfo()
+            except:
+                # Create error messages.
+                error_title = "資料の削除エラー"
+                error_msg = "資料の削除に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
     
     # ==========================
     # Cemera operation
     # ==========================
     def detectCamera(self):
         # Detect the connected camera.
-        cam = imageProcessing.detectCam()
+        cams = imageProcessing.detectCam()
+        
+        for cam in cams:
+            print(cam)
+        
+        cam = cam[0]
         
         # Display the camera information.
         if not cam == None:
@@ -2399,16 +2210,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             cam_met = imageProcessing.getConfig("exposuremetermode")
             
             # Set parameters to comboboxes.
-            self.setCamParamCbx(self.cbx_cam_size, cam_size)
-            self.setCamParamCbx(self.cbx_cam_iso, cam_iso)
-            self.setCamParamCbx(self.cbx_cam_wht, cam_wht)
-            self.setCamParamCbx(self.cbx_cam_exp, cam_exp)
-            self.setCamParamCbx(self.cbx_cam_fval, cam_fval)
-            self.setCamParamCbx(self.cbx_cam_qoi, cam_qoi)
-            self.setCamParamCbx(self.cbx_cam_fmod, cam_fmod)
-            self.setCamParamCbx(self.cbx_cam_epg, cam_epg)
-            self.setCamParamCbx(self.cbx_cam_cpt, cam_cpt)
-            self.setCamParamCbx(self.cbx_cam_met, cam_met)
+            if not cam_size == None: self.setCamParamCbx(self.cbx_cam_size, cam_size)
+            if not cam_iso == None: self.setCamParamCbx(self.cbx_cam_iso, cam_iso)
+            if not cam_wht == None: self.setCamParamCbx(self.cbx_cam_wht, cam_wht)
+            if not cam_exp == None: self.setCamParamCbx(self.cbx_cam_exp, cam_exp)
+            if not cam_fval == None: self.setCamParamCbx(self.cbx_cam_fval, cam_fval)
+            if not cam_qoi == None: self.setCamParamCbx(self.cbx_cam_qoi, cam_qoi)
+            if not cam_fmod == None: self.setCamParamCbx(self.cbx_cam_fmod, cam_fmod)
+            if not cam_epg == None: self.setCamParamCbx(self.cbx_cam_epg, cam_epg)
+            if not cam_cpt == None: self.setCamParamCbx(self.cbx_cam_cpt, cam_cpt)
+            if not cam_met == None: self.setCamParamCbx(self.cbx_cam_met, cam_met)
             
             # Returns the current camera.
             return(cam)
@@ -2454,7 +2265,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
             
             # Returns nothing.
             return(None)
@@ -2564,8 +2375,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             imageProcessing.takePhoto(tmp_path)
             
             # Define the output directory.
-            img_lst_main = getFilesWithExtensionList(tethered_path, IMG_EXT)
-            img_lst_raw = getFilesWithExtensionList(tethered_path, RAW_EXT)
+            img_lst_main = general.getFilesWithExtensionList(tethered_path, IMG_EXT)
+            img_lst_raw = general.getFilesWithExtensionList(tethered_path, RAW_EXT)
             
             # Check the result of the tethered image.
             self.dialogTetheredShooting = CheckImageDialog(parent=self, path=tethered_path)
@@ -2607,7 +2418,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_detailed = None
             
             # Handle error.
-            alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
            
             # Returns nothing.
             return(None)
