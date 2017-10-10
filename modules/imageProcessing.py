@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # import the necessary packages
-import cv2, imutils, argparse, uuid, numpy
+import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp
 import os, sys, subprocess, tempfile, pipes, getopt
 
 from sys import argv
@@ -11,44 +11,99 @@ from imutils import perspective, contours
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 
-def detectCam():
+
+def setCamera(name, addr):
+    print(name)
+    try:
+        cmd_setting = ["gphoto2"]
+        
+        # Define the parameters for the command.
+        cmd_setting.append("--camera")
+        cmd_setting.append(name)
+        
+        # Execute the command.
+        subprocess.check_output(cmd_setting)
+        
+        return(True)
+    except:
+        return(None)
+
+def detectCamera():
     cams = list()
     
-    # Define the subprocess for detecting connected camera.
-    cmd_detect = ["gphoto2"]
+    # Get the context of the camera.
+    context = gp.Context()
     
-    # Define the parameters for the command.
-    cmd_detect.append("--auto-detect")
-    cmd_detect.append("--quiet")
+    if hasattr(gp, 'gp_camera_autodetect'):
+        # gphoto2 version 2.5+
+        cameras = context.camera_autodetect()
+    else:
+        port_info_list = gp.PortInfoList()
+        port_info_list.load()
+        abilities_list = gp.CameraAbilitiesList()
+        abilities_list.load(context)
+        cameras = abilities_list.detect(port_info_list, context)
+    
+    for name, port in cameras:
+        cams.append({"name" : name, "port" : port})
+        
+    return(cams)
+
+def getConfig(parameter, name, addr):
+    result = dict()
     
     try:
-        # Execute the subprocess. 
-        output = subprocess.check_output(cmd_detect)
+        # Define the subprocess for detecting connected camera.
+        cmd_setting = ["gphoto2"]
         
-        splitter = "----------------------------------------------------------"
+        # Define the parameters for the command.
+        cmd_setting.append("--get-config")
+        cmd_setting.append(parameter)
         
-        cams_list = output.split(splitter)[1].split("\n")
+        # Execute the subprocess.
+        stdout_data = subprocess.check_output(cmd_setting)
         
-        for cam in cams_list:
-            # Edit the output strings.
-            cam = cam.replace("-","")
-            cam = cam.replace("\n","")
-            cam = cam.replace("\t",",")
-            cam = cam.replace("  "," ")
-            cam = cam.replace("Model","")
-            cam = cam.replace("Port","")
-            cam = cam.strip()
-            
-            if not cam == "":
-                cams.append(cam)
-        
-        # Returns camera information if succusessfully detected.
-        # Otherwise, returns nothing. 
-        if len(cams) == 0:
-            print("Error: No Camera detected")
+        if stdout_data == None or stdout_data == "":
             return(None)
         else:
-            return(cams)
+            # Execute the command.
+            params = stdout_data.split("\n")
+            
+            # Define variables for storing entries.
+            label = ""
+            current = ""
+            choice = list()
+            
+            for param in params:
+                item = param.split(":")
+                label = item[0]
+                
+                if label == "Label":
+                    entry = item[1].strip()
+                    result["label"] = entry
+                elif label == "Current":
+                    entry = item[1].strip()
+                    result["current"] = entry
+                elif label == "Choice":
+                    # Split the text with white space.
+                    entry = item[1].strip().split(" ")
+                    
+                    # Get the first item as the value.
+                    entry_val = entry[0]
+                    
+                    # Remove the first item from the entry.
+                    entry_txt = str(entry.pop(0))
+                    
+                    # Append the entry to the choice list.
+                    choice.append({str(entry.pop(0)):entry_val})
+            
+            result["choice"] = choice
+            
+            # Returns configuration list.
+            if len(result) == None or len(result) == 0:
+                return(None)
+            else:
+                return(result)
     except:
         return(None)
 
@@ -76,56 +131,7 @@ def takePhoto(output):
         return(result)
     except:
         return(None)
-
-def getConfig(param):
-    # Define the subprocess for getting the camera configuration by using gphoto2.
-    cmd_getConfig = ["gphoto2"]
     
-    # Define the parameters for the command.
-    cmd_getConfig.append("--get-config")
-    cmd_getConfig.append(param)
-    
-    try:
-        # Execute the command.
-        params = subprocess.check_output(cmd_getConfig)
-        params = params.split("\n")
-        
-        result = dict()
-        
-        label = ""
-        current = ""
-        choice = list()
-        
-        for param in params:
-            item = param.split(":")
-            label = item[0]
-            
-            if label == "Label":
-                entry = item[1].strip()
-                result["label"] = entry
-            elif label == "Current":
-                entry = item[1].strip()
-                result["current"] = entry
-            elif label == "Choice":
-                # Split the text with white space.
-                entry = item[1].strip().split(" ")
-                
-                # Get the first item as the value.
-                entry_val = entry[0]
-                
-                # Remove the first item from the entry.
-                entry_txt = str(entry.pop(0))
-                
-                # Append the entry to the choice list.
-                choice.append({str(entry.pop(0)):entry_val})
-        
-        result["choice"] = choice
-        
-        # Returns configuration list.
-        return(result)
-    except:
-        return(None)
-
 def getConfigurations():
     # Define the subprocess for getting the camera configuration by using gphoto2.
     cmd_getConfig = ["gphoto2"]
@@ -179,10 +185,11 @@ def getThumbnail(raw_image):
     # Returns configuration list.
     return(result)
 
-def enhance(in_file, out_dir):
+def enhance(in_file, dst_img):
+    print("imageProcessing::enhance(in_file, dst_img)")
+    
     # Load input image, and create the output file name.
     org_img = cv2.imread(in_file)
-    dst_img = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
     
     # Split RGB channels into single channels.
     b,g,r = cv2.split(org_img)
@@ -204,10 +211,9 @@ def enhance(in_file, out_dir):
     # Return the output file name.
     return(dst_img)
     
-def makeMono(in_file, out_dir):
+def makeMono(in_file, dst_img):
     # Load input image, and create the output file name.
     org_img = cv2.imread(in_file)
-    dst_img = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
     
     # Convert color image to gray scale image.
     gry_img = cv2.cvtColor(org_img, cv2.COLOR_BGR2GRAY)
@@ -218,10 +224,9 @@ def makeMono(in_file, out_dir):
     # Return the output file name.
     return(dst_img)
 
-def negaToPosi(in_file, out_dir):
+def negaToPosi(in_file, dst_img):
     # Load input image, and create the output file name.
     org_img = cv2.imread(in_file)
-    dst_img = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
     
     # Split RGB channels into single channels.
     b,g,r = cv2.split(org_img)
@@ -240,10 +245,9 @@ def negaToPosi(in_file, out_dir):
     # Return the output file name.
     return(dst_img)
 
-def extractInnerFrame(in_file, out_dir, ratio):
+def extractInnerFrame(in_file, dst_img, ratio):
     # Load input image, and create the output file name.
     org_img = cv2.imread(in_file)
-    dst_img = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
     
     # Shrink the image for extracting contour.
     h, w = org_img.shape[:2]
@@ -288,10 +292,9 @@ def extractInnerFrame(in_file, out_dir, ratio):
     # Returns saved file path.
     return(dst_img)
 
-def rotation(in_file, out_dir, angle):
+def rotation(in_file, dst_img, angle):
     # Load input image, and create the output file name.
     org_img = cv2.imread(in_file)
-    dst_img = os.path.join(out_dir, str(uuid.uuid4())+'.jpg')
     
     # grab the dimensions of the image and then determine the center
     (h, w) = org_img.shape[:2]

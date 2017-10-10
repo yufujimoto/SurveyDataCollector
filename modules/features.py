@@ -1,18 +1,20 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import os, sys, uuid as unique
+import os, sys, subprocess, uuid as unique
+from lxml import etree as et
 import sqlite3 as sqlite
 from sqlite3 import Error
 
 class SimpleObject(object):
     def __init__(self, is_new, uuid, dbfile):
-        if is_new == True and uuid == None and dbfile == None:
-            self._id = None
-            if is_new == True:
-                self._uuid = str(unique.uuid4())
+        if is_new == True:
+            if not uuid == None:
+                self._uuid = uuid
             else:
-                self._uuid = None
+                self._uuid = str(unique.uuid4()) 
+        else:
+            self._uuid = None
     
     @property
     def id(self): return self._id
@@ -62,17 +64,77 @@ class SimpleObject(object):
         finally:
             # Finally close the connection.
             conn.close()
+    
+    def fetchOneSQL(self, dbfile, sql, keys):
+        # Establish the connection between DB.
+        conn = sqlite.connect(dbfile)
+        
+        if conn is not None:
+            # Instantiate the cursor for query.
+            cur = conn.cursor()
+            
+            # Execute the query.
+            cur.execute(sql, keys)
+            
+            # Fetch one row.
+            rows = cur.fetchone()
+            entry = list()
+            
+            # Replace NULL values by blank.
+            for row in rows:
+                if row == "NULL":
+                    entry.append("")
+                else:
+                    entry.append(row)
+            
+            # Get attributes from the row.
+            return(entry)
+        else:
+            return(None)
+    
+    def fetchAllSQL(self, dbfile, sql, keys):
+        # Establish the connection between DB.
+        conn = sqlite.connect(dbfile)
+        
+        if conn is not None:
+            # Instantiate the cursor for query.
+            cur = conn.cursor()
+            
+            # Execute the query.
+            cur.execute(sql, keys)
+            
+            # Fetch one row.
+            rows = cur.fetchall()
+            
+            entries = list()
+            
+            # Replace NULL values by blank.
+            for row in rows:
+                entry = list()
+                
+                for value in row:
+                    if value == "NULL":
+                        entry.append("")
+                    else:
+                        entry.append(value)
+                entries.append(entry)
+            
+            # Get attributes from the row.
+            return(entries)
+        else:
+            return(None)
 
 class Consolidation(SimpleObject):
     def __init__(self, is_new=True, uuid=None, dbfile=None):
         # Initialize the super class.
         SimpleObject.__init__(self, is_new, uuid, dbfile)
         
-        if is_new == True and uuid == None and dbfile == None:
+        if is_new == True and dbfile == None:
             # Initialize as the new instance.
             self._name = None
             self._geographic_annotation = None
             self._temporal_annotation = None
+            self._images = None
             self._description = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
@@ -88,6 +150,8 @@ class Consolidation(SimpleObject):
     @property
     def temporal_annotation(self): return self._temporal_annotation
     @property
+    def images(self): return self._images 
+    @property
     def description(self): return self._description    
     
     @name.setter
@@ -96,6 +160,8 @@ class Consolidation(SimpleObject):
     def geographic_annotation(self, value): self._geographic_annotation = value
     @temporal_annotation.setter
     def temporal_annotation(self, value): self._temporal_annotation = value
+    @images.setter
+    def images(self, value): self._images = value
     @description.setter
     def description(self, value): self._description = value
     
@@ -109,33 +175,17 @@ class Consolidation(SimpleObject):
                                 description
                         FROM consolidation WHERE uuid=?"""
         
-        # Establish the connection between DB.
-        conn = sqlite.connect(dbfile)
+        # Fech one from DB.
+        entry = super(Consolidation, self).fetchOneSQL(dbfile, sql_select, [uuid])
         
-        if conn is not None:
-            # Instantiate the cursor for query.
-            cur = conn.cursor()
-            
-            # Execute the query.
-            cur.execute(sql_select, [uuid])
-            
-            # Fetch one row.
-            rows = cur.fetchone()
-            entry = list()
-            
-            # Replace NULL values by blank.
-            for row in rows:
-                if row == "NULL":
-                    entry.append("")
-                else:
-                    entry.append(row)
-            
+        if not entry == None:
             # Get attributes from the row.
             self._id = str(entry[0])
             self._uuid = str(uuid)
             self._name = str(entry[1])
             self._geographic_annotation = str(entry[2])
             self._temporal_annotation = str(entry[3])
+            self._images = self._getImageList(dbfile)
             self._description = str(entry[4])
         else:
             return(None)
@@ -193,23 +243,41 @@ class Consolidation(SimpleObject):
         
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_delete, values)
-
+    
+    def _getImageList(self, dbfile):
+        # Get image files related to the consolidation.
+        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type="image" ORDER BY id DESC;"""
+        
+        # Execute the query.
+        images = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid])
+        
+        # Initialyze the return value.
+        sop_images = list()
+        
+        # Create sop image ojects from the DB table.
+        for image in images:
+            sop_images.append(File(is_new=False, uuid=image[0], dbfile=dbfile))
+        
+        return(sop_images)
+    
 class Material(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
         # Initialize the super class.
         SimpleObject.__init__(self, is_new, uuid, dbfile)
         
-        if is_new == True and uuid == None and dbfile == None:
+        if is_new == True and dbfile == None:
             # Initialize as the new instance.
             self._consolidation = None
             self._name = None
             self._estimated_period_beginning = None
+            self._estimated_period_peak = None
             self._estimated_period_ending = None
             self._latitude = None
             self._longitude = None
             self._altitude = None
             self._material_number = None
             self._description = None
+            self._images = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
             self._initInstanceByUuid(uuid, dbfile)
@@ -224,6 +292,8 @@ class Material(SimpleObject):
     @property
     def estimated_period_beginning(self): return self._estimated_period_beginning
     @property
+    def estimated_period_peak(self): return self._estimated_period_peak
+    @property
     def estimated_period_ending(self): return self._estimated_period_ending
     @property
     def latitude(self): return self._latitude
@@ -234,6 +304,8 @@ class Material(SimpleObject):
     @property
     def material_number(self): return self._material_number
     @property
+    def images(self): return self._images 
+    @property
     def description(self): return self._description    
     
     @consolidation.setter
@@ -242,6 +314,8 @@ class Material(SimpleObject):
     def name(self, value): self._name = value
     @estimated_period_beginning.setter
     def estimated_period_beginning(self, value): self._estimated_period_beginning = value
+    @estimated_period_peak.setter
+    def estimated_period_peak(self, value): self._estimated_period_peak = value
     @estimated_period_ending.setter
     def estimated_period_ending(self, value): self._estimated_period_ending = value
     @latitude.setter
@@ -252,6 +326,8 @@ class Material(SimpleObject):
     def altitude(self, value): self._altitude = value
     @material_number.setter
     def material_number(self, value): self._material_number = value
+    @images.setter
+    def images(self, value): self._images = value
     @description.setter
     def description(self, value): self._description = value
     
@@ -261,48 +337,36 @@ class Material(SimpleObject):
         sql_select = """SELECT  id,
                                 con_id,
                                 name,
+                                material_number,
                                 estimated_period_beginning,
+                                estimated_period_peak,
                                 estimated_period_ending,
                                 latitude,
                                 longitude,
                                 altitude,
                                 material_number,
-                                descriptions
+                                description
                             FROM material WHERE uuid=?"""
         
-        # Establish the connection between DB.
-        conn = sqlite.connect(dbfile)
+        # Fech one from DB.
+        entry = super(Material, self).fetchOneSQL(dbfile, sql_select, [uuid])
         
-        if conn is not None:
-            # Instantiate the cursor for query.
-            cur = conn.cursor()
-            
-            # Execute the query.
-            cur.execute(sql_select, [uuid])
-            
-            # Fetch one row.
-            rows = cur.fetchone()
-            entry = list()
-            
-            # Replace NULL values by blank.
-            for row in rows:
-                if row == "NULL":
-                    entry.append("")
-                else:
-                    entry.append(row)
-            
+        if not entry == None:
             # Get attributes from the row.
             self._id = str(entry[0])
             self._uuid = str(uuid)
             self._consolidation = str(entry[1])
             self._name = str(entry[2])
-            self._estimated_period_beginning = str(entry[3])
-            self._estimated_period_ending = str(entry[4])
-            self._latitude = str(entry[5])
-            self._longitude = str(entry[6])
-            self._altitude = str(entry[7])
-            self._material_number = str(entry[8])
-            self._description = str(entry[9])
+            self._material_number = str(entry[3])
+            self._estimated_period_beginning = str(entry[4])
+            self._estimated_period_peak = str(entry[5])
+            self._estimated_period_ending = str(entry[6])
+            self._latitude = str(entry[7])
+            self._longitude = str(entry[8])
+            self._altitude = str(entry[9])
+            self._material_number = str(entry[10])
+            self._images = self._getImageList(dbfile)
+            self._description = str(entry[11])
         else:
             return(None)
     
@@ -312,7 +376,9 @@ class Material(SimpleObject):
             self._uuid,
             self._consolidation,
             self._name,
+            self._material_number,
             self._estimated_period_beginning,
+            self._estimated_period_peak,
             self._estimated_period_ending,
             self._latitude,
             self._longitude,
@@ -325,13 +391,15 @@ class Material(SimpleObject):
                     uuid,
                     con_id, 
                     name,
+                    material_number,
                     estimated_period_beginning,
+                    estimated_period_peak,
                     estimated_period_ending,
                     latitude,
                     longitude,
                     altitude,
-                    descriptions
-                ) VALUES (?,?,?,?,?,?,?,?,?)"""
+                    description
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?)"""
         
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_insert, values)
@@ -340,7 +408,9 @@ class Material(SimpleObject):
         # Insert a new record into the database
         values = [
             self._name,
+            self._material_number,
             self._estimated_period_beginning,
+            self._estimated_period_peak,
             self._estimated_period_ending,
             self._latitude,
             self._longitude,
@@ -353,12 +423,14 @@ class Material(SimpleObject):
         sql_update = """UPDATE material
                     SET
                         name = ?,
+                        material_number = ?,
                         estimated_period_beginning = ?,
+                        estimated_period_peak = ?,
                         estimated_period_ending = ?,
                         latitude = ?,
                         longitude = ?,
                         altitude = ?,
-                        descriptions = ?
+                        description = ?
                     WHERE uuid = ?"""
         
         # Execute the query.
@@ -373,17 +445,33 @@ class Material(SimpleObject):
         
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_delete, values)
+    
+    def _getImageList(self, dbfile):
+        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id=? AND file_type="image" ORDER BY id DESC;"""
+        
+        # Execute the query.
+        images = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._consolidation, self._uuid])
+        
+        # Initialyze the return value.
+        sop_images = list()
+        
+        # Create sop image ojects from the DB table.
+        for image in images:
+            sop_images.append(File(is_new=False, uuid=image[0], dbfile=dbfile))
+        
+        return(sop_images)
 
 class File(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
         SimpleObject.__init__(self, is_new, uuid, dbfile)
         
-        if is_new == True and uuid == None and dbfile == None:
+        if is_new == True and dbfile == None:
             self._consolidation = None
             self._material = None
             self._filename = None
-            self._last_edit = None
-            self._mime_type = None
+            self._created_date = None
+            self._modified_date = None
+            self._file_type = None
             self._alias = None
             self._status = None
             self._public = None
@@ -392,7 +480,10 @@ class File(SimpleObject):
             self._operation = None
             self._operating_application = None
             self._caption = None
-            self._description = None 
+            self._description = None
+        elif is_new == False and uuid != None and dbfile != None:
+            # Initialize by the DB instance.
+            self._initInstanceByUuid(uuid, dbfile)
     
     @property
     def material(self): return self._material
@@ -401,9 +492,11 @@ class File(SimpleObject):
     @property
     def filename(self): return self._filename
     @property
-    def last_edit(self): return self._last_edit
+    def created_date(self): return self._created_date
     @property
-    def mime_type(self): return self._mime_type
+    def modified_date(self): return self._modified_date
+    @property
+    def file_type(self): return self._file_type
     @property
     def alias(self): return self._alias
     @property
@@ -429,10 +522,12 @@ class File(SimpleObject):
     def consolidation(self, value): self._consolidation = value
     @filename.setter
     def filename(self, value): self._filename = value
-    @last_edit.setter
-    def last_edit(self, value): self._last_edit = value
-    @mime_type.setter
-    def mime_type(self, value): self._mime_type = value
+    @created_date.setter
+    def created_date(self, value): self._created_date = value
+    @modified_date.setter
+    def modified_date(self, value): self._modified_date = value
+    @file_type.setter
+    def file_type(self, value): self._file_type = value
     @alias.setter
     def alias(self, value): self._alias = value
     @status.setter
@@ -455,17 +550,65 @@ class File(SimpleObject):
     def description(self, value): self._description = value
     
     # operation
+    def _initInstanceByUuid(self, uuid, dbfile):
+        # Make the SQL statement.
+        sql_select = """SELECT
+                            id,
+                            con_id, 
+                            mat_id,
+                            created_date,
+                            modified_date,
+                            file_name,
+                            file_type,
+                            make_public,
+                            alias_name,
+                            status,
+                            is_locked,
+                            source, 
+                            file_operation,
+                            operating_application,
+                            caption,
+                            description
+                        FROM file WHERE uuid=?"""
+        
+        # Fech one from DB.
+        entry = super(File, self).fetchOneSQL(dbfile, sql_select, [uuid])
+        
+        if not entry == None:
+            # Get attributes from the row.
+            self._id = str(entry[0])
+            self._uuid = str(uuid)
+            self._consolidation = str(entry[1])
+            self._material = str(entry[2])
+            self._created_date = str(entry[3])
+            self._modified_date = str(entry[4])
+            self._filename = str(entry[5])
+            self._file_type = str(entry[6])
+            self._public = str(entry[7])
+            self._alias = str(entry[8])
+            self._status = str(entry[9])
+            self._lock = str(entry[10])
+            self._source = str(entry[11])
+            self._operation = str(entry[12])
+            self._operating_application = str(entry[13])
+            self._caption = str(entry[14])
+            self._description = str(entry[15])
+        else:
+            return(None)
+    
     def dbInsert(self, dbfile):
         # Insert a new record into the database
         values = [
             self._uuid,
             self._consolidation,
             self._material,
+            self._created_date,
+            self._modified_date,
             self._filename,
-            self._mime_type,
+            self._file_type,
+            self._public,
             self._alias,
             self._status,
-            self._public,
             self._lock,
             self._source,
             self._operation,
@@ -475,22 +618,107 @@ class File(SimpleObject):
         ]
         
         # Create the SQL query for updating the new consolidation.
-        sql_fil_ins = """INSERT INTO file (
+        sql_insert = """INSERT INTO file (
                         uuid,
                         con_id, 
                         mat_id,
-                        filename,
-                        mime_type,
+                        created_date,
+                        modified_date,
+                        file_name,
+                        file_type,
+                        make_public,
                         alias_name,
                         status,
-                        make_public,
                         is_locked,
-                        source,
+                        source, 
                         file_operation,
                         operating_application,
-                        caption, 
-                        descriptions
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+                        caption,
+                        description
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+                
+        # Execute the query.
+        super(File, self).excuteSQL(dbfile, sql_insert, values)
+    
+    def dbUpdate(self, dbfile):
+        print("features::File.dbUpdate()")
+        # Insert a new record into the database
+        values = [
+            self._consolidation,
+            self._material,
+            self._created_date,
+            self._modified_date,
+            self._filename,
+            self._file_type,
+            self._public,
+            self._alias,
+            self._status,
+            self._lock,
+            self._source,
+            self._operation,
+            self._operating_application,
+            self._caption,
+            self._description,
+            self._uuid
+        ]
+        
+        # Create the SQL query for updating the new consolidation.
+        sql_update = """UPDATE file
+                    SET
+                        con_id = ?,
+                        mat_id = ?,
+                        created_date = ?,
+                        modified_date = ?,
+                        file_name = ?,
+                        file_type = ?,
+                        make_public = ?,
+                        alias_name = ?,
+                        status = ?,
+                        is_locked = ?,
+                        source = ?,
+                        file_operation = ?,
+                        operating_application = ?,
+                        caption = ?,
+                        description = ?
+                    WHERE uuid = ?"""
         
         # Execute the query.
-        super(Material, self).excuteSQL(dbfile, sql_insert, values)
+        super(File, self).excuteSQL(dbfile, sql_update, values)
+    
+    def writeAsXml(self):
+        try:
+            xml_root = et.Element('File')
+            xml_root.set("id", self._id)
+            xml_root.set("uuid", self._uuid)
+            
+            xml_consolidation = et.SubElement(xml_root, "consolidation")
+            xml_consolidation.set("idref", self._consolidation)
+            
+            xml_material = et.SubElement(xml_root, "material")
+            xml_material.set("idref", self._material)
+            
+            xml_created = et.SubElement(xml_root, 'created')
+            xml_created.text = self._created_date
+            
+            xml_created = et.SubElement(xml_root, 'modifed')
+            xml_created.text = self.modified_date
+            
+            xml_filename = et.SubElement(xml_root, 'filename')
+            xml_filename.text = os.path.basename(self._filename)
+            
+            xml_filename = et.SubElement(xml_root, 'filetype')
+            xml_filename.text = os.path.basename(self._file_type)
+            
+            xml_alias = et.SubElement(xml_root, 'alias')
+            xml_alias.text = os.path.basename(self._alias)
+            
+            xml_caption = et.SubElement(xml_root, 'caption')
+            xml_caption.text = os.path.basename(self._caption)
+            
+            xml_caption = et.SubElement(xml_root, 'description')
+            xml_caption.text = os.path.basename(self._description)
+            
+            return(et.tostring(xml_root, pretty_print=True, xml_declaration=True))
+        except:
+            print("Error occurs in XML output.")
+            return(None)
