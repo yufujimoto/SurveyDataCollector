@@ -135,6 +135,7 @@ class Consolidation(SimpleObject):
             self._geographic_annotation = None
             self._temporal_annotation = None
             self._images = None
+            self._sounds = None
             self._description = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
@@ -150,9 +151,11 @@ class Consolidation(SimpleObject):
     @property
     def temporal_annotation(self): return self._temporal_annotation
     @property
-    def images(self): return self._images 
+    def images(self): return self._images
     @property
-    def description(self): return self._description    
+    def sounds(self): return self._sounds
+    @property
+    def description(self): return self._description
     
     @name.setter
     def name(self, value): self._name = value
@@ -162,6 +165,8 @@ class Consolidation(SimpleObject):
     def temporal_annotation(self, value): self._temporal_annotation = value
     @images.setter
     def images(self, value): self._images = value
+    @sounds.setter
+    def sounds(self, value): self._sounds = value
     @description.setter
     def description(self, value): self._description = value
     
@@ -185,7 +190,8 @@ class Consolidation(SimpleObject):
             self._name = str(entry[1])
             self._geographic_annotation = str(entry[2])
             self._temporal_annotation = str(entry[3])
-            self._images = self._getImageList(dbfile)
+            self._images = self._getFileList(dbfile, "image")
+            self._sounds = self._getFileList(dbfile, "audio")
             self._description = str(entry[4])
         else:
             return(None)
@@ -244,12 +250,12 @@ class Consolidation(SimpleObject):
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_delete, values)
     
-    def _getImageList(self, dbfile):
+    def _getFileList(self, dbfile, file_type):
         # Get image files related to the consolidation.
-        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type="image" ORDER BY id DESC;"""
+        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
         
         # Execute the query.
-        images = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid])
+        images = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
         
         # Initialyze the return value.
         sop_images = list()
@@ -278,6 +284,7 @@ class Material(SimpleObject):
             self._material_number = None
             self._description = None
             self._images = None
+            self._sounds = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
             self._initInstanceByUuid(uuid, dbfile)
@@ -304,7 +311,9 @@ class Material(SimpleObject):
     @property
     def material_number(self): return self._material_number
     @property
-    def images(self): return self._images 
+    def images(self): return self._images
+    @property
+    def sounds(self): return self._sounds
     @property
     def description(self): return self._description    
     
@@ -328,6 +337,8 @@ class Material(SimpleObject):
     def material_number(self, value): self._material_number = value
     @images.setter
     def images(self, value): self._images = value
+    @sounds.setter
+    def sounds(self, value): self._sounds = value
     @description.setter
     def description(self, value): self._description = value
     
@@ -365,7 +376,8 @@ class Material(SimpleObject):
             self._longitude = str(entry[8])
             self._altitude = str(entry[9])
             self._material_number = str(entry[10])
-            self._images = self._getImageList(dbfile)
+            self._images = self._getFileList(dbfile, "image")
+            self._sounds = self._getFileList(dbfile, "audio")
             self._description = str(entry[11])
         else:
             return(None)
@@ -446,11 +458,11 @@ class Material(SimpleObject):
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_delete, values)
     
-    def _getImageList(self, dbfile):
-        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id=? AND file_type="image" ORDER BY id DESC;"""
+    def _getFileList(self, dbfile, file_type):
+        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id=? AND file_type=? ORDER BY id DESC;"""
         
         # Execute the query.
-        images = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._consolidation, self._uuid])
+        images = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._consolidation, self._uuid, file_type])
         
         # Initialyze the return value.
         sop_images = list()

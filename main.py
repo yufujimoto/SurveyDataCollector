@@ -567,7 +567,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Initialyze the edit material mode as modifying.
         self.rad_mat_mod.setChecked(True)
-        self.toggleEditModeForMaterial()
         
         #========================================
         # Initialyze objects for file
@@ -647,6 +646,1429 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
+    
+    # ==========================
+    # General operation
+    # ==========================
+    def getTheRootDirectory(self):
+        # Define constants.
+        global ROOT_DIR
+        global TABLE_DIR
+        global CON_DIR
+        global DATABASE
+                
+        # Initialyze the tree view.
+        self.tre_prj_item.clear()
+        
+        # Reflesh the last selection.
+        self.refreshItemInfo()
+        
+        # Define directories for storing files.
+        ROOT_DIR = QFileDialog.getExistingDirectory(self, "プロジェクト・ディレクトリの選択")
+        TABLE_DIR = os.path.join(ROOT_DIR, "Table")
+        CON_DIR = os.path.join(ROOT_DIR, "Consolidation")
+        
+        # Define the DB file.
+        DATABASE = os.path.join(TABLE_DIR, "project.db")
+        
+        if not os.path.exists(DATABASE):
+            # Confirm whether create a directory for consolidations.
+            reply = QMessageBox.question(
+                    self, 
+                    'データベース・ファイルが見つかりません。', 
+                    '新規プロジェクトを作成しますか？', 
+                    QMessageBox.Yes, 
+                    QMessageBox.No
+                )
+            # Create the directory of consolidation
+            if reply == QMessageBox.No:
+                # Initialyze  global vaiables.
+                ROOT_DIR = None
+                TABLE_DIR = None
+                CON_DIR = None
+                DATABASE = None
+                
+                # Exit if canceled.
+                return(None)
+            elif reply == QMessageBox.Yes:
+                try:
+                    # Create the consolidation directory and the table directory.
+                    os.mkdir(CON_DIR)
+                    os.mkdir(TABLE_DIR)
+                    
+                    # Create the connection object to create empty database file.
+                    conn = sqlite.connect(DATABASE)
+                    
+                    # Create new tables which defined by Simple Object Profile(SOP).
+                    general.createTables(DATABASE)
+                except Error as e:
+                    # Create error messages.
+                    error_title = "エラーが発生しました"
+                    error_msg = "新規プロジェクトを作成できませんでした。"
+                    error_info = "エラーの詳細を確認してください。"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = e.args[0]
+                    
+                    # Handle error.
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                    
+                    # Returns nothing.
+                    return(None)
+                finally:
+                    # Finally close the connection.
+                    conn.close()
+            else:
+                # Exit if canceled.
+                return(None)
+        
+        if os.path.exists(DATABASE):
+            # Create a sqLite file if not exists. 
+            try:
+                # Establish the connection to the DataBase file.
+                conn = sqlite.connect(DATABASE)
+                
+                if conn is not None:
+                    # Check whether table exists or not.
+                    if not general.checkTableExist(DATABASE, "consolidation"): general.createTableConsolidation(DATABASE)
+                    if not general.checkTableExist(DATABASE, "material"): general.createTableMaterial(DATABASE)
+                    if not general.checkTableExist(DATABASE, "file"): general.createTableFile(DATABASE)
+                    
+                    # Check wether columns exists or not.
+                    con_fields = [("uuid", "text"),
+                                  ("name", "text"),
+                                  ("geographic_annotation", "text"),
+                                  ("temporal_annotation", "text"),
+                                  ("description", "text")]
+                    
+                    mat_fields= [("con_id", "text"),
+                                ("name", "text"),
+                                ("material_number", "text"),
+                                ("estimated_period_beginning", "character varying(255)"),
+                                ("estimated_period_peak", "character varying(255)"),
+                                ("estimated_period_ending", "character varying(255)"),
+                                ("latitude", "real"),
+                                ("longitude", "real"),
+                                ("altitude", "real"),
+                                ("material_number", "text"),
+                                ("description", "text")]
+                    
+                    fil_fields = [("uuid", "text"),
+                                  ("con_id", "text"),
+                                  ("mat_id", "text"),
+                                  ("created_date", "datetime"),
+                                  ("modified_date", "datetime"),
+                                  ("file_name", "character varying(255)"),
+                                  ("file_type", "character varying(20)"),
+                                  ("make_public", "bool"),
+                                  ("alias_name", "character varying(255)"),
+                                  ("status", "character varying(255)"),
+                                  ("is_locked", "bool"),
+                                  ("source", "character varying(255)"),
+                                  ("file_operation", "character varying(255)"),
+                                  ("operating_application", "character varying(255)"),
+                                  ("caption", "character varying(255)"),
+                                  ("description", "text")]
+                    
+                    general.checkFieldsExists(DATABASE, "consolidation", con_fields)
+                    general.checkFieldsExists(DATABASE, "material", mat_fields)
+                    general.checkFieldsExists(DATABASE, "file", fil_fields)
+                    
+                    # Create the SQL query for selecting consolidation.
+                    sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
+                    
+                    # Create the SQL query for selecting the consolidation.
+                    sql_mat_sel = """SELECT uuid, name, description FROM material WHERE con_id=?"""
+                    
+                    # Instantiate the cursor for query.
+                    cur_con = conn.cursor()
+                    rows_con = cur_con.execute(sql_con_sel)
+                    
+                    # Execute the query and get consolidation recursively
+                    for row_con in rows_con:
+                        # Get attributes from the row.
+                        con_uuid = row_con[0]
+                        con_name = row_con[1]
+                        con_description = row_con[2]
+                        
+                        if con_uuid == None or con_uuid == "NULL": con_uuid = ""
+                        if con_name == None or con_name == "NULL": con_name = ""
+                        if con_description == None or con_description == "NULL": con_description = ""
+                        
+                        # Update the tree view.
+                        tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
+                        
+                        tre_prj_con_items.setText(0, con_uuid)
+                        tre_prj_con_items.setText(1, con_name)
+                        
+                        # Instantiate the cursor for query.
+                        cur_mat = conn.cursor()
+                        rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
+                            
+                        for row_mat in rows_mat:
+                            # Get attributes from the row.
+                            mat_uuid = row_mat[0]
+                            mat_name = row_mat[1]
+                            mat_description = row_mat[2]
+                            
+                            if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
+                            if mat_name == None or mat_name == "NULL": mat_name = ""
+                            if mat_description == None or mat_description == "NULL": mat_description = ""
+                            
+                            # Update the tree view.
+                            tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
+                            
+                            tre_prj_mat_items.setText(0, mat_uuid)
+                            tre_prj_mat_items.setText(1, mat_name)
+                            
+                        # Refresh the tree view.
+                        self.tre_prj_item.show()
+                        
+                        self.tre_prj_item.resizeColumnToContents(0)
+                        self.tre_prj_item.resizeColumnToContents(1)
+                        
+            except Error as e:
+                # Connection error.
+                error_title = "エラーが発生しました"
+                error_msg = "データベースの情報を取得できません。"
+                error_info = "エラーの詳細を確認してください。"
+                error_icon = QMessageBox.Critical
+                error_detailed = e.args[0]
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+            finally:
+                conn.close()
+        
+        # Finally set the root path to the text box.
+        self.lbl_prj_path.setText(ROOT_DIR)
+    
+    def getImageFileInfo(self, sop_image):
+        print("main::getImageFileInfo(self)")
+        global CON_DIR
+        
+        # Get the full path of the image.
+        if sop_image.filename == "":
+            img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
+        else:
+            if not os.path.exists(os.path.join(ROOT_DIR, sop_image.filename)):
+                img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
+            else:
+                img_file_path = os.path.join(ROOT_DIR, sop_image.filename)
+        
+        # Clear.
+        self.tre_img_prop.clear()
+        self.lbl_img_preview.setText("")
+        
+        # Get the image properties from the instance.
+        if sop_image.public == "1":
+            self.cbx_img_pub.setChecked(True)
+        else:
+            self.cbx_img_pub.setChecked(False)
+        
+        if sop_image.lock == "1":
+            self.cbx_img_edit.setChecked(False)
+            self.cbx_img_edit.setDisabled(True)
+        else:
+            self.cbx_img_edit.setChecked(True)
+            self.cbx_img_edit.setDisabled(False)
+            self.cbx_img_edit.setEnabled(True)
+            
+        self.tbx_img_capt.setText(sop_image.caption)
+        self.tbx_img_stts.setText(sop_image.status)
+        self.tbx_img_eope.setText(sop_image.operation)
+        
+        try:
+            # Get file information by using "dcraw" library.
+            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
+            
+            # Get each metadata entry.
+            for entry in img_stat:
+                # Split metadata entry by ":".
+                entry_line = entry.split(":")
+                
+                # Get the metadata key.
+                entry_key = entry_line[0]
+                
+                # Get the metadata value.
+                entry_val = entry_line[1]
+                
+                # Add file information to the tree list.
+                self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
+        except:
+            print("Cannot get the meta information.")
+        # Get file information by using python "stat" library.
+        fl_stat = os.stat(img_file_path)
+        
+        # Get file size.
+        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
+        
+        # Get time for last access, modified and creat.
+        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
+        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
+        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
+        
+        # Add file information to the tree list.
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
+        
+        # Refresh the tree view.
+        self.tre_img_prop.show()
+        
+        # Show preview.
+        self.showImage(img_file_path)
+    
+    def getSoundFileInfo(self, sop_sound):
+        print("main::getImageFileInfo(self, sop_sound)")
+    
+    def showImage(self, img_file_path):
+        print("main::showImage(self)")
+        # Check the image file can be displayed directry.
+        img_base, img_ext = os.path.splitext(img_file_path)
+        img_valid = False
+        
+        # Get container size.
+        panel_w = self.lbl_img_preview.width()
+        panel_h = self.lbl_img_preview.height()
+        
+        for qt_ext in QT_IMG:
+            # Exit loop if extension is matched with Qt supported image.
+            if img_ext.lower() == qt_ext.lower():
+                img_valid = True
+                break
+        
+        # Check whether the image is Raw image or not.
+        if not img_valid == True:
+            # Extract the thumbnail image from the RAW image by using "dcraw".
+            imageProcessing.getThumbnail(img_file_path)
+            
+            # Get the extracted thumbnail image.
+            img_file_path = img_base + ".thumb.jpg"
+        
+        if os.path.exists(img_file_path):
+            # Create the container for displaying the image
+            org_pixmap = QPixmap(img_file_path)
+            scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
+            
+            # Set the image file to the image view container.
+            self.lbl_img_preview.setPixmap(scl_pixmap)
+                        
+            # Show the selected image.
+            self.lbl_img_preview.show()
+        else:
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "このファイルはプレビューに対応していません。"
+            error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def getCurrentObject(self):
+        print("main::getCurrentObject(self)")
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        if self.tab_target.currentIndex() == 0:
+            if select_type == "consolidation": # Consolidation to Consolidation.
+                self.getConsolidation(select_uuid)
+            elif select_type == "material":     # Material to Consolidation.
+                # Refresh the consolidation infomation.
+                self.refreshConsolidationInfo()
+                
+                # Refresh the image information.
+                self.refreshImageInfo()
+                
+                # Select the parent consolidation.
+                parent = self.tre_prj_item.selectedItems()[0].parent()
+                self.tre_prj_item.setCurrentItem(parent)
+                
+                # Get the current consolidation.
+                self.getConsolidation(parent.text(0))
+                
+        elif self.tab_target.currentIndex() == 1:
+            if select_type == "consolidation":  # Consolidation to Material.
+                # Refresh the material infomation.
+                self.refreshMaterialInfo()
+                
+                # Refresh the image information.
+                self.refreshImageInfo()
+            elif select_type == "material":     # Material to Material.
+                self.getMaterial(select_uuid)
+    
+    def toggleSelectedItem(self):
+        print("main::toggleSelectedItem(self)")
+        
+        global DATABASE
+        global CON_DIR
+        
+        if not ROOT_DIR == None:
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()
+            
+            # Exit if selected item is 0.
+            if len(selected) == 0:
+                # Returns nothing if none of items selected.
+                return(None)
+            elif len(selected) > 0:
+                if selected[0].parent() == None:
+                    # Get the Consolidation if the node have no parent.
+                    selected_uuid = selected[0].text(0)
+                    self.getConsolidation(selected_uuid)
+                    
+                    # Returns True.
+                    return(True)
+                elif selected[0].parent() != None:
+                    # Get the Materil if the node have a parent.
+                    selected_uuid = selected[0].text(0)
+                    self.getMaterial(selected_uuid)
+                    
+                    # Returns True.
+                    return(True)
+                else:  
+                    # Returns True.
+                    return(False)
+            else:
+                # Create error messages.
+                error_title = "取得エラー"
+                error_msg = "統合体あるいは資料が選択されていません。"
+                error_info = "ツリービューから再度選択してください。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(False)
+        else:
+            # Create error messages.
+            error_title = "プロジェクトのエラー"
+            error_msg = "プロジェクトが開かれていません。"
+            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(False)
+    
+    def toggleSelectedFile(self):
+        print("main::toggleSelectedFile(self)")
+        if not ROOT_DIR == None:
+            selected = self.tre_fls.selectedItems()
+            
+            if not selected == None:
+                if not len(selected) == 0:
+                    # Get the uuid of the selected file.
+                    fil_uuid = selected[0].text(0)
+                    
+                    # Instantiate the file object of SOP.
+                    sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
+                    
+                    if sop_file.file_type == "image":
+                        # Set active control tab for material.
+                        self.tab_src.setCurrentIndex(0)
+                        self.getImageFileInfo(sop_file)
+                    if sop_file.file_type == "sound":
+                        # Set active control tab for material.
+                        self.tab_src.setCurrentIndex(1)
+                        self.getSoundFileInfo(sop_file)
+        else:
+            # Create error messages.
+            error_title = "プロジェクトのエラー"
+            error_msg = "プロジェクトが開かれていません。"
+            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            self.refreshItemInfo()
+            
+            # Returns nothing.
+            return(None)
+    
+    def toggleShowFileMode(self):
+        # Initialyze the uuid for the consolidation and the material.
+        sop_object = None
+        
+        con_uuid = ""
+        mat_uuid = ""
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        # Get the current consolidation.
+        item_uuid = select_uuid
+                    
+        if select_type == "consolidation":
+            # Define the path to the consolidation.
+            con_uuid = item_uuid
+            
+            # Get the item path under the consolidaiton path.
+            sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+            self.refreshFileList(sop_object)
+        elif select_type == "material":
+            # Get the consolidation uuid.
+            con_uuid = select_item.parent().text(0)
+            mat_uuid = item_uuid
+            
+            # Get the item path under the consolidaiton path.
+            con_path = os.path.join(CON_DIR, con_uuid)
+            sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+            self.refreshFileList(sop_object)
+        else:
+            return(None)
+    
+    def checkSelection(self):
+        print("main::checkSelection(self)")
+        global DATABASE
+        global CON_DIR
+        
+        # Initialyze the value for the result.
+        result = dict()
+        
+        if not ROOT_DIR == None:
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()
+            
+            # Exit if selected item is 0.
+            if len(selected) == 0:
+                result["selection"] = [None, None, None]
+                return(result)
+            
+            elif len(selected) > 0:
+                if not selected[0].parent() == None:
+                    result["selection"] = ["material", selected[0].text(0), selected[0]]
+                    return(result)
+                
+                if selected[0].parent() == None:
+                    result["selection"] = ["consolidation", selected[0].text(0), selected[0]]
+                    return(result)
+            else:
+                # Create error messages.
+                error_title = "取得エラー"
+                error_msg = "統合体あるいは資料が選択されていません。"
+                error_info = "ツリービューから再度選択してください。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                result["selection"] = [None, None, None]
+                return(result)
+        else:
+            # Create error messages.
+            error_title = "プロジェクトのエラー"
+            error_msg = "プロジェクトが開かれていません。"
+            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            result["selection"] = [None, None, None]
+            return(result)
+    
+    def refreshItemInfo(self):
+        print("main::refreshItemInfo(self)")
+        try:
+            self.refreshConsolidationInfo()
+            self.refreshMaterialInfo()
+            self.refreshImageInfo()
+        except:
+            print("Error occurs in mainPanel::refreshItemInfo(self)")
+            return(None)
+    
+    def refreshFileList(self, sop_object):
+        print("main::refreshFileList(self, sop_object)")
+        
+        try:
+            self.tre_fls.clear()
+            # Get images from the given class.
+            images = sop_object.images
+            sounds = sop_object.sounds
+            
+            if not images == None and len(images) > 0:
+                for image in images: self.setFileInfo(image)
+            if not sounds == None and len(sounds) > 0:
+                for sound in sounds: self.setFileInfo(sound)
+                
+            # Refresh the tree view.
+            self.tre_fls.resizeColumnToContents(0)
+            self.tre_fls.resizeColumnToContents(1)
+            self.tre_fls.resizeColumnToContents(2)
+            
+            self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
+            self.tre_fls.show()
+        except:
+            print("Error occurs in mainPanel::refreshFileList")
+            return(None)
+    
+    # ==========================
+    # Consolidation
+    # ==========================
+    def addConsolidation(self):
+        print("main::addConsolidation(self)")
+        global CON_DIR
+        
+        try:
+            # Initialize the Consolidation Class.
+            con = features.Consolidation(is_new=True, uuid=None, dbfile=None)
+            
+            # Instantiate the consolidation class
+            con.name = self.tbx_con_name.text()
+            con.geographic_annotation = self.tbx_con_geoname.text()
+            con.temporal_annotation = self.tbx_con_temporal.text()
+            con.description = self.tbx_con_description.text()
+            
+            # Insert the instance into DBMS.
+            con.dbInsert(DATABASE)
+            
+            # Create a directory to store consolidation.
+            general.createDirectories(os.path.join(CON_DIR,con.uuid), True)
+            
+            # Update the tree view.
+            tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
+            tre_prj_item_items.setText(0, con.uuid)
+            tre_prj_item_items.setText(1, con.name)
+            
+            # Refresh the tree view.
+            self.tre_prj_item.show()
+            
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+            
+            # Change edit mode to modifying.
+            self.rad_con_mod.setChecked(True)
+            self.toggleEditModeForConsolidation()
+        except:
+            # Create error messages.
+            error_title = "統合体の作成エラー"
+            error_msg = "統合体の作成に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def getConsolidation(self, uuid):
+        print("main::getConsolidation(self)")
+        global DATABASE
+        
+        try:
+            # Set active control tab for material.
+            self.tab_target.setCurrentIndex(0)
+            
+            # Instantiate by the DB record.
+            consolidation = features.Consolidation(is_new=False, uuid=uuid, dbfile=DATABASE)
+            
+            # Input text box by the instance.
+            self.setConsolidationInfo(consolidation)
+            
+            # Refresh the consolidation files.
+            self.refreshFileList(consolidation)
+        except Error as e:
+            print("Catch except in mainPanel::getConsolidation(self)")
+            
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "インスタンスを取得することができませんでした。"
+            error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = e.args[0]
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def updateConsolidation(self):
+        # Check the selection state.
+        check_select = self.checkSelection()
+        
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        if select_type == "consolidation":
+            try:
+                # Initialize the Consolidation Class.
+                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Instantiate the consolidation class
+                con.name = self.tbx_con_name.text()
+                con.geographic_annotation = self.tbx_con_geoname.text()
+                con.temporal_annotation = self.tbx_con_temporal.text()
+                con.description = self.tbx_con_description.text()
+                
+                # Update the instance into DBMS.
+                con.dbUpdate(DATABASE)
+                
+                # Update the tree view.
+                select_item.setText(1, con.name)
+                select_item.setText(2, con.description)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+            except:
+                # Create error messages.
+                error_title = "統合体の更新エラー"
+                error_msg = "統合体の更新に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+        else:
+            # Returns nothing.
+            return(None)
+    
+    def deleteConsolidation(self):
+        global CON_DIR
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        if select_type == "consolidation":
+            # Confirm deletion.
+            reply = QMessageBox.question(
+                    self, 
+                    '統合体の削除', 
+                    '統合体が内包する全ての資料およびデータが削除されます。本当に削除しますか？', 
+                    QMessageBox.Yes, 
+                    QMessageBox.No
+                )
+            
+            # Confirm deleting the consolidation.
+            if not reply == QMessageBox.Yes:
+                return(None)
+            
+            try:
+                # Remove the consolidation from the tree view.
+                root = self.tre_prj_item.invisibleRootItem()
+                
+                # Update the tree view.
+                root.removeChild(select_item)
+                
+                # Clear selection.
+                self.tre_prj_item.clearSelection()
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Delete all files from consolidation directory.
+                shutil.rmtree(os.path.join(CON_DIR,select_uuid))
+                
+                # Initialize the Consolidation Class.
+                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Drop the consolidation from the DB table.
+                con.dbDrop(DATABASE)
+                
+                # Reflesh the last selection.
+                self.refreshItemInfo()
+            except:
+                # Create error messages.
+                error_title = "統合体の削除エラー"
+                error_msg = "統合体の削除に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+    
+    def setConsolidationInfo(self, consolidation):
+        print("main::setConsolidationInfo(self, consolidation)")
+        
+        try:
+            # Initialyze the consolidation info.
+            self.refreshConsolidationInfo()
+            
+            # Set active control tab for consolidation.
+            self.tab_target.setCurrentIndex(0)
+            
+            # Initialyze the edit material mode as modifying.
+            self.rad_con_mod.setChecked(True)
+            self.toggleEditModeForConsolidation()
+            
+            # Set attributes to text boxes.
+            self.tbx_con_uuid.setText(consolidation.uuid)
+            self.tbx_con_name.setText(consolidation.name)
+            self.tbx_con_geoname.setText(consolidation.geographic_annotation)
+            self.tbx_con_temporal.setText(consolidation.temporal_annotation)
+            self.tbx_con_description.setText(consolidation.description)
+        # Returns the value.
+            return(True)
+        except:
+            print("Error occors in main::setConsolidationInfo(self, consolidation)")
+            return(False)
+    
+    def refreshConsolidationInfo(self):
+        print("main::refreshConsolidationInfo(self)")
+        
+        try:
+            self.rad_con_new.setChecked(True)
+            
+            # Clear the file list for consolidation.
+            self.tre_fls.clearSelection()
+            self.tre_fls.clear()
+            
+            # Only the add new consolidation button enabled.
+            self.btn_con_add.setDisabled(False)
+            self.btn_con_del.setDisabled(True)
+            self.btn_con_take.setDisabled(True)
+            self.btn_con_update.setDisabled(True)
+            
+            # Text boxes for attributes are enabled.
+            self.tbx_con_name.setDisabled(False)
+            self.tbx_con_geoname.setDisabled(False)
+            self.tbx_con_temporal.setDisabled(False)
+            self.tbx_con_description.setDisabled(False)
+            
+            # Change text color for text boxes.
+            self.tbx_con_name.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_con_geoname.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_con_temporal.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_con_description.setStyleSheet("color: rgb(255, 0, 0);")
+            
+            # Clear text boxes for attributes.
+            self.tbx_con_name.setText("")
+            self.tbx_con_geoname.setText("")
+            self.tbx_con_temporal.setText("")
+            self.tbx_con_description.setText("")
+        except:
+            print("Error occurs in main::refreshConsolidationInfo(self)")
+    
+    def toggleEditModeForConsolidation(self):
+        print("main::toggleEditModeForConsolidation(self)")
+        global ROOT_DIR
+        
+        try: 
+            if self.grp_con_ope.checkedId() == 1:
+                # Only the add new consolidation button is disabled.
+                self.btn_con_add.setDisabled(True)
+                self.btn_con_update.setDisabled(False)
+                self.btn_con_take.setDisabled(False)
+                self.btn_con_del.setDisabled(False)
+                
+                # Change text color for text boxes.
+                self.tbx_con_name.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_con_geoname.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_con_temporal.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_con_description.setStyleSheet("color: rgb(0, 0, 0);")
+                
+                # All text boxes for attributes of consolidation is enabled.
+                self.tbx_con_name.setDisabled(False)
+                self.tbx_con_geoname.setDisabled(False)
+                self.tbx_con_temporal.setDisabled(False)
+                self.tbx_con_description.setDisabled(False)
+            else:
+                self.refreshConsolidationInfo()
+        except:
+                # Connection error.
+                error_title = "エラーが発生しました"
+                error_msg = "統合体の編集モードを変更できません。"
+                error_info = "不明のエラーです。"
+                error_icon = QMessageBox.Critical
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+    
+    # ==========================
+    # Material
+    # ==========================
+    def addMaterial(self):
+        print("main::addMaterial(self)")
+        global CON_DIR
+        
+        # Check the selection state.
+        check_select = self.checkSelection()
+        
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            # Create error messages.
+            error_title = "資料の作成エラー"
+            error_msg = "資料の作成ができません。"
+            error_info = "資料を包括する統合体を選択してください。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            return(None)
+        
+        if select_type == "material":
+            # Initialize the Consolidation Class.
+            con_uuid = select_item.parent().text(0)
+            
+            # Confirm whether select the parent consolidations.
+            reply = QMessageBox.question(
+                    self, 
+                    '資料を内包する統合体が指定されていません。', 
+                    u"現在の統合体（" + con_uuid + u"）に新規資料を追加しますか？", 
+                    QMessageBox.Yes, 
+                    QMessageBox.No
+                )
+            # Handle the return value.
+            if reply == QMessageBox.Yes:
+                # Set tree view item from parent node.
+                tre_prj_item_items = QTreeWidgetItem(select_item.parent())
+            else:
+                return(None)
+        elif select_type == "consolidation":
+            # Get the current consolidation from the selection.
+            con_uuid = select_uuid
+            
+            # Get the current consolidation from the selection.
+            tre_prj_item_items = QTreeWidgetItem(select_item)
+        else:
+            return(None)
+        
+        try:
+            # Generate the GUID for the material
+            mat = features.Material(is_new=True, uuid=None, dbfile=None)
+            
+            # Get attributes from text boxes.
+            mat.consolidation = con_uuid
+            mat.material_number = self.tbx_mat_number.text()
+            mat.name = self.tbx_mat_name.text()
+            mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
+            mat.estimated_period_peak = self.tbx_mat_tmp_mid.text()
+            mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
+            mat.latitude = self.tbx_mat_geo_lat.text()
+            mat.longitude = self.tbx_mat_geo_lon.text()
+            mat.altitude = self.tbx_mat_geo_alt.text()
+            mat.description = self.tbx_mat_description.text()
+            
+            # Create the SQL query for inserting the new consolidation.
+            mat.dbInsert(DATABASE)
+            
+            # Create a directory to store consolidation.
+            con_dir = os.path.join(CON_DIR, mat.consolidation)
+            mat_dir = os.path.join(con_dir, "Materials")
+            
+            general.createDirectories(os.path.join(mat_dir, mat.uuid), False)
+            
+            # Update the tree view.
+            tre_prj_item_items.setText(0, mat.uuid)
+            tre_prj_item_items.setText(1, mat.name)
+            
+            self.tre_prj_item.show()
+            
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+        except:
+            # Create error messages.
+            error_title = "資料の作成エラー"
+            error_msg = "資料の作成に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def getMaterial(self, uuid):
+        print("main::getMaterial(self)")
+        
+        try:
+            # Set active control tab for material.
+            self.tab_target.setCurrentIndex(1)
+            
+            # Instantiate by the DB record.
+            material = features.Material(is_new=False, uuid=uuid, dbfile=DATABASE)
+            
+            # Set material information.
+            self.setMaterialInfo(material)
+            
+            # Refresh the image file list.
+            self.refreshFileList(material)
+        except Error as e:
+            print("Catch except in mainPanel::getMaterial(self)")
+            
+            # Create error messages.
+            error_title = "エラーが発生しました"
+            error_msg = "インスタンスを取得することができませんでした。"
+            error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = e.args[0]
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def updateMaterial(self):
+        print("main::updateMaterial(self)")
+        
+        try:
+            # Generate the GUID for the material
+            mat_uuid = self.tbx_mat_uuid.text()
+            
+            # Instantiate the material by using uuid.
+            mat = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+            
+            # Get attributes from text boxes.
+            mat.name = self.tbx_mat_name.text()
+            mat.material_number = self.tbx_mat_number.text()
+            mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
+            mat.estimated_period_peak = self.tbx_mat_tmp_mid.text()
+            mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
+            mat.latitude = self.tbx_mat_geo_lat.text()
+            mat.longitude = self.tbx_mat_geo_lon.text()
+            mat.altitude = self.tbx_mat_geo_alt.text()
+            mat.description = self.tbx_mat_description.text()
+            
+            # Create the SQL query for updating the new consolidation.
+            mat.dbUpdate(DATABASE)
+            
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()[0]
+            
+            # Update the tree view.
+            if selected.text(0) == mat.uuid:
+                selected.setText(1, mat.name)
+            
+            # Refresh the tree view.
+            self.tre_prj_item.show()
+            
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+        except:
+            # Create error messages.
+            error_title = "資料の更新エラー"
+            error_msg = "資料の更新に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
+    def deleteMaterial(self):
+        global CON_DIR
+        
+        # Check the selection status.
+        check_select = self.checkSelection()
+        
+        # Get the selection status.
+        if not check_select == None:
+            # Translate resultants.
+            select_type = check_select["selection"][0]
+            select_uuid = check_select["selection"][1]
+            select_item = check_select["selection"][2]
+        else:
+            # Exit if something happened in checking the selection status on tree view.
+            return(None)
+        
+        if select_type == "material":
+            # Confirm deleting the consolidation.
+            reply = QMessageBox.question(
+                    self, 
+                    '資料の削除', 
+                    '資料が内包する全てのデータが削除されます。本当に削除しますか？', 
+                    QMessageBox.Yes, 
+                    QMessageBox.No
+                )
+            if not reply == QMessageBox.Yes:
+                return(None)
+            
+            try:
+                # Get the directory storing information about the material
+                con_uuid = select_item.parent().text(0)
+                
+                # Update the tree view.
+                select_item.parent().removeChild(select_item)
+                
+                # Clear selection.
+                self.tre_prj_item.clearSelection()
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Delete all files from consolidation directory.
+                con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
+                mat_path = os.path.join(con_mat_path, select_uuid)
+                
+                # Delete files.
+                shutil.rmtree(mat_path)
+                
+                # Generate the GUID for the material
+                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
+                
+                # Drop the consolidation from the DB table.
+                mat.dbDrop(DATABASE)
+                
+                # Reflesh the last selection.
+                self.refreshItemInfo()
+            except:
+                # Create error messages.
+                error_title = "資料の削除エラー"
+                error_msg = "資料の削除に失敗しました。"
+                error_info = "不明なエラーです。"
+                error_icon = QMessageBox.Information
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+    
+    def setMaterialInfo(self, material):
+        print("main::setMaterialInfo(self, material)")
+        
+        try:
+            # Initialyze the material info.
+            self.refreshMaterialInfo()
+            
+            # Set active control tab for material.
+            self.tab_target.setCurrentIndex(1)
+            
+            # Initialyze the edit material mode as modifying.
+            self.rad_mat_mod.setChecked(True)
+            
+            # Set attributes to text boxes.
+            self.tbx_mat_uuid.setText(material.uuid)
+            self.tbx_mat_number.setText(material.material_number)
+            self.tbx_mat_name.setText(material.name)
+            self.tbx_mat_tmp_bgn.setText(material.estimated_period_beginning)
+            self.tbx_mat_tmp_mid.setText(material.estimated_period_peak)
+            self.tbx_mat_tmp_end.setText(material.estimated_period_ending)
+            self.tbx_mat_geo_lat.setText(material.latitude)
+            self.tbx_mat_geo_lon.setText(material.longitude)
+            self.tbx_mat_geo_alt.setText(material.altitude)
+            self.tbx_mat_description.setText(material.description)
+            
+            self.toggleEditModeForMaterial()
+            
+            # Returns the value.
+            return(True)
+        except:
+            print("Error occors in main::setMaterialInfo(self, material)")
+            return(False)
+    
+    def refreshMaterialInfo(self):
+        print("main::refreshMaterialInfo(self)")
+        
+        try:
+            self.rad_mat_new.setChecked(True)
+            
+            # Clear the file list for consolidation.
+            self.tre_fls.clearSelection()
+            self.tre_fls.clear()
+            
+            # Only the add new material button enabled.
+            self.btn_mat_add.setDisabled(False)
+            self.btn_mat_del.setDisabled(True)
+            self.btn_mat_take.setDisabled(True)
+            self.btn_mat_update.setDisabled(True)
+            
+            # Text boxes for attributes are enabled.
+            self.tbx_mat_name.setDisabled(False)
+            self.tbx_mat_geo_lat.setDisabled(False)
+            self.tbx_mat_geo_lon.setDisabled(False)
+            self.tbx_mat_geo_alt.setDisabled(False)
+            self.tbx_mat_tmp_bgn.setDisabled(False)
+            self.tbx_mat_tmp_mid.setDisabled(False)
+            self.tbx_mat_tmp_end.setDisabled(False)
+            self.tbx_mat_description.setDisabled(False)
+            
+            # Change text color for text boxes.
+            self.tbx_mat_number.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_name.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_geo_lat.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_geo_lon.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_geo_alt.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_tmp_bgn.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_tmp_mid.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_tmp_end.setStyleSheet("color: rgb(255, 0, 0);")
+            self.tbx_mat_description.setStyleSheet("color: rgb(255, 0, 0);")
+            
+            # Clear text boxes for attributes.
+            self.tbx_mat_uuid.setText("")
+            self.tbx_mat_number.setText("")
+            self.tbx_mat_name.setText("")
+            self.tbx_mat_geo_lat.setText("")
+            self.tbx_mat_geo_lon.setText("")
+            self.tbx_mat_geo_alt.setText("")
+            self.tbx_mat_tmp_bgn.setText("")
+            self.tbx_mat_tmp_mid.setText("")
+            self.tbx_mat_tmp_end.setText("")
+            self.tbx_mat_description.setText("")
+        except:
+            print("Error occcurs in main::refreshMaterialInfo(self)")
+    
+    def toggleEditModeForMaterial(self):
+        print("main::toggleEditModeForMaterial(self)")
+        
+        try:
+            if self.grp_mat_ope.checkedId() == 1:
+                # Only the add new consolidation button is disabled.
+                self.btn_mat_add.setDisabled(True)
+                self.btn_mat_update.setDisabled(False)
+                self.btn_mat_take.setDisabled(False)
+                self.btn_mat_del.setDisabled(False)
+                
+                # All text boxes for attributes of material is enabled.
+                self.tbx_mat_number.setDisabled(False)
+                self.tbx_mat_name.setDisabled(False)
+                self.tbx_mat_geo_lat.setDisabled(False)
+                self.tbx_mat_geo_lon.setDisabled(False)
+                self.tbx_mat_geo_alt.setDisabled(False)
+                self.tbx_mat_tmp_bgn.setDisabled(False)
+                self.tbx_mat_tmp_mid.setDisabled(False)
+                self.tbx_mat_tmp_end.setDisabled(False)
+                self.tbx_mat_description.setDisabled(False)
+                
+                # Change text color for text boxes.
+                self.tbx_mat_number.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_name.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_geo_lat.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_geo_lon.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_geo_alt.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_tmp_bgn.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_tmp_mid.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_tmp_end.setStyleSheet("color: rgb(0, 0, 0);")
+                self.tbx_mat_description.setStyleSheet("color: rgb(0, 0, 0);")
+                
+                if self.tbx_mat_uuid.text() == "":
+                    # Get the item of the material.
+                    error_title = "編集対象の資料が選択されていません。"
+                    error_msg = "資料の編集モードを変更できません。"
+                    error_info = "編集対象の資料を再選択してください。"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = None
+                    
+                    # Handle error.
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                    
+                    self.refreshMaterialInfo()
+                    
+                    # Returns nothing.
+                    return(None)
+            else:
+                self.refreshMaterialInfo()
+        except:
+                # Connection error.
+                error_title = "エラーが発生しました"
+                error_msg = "資料の編集モードを変更できません。"
+                error_info = "不明のエラーです。"
+                error_icon = QMessageBox.Critical
+                error_detailed = None
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+    
+    # ==========================
+    # Image
+    # ==========================
+    def setFileInfo(self, sop_object):
+        if sop_object.public == "1":
+            self.cbx_img_pub.setChecked(True)
+        else:
+            self.cbx_img_pub.setChecked(False)
+        
+        if sop_object.lock == "1":
+            self.cbx_img_edit.setChecked(False)
+            self.cbx_img_edit.setDisabled(True)
+        else:
+            self.cbx_img_edit.setChecked(True)
+            self.cbx_img_edit.setDisabled(False)
+            self.cbx_img_edit.setEnabled(True)
+            
+        self.tbx_img_capt.setText(sop_object.caption)
+        self.tbx_img_stts.setText(sop_object.status)
+        self.tbx_img_eope.setText(sop_object.operation)
+        
+        fil_status = sop_object.status
+        
+        if fil_status == "Original":
+            if self.cbx_fil_original.isChecked() == True:
+                # Update the tree view.
+                tre_fls_item = QTreeWidgetItem(self.tre_fls)
+                
+                tre_fls_item.setText(0, sop_object.uuid)
+                tre_fls_item.setText(1, sop_object.alias)
+                tre_fls_item.setText(2, sop_object.file_type)
+                
+                tre_fls_item.setForeground(0,QBrush(QColor("#0000FF")))
+                tre_fls_item.setForeground(1,QBrush(QColor("#0000FF")))
+                tre_fls_item.setForeground(2,QBrush(QColor("#0000FF")))
+        elif fil_status == "Removed":
+            if self.cbx_fil_deleted.isChecked() == True:
+                # Update the tree view.
+                tre_fls_item = QTreeWidgetItem(self.tre_fls)
+                
+                tre_fls_item.setText(0, sop_object.uuid)
+                tre_fls_item.setText(1, sop_object.alias)
+                tre_fls_item.setText(2, sop_object.file_type)
+                
+                tre_fls_item.setForeground(0,QBrush(QColor("#FF0000")))
+                tre_fls_item.setForeground(1,QBrush(QColor("#FF0000")))
+                tre_fls_item.setForeground(2,QBrush(QColor("#FF0000")))
+        else:
+            # Update the tree view.
+            tre_fls_item = QTreeWidgetItem(self.tre_fls)
+            
+            tre_fls_item.setText(0, sop_object.uuid)
+            tre_fls_item.setText(1, sop_object.alias)
+            tre_fls_item.setText(2, sop_object.file_type)
+            
+            tre_fls_item.setForeground(0,QBrush(QColor("#000000")))
+            tre_fls_item.setForeground(1,QBrush(QColor("#000000")))
+            tre_fls_item.setForeground(2,QBrush(QColor("#000000")))
+    
+    def updateFile(self):
+        global ROOT_DIR
+        
+        if not ROOT_DIR == None:
+            selected = self.tre_fls.selectedItems()
+            
+            if not selected == None or not len(selected) == 0:
+                fil_uuid = selected[0].text(0)
+                print(fil_uuid)
+        else:
+            # Create error messages.
+            error_title = "プロジェクトのエラー"
+            error_msg = "プロジェクトが開かれていません。"
+            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            self.refreshItemInfo()
+            
+            # Returns nothing.
+            return(None)
+    
+    def refreshImageInfo(self):
+        print("main::refreshImageInfo(self)")
+        
+        try:
+            # Clear the file list tree view..
+            self.tre_fls.clear()
+            
+            # Initialyze the checkboxes.
+            self.cbx_img_pub.setChecked(False)
+            self.cbx_img_edit.setChecked(False)
+            
+            # Define the no image avatar for preview panel.
+            noimage_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
+            self.showImage(noimage_path)
+            
+            # Clear entries on image properties view.
+            self.tre_img_prop.clear()
+            
+            # Initialyze checkboxes.
+            self.cbx_img_pub.setChecked(False)
+            self.cbx_img_edit.setChecked(True)
+            self.cbx_img_edit.setDisabled(False)
+            
+            # Clear texts relating to the previous instance.
+            self.tbx_img_capt.setText("")
+            self.tbx_img_stts.setText("")
+            self.tbx_img_eope.setText("")
+        except:
+            print("Error occurs in main::refreshImageInfo(self)")
     
     # ==========================
     # Image processing tools
@@ -1377,1385 +2799,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             sop_object = features.Material(is_new=False, uuid=sop_file.material, dbfile=DATABASE)
         # Refresh the image file list.
         self.refreshFileList(sop_object)
-
-    # ==========================
-    # General operation
-    # ==========================
-    def getTheRootDirectory(self):
-        # Define constants.
-        global ROOT_DIR
-        global TABLE_DIR
-        global CON_DIR
-        global DATABASE
-                
-        # Initialyze the tree view.
-        self.tre_prj_item.clear()
-        
-        # Reflesh the last selection.
-        self.refreshItemInfo()
-        
-        # Define directories for storing files.
-        ROOT_DIR = QFileDialog.getExistingDirectory(self, "プロジェクト・ディレクトリの選択")
-        TABLE_DIR = os.path.join(ROOT_DIR, "Table")
-        CON_DIR = os.path.join(ROOT_DIR, "Consolidation")
-        
-        # Define the DB file.
-        DATABASE = os.path.join(TABLE_DIR, "project.db")
-        
-        if not os.path.exists(DATABASE):
-            # Confirm whether create a directory for consolidations.
-            reply = QMessageBox.question(
-                    self, 
-                    'データベース・ファイルが見つかりません。', 
-                    '新規プロジェクトを作成しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            # Create the directory of consolidation
-            if reply == QMessageBox.No:
-                # Initialyze  global vaiables.
-                ROOT_DIR = None
-                TABLE_DIR = None
-                CON_DIR = None
-                DATABASE = None
-                
-                # Exit if canceled.
-                return(None)
-            elif reply == QMessageBox.Yes:
-                try:
-                    # Create the consolidation directory and the table directory.
-                    os.mkdir(CON_DIR)
-                    os.mkdir(TABLE_DIR)
-                    
-                    # Create the connection object to create empty database file.
-                    conn = sqlite.connect(DATABASE)
-                    
-                    # Create new tables which defined by Simple Object Profile(SOP).
-                    general.createTables(DATABASE)
-                except Error as e:
-                    # Create error messages.
-                    error_title = "エラーが発生しました"
-                    error_msg = "新規プロジェクトを作成できませんでした。"
-                    error_info = "エラーの詳細を確認してください。"
-                    error_icon = QMessageBox.Critical
-                    error_detailed = e.args[0]
-                    
-                    # Handle error.
-                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                    
-                    # Returns nothing.
-                    return(None)
-                finally:
-                    # Finally close the connection.
-                    conn.close()
-            else:
-                # Exit if canceled.
-                return(None)
-        
-        if os.path.exists(DATABASE):
-            # Create a sqLite file if not exists. 
-            try:
-                # Establish the connection to the DataBase file.
-                conn = sqlite.connect(DATABASE)
-                
-                if conn is not None:
-                    # Check whether table exists or not.
-                    if not general.checkTableExist(DATABASE, "consolidation"): general.createTableConsolidation(DATABASE)
-                    if not general.checkTableExist(DATABASE, "material"): general.createTableMaterial(DATABASE)
-                    if not general.checkTableExist(DATABASE, "file"): general.createTableFile(DATABASE)
-                    
-                    # Check wether columns exists or not.
-                    con_fields = [("uuid", "text"),
-                                  ("name", "text"),
-                                  ("geographic_annotation", "text"),
-                                  ("temporal_annotation", "text"),
-                                  ("description", "text")]
-                    
-                    mat_fields= [("con_id", "text"),
-                                ("name", "text"),
-                                ("material_number", "text"),
-                                ("estimated_period_beginning", "character varying(255)"),
-                                ("estimated_period_peak", "character varying(255)"),
-                                ("estimated_period_ending", "character varying(255)"),
-                                ("latitude", "real"),
-                                ("longitude", "real"),
-                                ("altitude", "real"),
-                                ("material_number", "text"),
-                                ("description", "text")]
-                    
-                    fil_fields = [("uuid", "text"),
-                                  ("con_id", "text"),
-                                  ("mat_id", "text"),
-                                  ("created_date", "datetime"),
-                                  ("modified_date", "datetime"),
-                                  ("file_name", "character varying(255)"),
-                                  ("file_type", "character varying(20)"),
-                                  ("make_public", "bool"),
-                                  ("alias_name", "character varying(255)"),
-                                  ("status", "character varying(255)"),
-                                  ("is_locked", "bool"),
-                                  ("source", "character varying(255)"),
-                                  ("file_operation", "character varying(255)"),
-                                  ("operating_application", "character varying(255)"),
-                                  ("caption", "character varying(255)"),
-                                  ("description", "text")]
-                    
-                    general.checkFieldsExists(DATABASE, "consolidation", con_fields)
-                    general.checkFieldsExists(DATABASE, "material", mat_fields)
-                    general.checkFieldsExists(DATABASE, "file", fil_fields)
-                    
-                    # Create the SQL query for selecting consolidation.
-                    sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
-                    
-                    # Create the SQL query for selecting the consolidation.
-                    sql_mat_sel = """SELECT uuid, name, description FROM material WHERE con_id=?"""
-                    
-                    # Instantiate the cursor for query.
-                    cur_con = conn.cursor()
-                    rows_con = cur_con.execute(sql_con_sel)
-                    
-                    # Execute the query and get consolidation recursively
-                    for row_con in rows_con:
-                        # Get attributes from the row.
-                        con_uuid = row_con[0]
-                        con_name = row_con[1]
-                        con_description = row_con[2]
-                        
-                        if con_uuid == None or con_uuid == "NULL": con_uuid = ""
-                        if con_name == None or con_name == "NULL": con_name = ""
-                        if con_description == None or con_description == "NULL": con_description = ""
-                        
-                        # Update the tree view.
-                        tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
-                        
-                        tre_prj_con_items.setText(0, con_uuid)
-                        tre_prj_con_items.setText(1, con_name)
-                        
-                        # Instantiate the cursor for query.
-                        cur_mat = conn.cursor()
-                        rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
-                            
-                        for row_mat in rows_mat:
-                            # Get attributes from the row.
-                            mat_uuid = row_mat[0]
-                            mat_name = row_mat[1]
-                            mat_description = row_mat[2]
-                            
-                            if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
-                            if mat_name == None or mat_name == "NULL": mat_name = ""
-                            if mat_description == None or mat_description == "NULL": mat_description = ""
-                            
-                            # Update the tree view.
-                            tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
-                            
-                            tre_prj_mat_items.setText(0, mat_uuid)
-                            tre_prj_mat_items.setText(1, mat_name)
-                            
-                        # Refresh the tree view.
-                        self.tre_prj_item.show()
-                        
-                        self.tre_prj_item.resizeColumnToContents(0)
-                        self.tre_prj_item.resizeColumnToContents(1)
-                        
-            except Error as e:
-                # Connection error.
-                error_title = "エラーが発生しました"
-                error_msg = "データベースの情報を取得できません。"
-                error_info = "エラーの詳細を確認してください。"
-                error_icon = QMessageBox.Critical
-                error_detailed = e.args[0]
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-            finally:
-                conn.close()
-        
-        # Finally set the root path to the text box.
-        self.lbl_prj_path.setText(ROOT_DIR)
-    
-    def refreshFileList(self, sop_object):
-        print("main::refreshFileList(self, sop_object)")
-        
-        try:
-            # Get images from the given class.
-            images = sop_object.images
-            if not images == None and len(images) > 0:
-                self.tre_fls.clear()
-                
-                for image in images:
-                    if image.public == "1":
-                        self.cbx_img_pub.setChecked(True)
-                    else:
-                        self.cbx_img_pub.setChecked(False)
-                    
-                    if image.lock == "1":
-                        self.cbx_img_edit.setChecked(False)
-                        self.cbx_img_edit.setDisabled(True)
-                    else:
-                        self.cbx_img_edit.setChecked(True)
-                        self.cbx_img_edit.setDisabled(False)
-                        self.cbx_img_edit.setEnabled(True)
-                        
-                    self.tbx_img_capt.setText(image.caption)
-                    self.tbx_img_stts.setText(image.status)
-                    self.tbx_img_eope.setText(image.operation)
-                    
-                    fil_status = image.status
-                    
-                    if fil_status == "Original":
-                        if self.cbx_fil_original.isChecked() == True:
-                            # Update the tree view.
-                            tre_fls_item = QTreeWidgetItem(self.tre_fls)
-                            
-                            tre_fls_item.setText(0, image.uuid)
-                            tre_fls_item.setText(1, image.alias)
-                            tre_fls_item.setText(2, image.file_type)
-                            
-                            tre_fls_item.setForeground(0,QBrush(QColor("#0000FF")))
-                            tre_fls_item.setForeground(1,QBrush(QColor("#0000FF")))
-                            tre_fls_item.setForeground(2,QBrush(QColor("#0000FF")))
-                    elif fil_status == "Removed":
-                        if self.cbx_fil_deleted.isChecked() == True:
-                            # Update the tree view.
-                            tre_fls_item = QTreeWidgetItem(self.tre_fls)
-                            
-                            tre_fls_item.setText(0, image.uuid)
-                            tre_fls_item.setText(1, image.alias)
-                            tre_fls_item.setText(2, image.file_type)
-                            
-                            tre_fls_item.setForeground(0,QBrush(QColor("#FF0000")))
-                            tre_fls_item.setForeground(1,QBrush(QColor("#FF0000")))
-                            tre_fls_item.setForeground(2,QBrush(QColor("#FF0000")))
-                    else:
-                        # Update the tree view.
-                        tre_fls_item = QTreeWidgetItem(self.tre_fls)
-                        
-                        tre_fls_item.setText(0, image.uuid)
-                        tre_fls_item.setText(1, image.alias)
-                        tre_fls_item.setText(2, image.file_type)
-                        
-                        tre_fls_item.setForeground(0,QBrush(QColor("#000000")))
-                        tre_fls_item.setForeground(1,QBrush(QColor("#000000")))
-                        tre_fls_item.setForeground(2,QBrush(QColor("#000000")))
-                    
-                    '''
-                    print("prop fname:" + str(image.filename))
-                    print("prop cdate:" + str(image.created_date))
-                    print("prop mdate:" + str(image.modified_date))
-                    print("prop desc:" + str(image.description))
-                    print("prop fope:" + str(image.operating_application))
-                    '''
-                # Refresh the tree view.
-                self.tre_fls.resizeColumnToContents(0)
-                self.tre_fls.resizeColumnToContents(1)
-                self.tre_fls.resizeColumnToContents(2)
-                
-                self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
-                self.tre_fls.show()
-        except:
-            print("Error occurs in mainPanel::refreshFileList")
-            return(None)
-    
-    def getImageFileInfo(self, sop_image):
-        print("main::getImageFileInfo(self)")
-        global CON_DIR
-        
-        # Get the full path of the image.
-        if sop_image.filename == "":
-            img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
-        else:
-            if not os.path.exists(os.path.join(ROOT_DIR, sop_image.filename)):
-                img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
-            else:
-                img_file_path = os.path.join(ROOT_DIR, sop_image.filename)
-        
-        # Clear.
-        self.tre_img_prop.clear()
-        self.lbl_img_preview.setText("")
-        
-        # Get the image properties from the instance.
-        if sop_image.public == "1":
-            self.cbx_img_pub.setChecked(True)
-        else:
-            self.cbx_img_pub.setChecked(False)
-        
-        if sop_image.lock == "1":
-            self.cbx_img_edit.setChecked(False)
-            self.cbx_img_edit.setDisabled(True)
-        else:
-            self.cbx_img_edit.setChecked(True)
-            self.cbx_img_edit.setDisabled(False)
-            self.cbx_img_edit.setEnabled(True)
-            
-        self.tbx_img_capt.setText(sop_image.caption)
-        self.tbx_img_stts.setText(sop_image.status)
-        self.tbx_img_eope.setText(sop_image.operation)
-        
-        try:
-            # Get file information by using "dcraw" library.
-            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
-            
-            # Get each metadata entry.
-            for entry in img_stat:
-                # Split metadata entry by ":".
-                entry_line = entry.split(":")
-                
-                # Get the metadata key.
-                entry_key = entry_line[0]
-                
-                # Get the metadata value.
-                entry_val = entry_line[1]
-                
-                # Add file information to the tree list.
-                self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
-        except:
-            print("Cannot get the meta information.")
-        # Get file information by using python "stat" library.
-        fl_stat = os.stat(img_file_path)
-        
-        # Get file size.
-        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
-        
-        # Get time for last access, modified and creat.
-        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
-        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
-        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
-        
-        # Add file information to the tree list.
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
-        
-        # Refresh the tree view.
-        self.tre_img_prop.show()
-        
-        # Show preview.
-        self.showImage(img_file_path)
-    
-    def getSoundFileInfo(self, sop_sound):
-        print("main::getImageFileInfo(self, sop_sound)")
-    
-    def showImage(self, img_file_path):
-        print("main::showImage(self)")
-        # Check the image file can be displayed directry.
-        img_base, img_ext = os.path.splitext(img_file_path)
-        img_valid = False
-        
-        # Get container size.
-        panel_w = self.lbl_img_preview.width()
-        panel_h = self.lbl_img_preview.height()
-        
-        for qt_ext in QT_IMG:
-            # Exit loop if extension is matched with Qt supported image.
-            if img_ext.lower() == qt_ext.lower():
-                img_valid = True
-                break
-        
-        # Check whether the image is Raw image or not.
-        if not img_valid == True:
-            # Extract the thumbnail image from the RAW image by using "dcraw".
-            imageProcessing.getThumbnail(img_file_path)
-            
-            # Get the extracted thumbnail image.
-            img_file_path = img_base + ".thumb.jpg"
-        
-        if os.path.exists(img_file_path):
-            # Create the container for displaying the image
-            org_pixmap = QPixmap(img_file_path)
-            scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
-            
-            # Set the image file to the image view container.
-            self.lbl_img_preview.setPixmap(scl_pixmap)
-                        
-            # Show the selected image.
-            self.lbl_img_preview.show()
-        else:
-            # Create error messages.
-            error_title = "エラーが発生しました"
-            error_msg = "このファイルはプレビューに対応していません。"
-            error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-    
-    def getCurrentObject(self):
-        print("main::getCurrentObject(self)")
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        if self.tab_target.currentIndex() == 0:
-            if select_type == "consolidation": # Consolidation to Consolidation.
-                self.getConsolidation()
-            elif select_type == "material":     # Material to Consolidation.
-                # Refresh the consolidation infomation.
-                self.refreshConsolidationInfo()
-                
-                # Refresh the image information.
-                self.refreshImageInfo()
-                
-                # Select the parent consolidation.
-                parent = self.tre_prj_item.selectedItems()[0].parent()
-                self.tre_prj_item.setCurrentItem(parent)
-                
-                # Get the current consolidation.
-                self.getConsolidation()
-                
-        elif self.tab_target.currentIndex() == 1:
-            if select_type == "consolidation":  # Consolidation to Material.
-                # Refresh the material infomation.
-                self.refreshMaterialInfo()
-                
-                # Refresh the image information.
-                self.refreshImageInfo()
-            elif select_type == "material":     # Material to Material.
-                self.getMaterial()
-    
-    def toggleSelectedItem(self):
-        print("main::toggleSelectedItem(self)")
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        if select_type == "consolidation":
-            self.getConsolidation()
-        elif select_type == "material":
-            self.getMaterial()
-    
-    def toggleSelectedFile(self):
-        print("main::toggleSelectedFile(self)")
-        if not ROOT_DIR == None:
-            selected = self.tre_fls.selectedItems()
-            
-            if not selected == None:
-                if not len(selected) == 0:
-                    # Get the uuid of the selected file.
-                    fil_uuid = selected[0].text(0)
-                    
-                    # Instantiate the file object of SOP.
-                    sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
-                    
-                    if sop_file.file_type == "image":
-                        # Set active control tab for material.
-                        self.tab_src.setCurrentIndex(0)
-                        self.getImageFileInfo(sop_file)
-                    if sop_file.file_type == "sound":
-                        # Set active control tab for material.
-                        self.tab_src.setCurrentIndex(1)
-                        self.getSoundFileInfo(sop_file)
-        else:
-            # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            self.refreshItemInfo()
-            
-            # Returns nothing.
-            return(None)
-    
-    def checkSelection(self):
-        print("main::checkSelection(self)")
-        global DATABASE
-        global CON_DIR
-        
-        # Initialyze the value for the result.
-        result = dict()
-        
-        if not ROOT_DIR == None:
-            # Get the item of the material.
-            selected = self.tre_prj_item.selectedItems()
-            
-            # Exit if selected item is 0.
-            if len(selected) == 0:
-                result["selection"] = [None, None, None]
-                return(result)
-            
-            elif len(selected) > 0:
-                if not selected[0].parent() == None:
-                    result["selection"] = ["material", selected[0].text(0), selected[0]]
-                    return(result)
-                    
-                    return(result)
-                if selected[0].parent() == None:
-                    result["selection"] = ["consolidation", selected[0].text(0), selected[0]]
-                    return(result)
-            else:
-                # Create error messages.
-                error_title = "取得エラー"
-                error_msg = "統合体あるいは資料が選択されていません。"
-                error_info = "ツリービューから再度選択してください。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                result["selection"] = [None, None, None]
-                return(result)
-        else:
-            # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            result["selection"] = [None, None, None]
-            return(result)
-    
-    def refreshItemInfo(self):
-        print("main::refreshItemInfo(self)")
-        try:
-            # Clear.
-            self.tre_img_prop.clear()
-            self.tre_fls.clear()
-            self.lbl_img_preview.setText("")
-            self.cbx_img_pub.setChecked(False)
-            self.cbx_img_edit.setChecked(False)
-        except:
-            print("Error occurs in mainPanel::refreshItemInfo(self)")
-            return(None)
-    
-    def refreshConsolidationInfo(self):
-        print("main::refreshConsolidationInfo(self)")
-        
-        try:
-            self.rad_con_new.setChecked(True)
-            
-            # Clear the file list for consolidation.
-            self.tre_fls.clearSelection()
-            self.tre_fls.clear()
-            
-            # Only the add new consolidation button enabled.
-            self.btn_con_add.setDisabled(False)
-            self.btn_con_del.setDisabled(True)
-            self.btn_con_take.setDisabled(True)
-            self.btn_con_update.setDisabled(True)
-            
-            # Text boxes for attributes are enabled.
-            self.tbx_con_name.setDisabled(False)
-            self.tbx_con_geoname.setDisabled(False)
-            self.tbx_con_temporal.setDisabled(False)
-            self.tbx_con_description.setDisabled(False)
-            
-            # Change text color for text boxes.
-            self.tbx_con_name.setStyleSheet("color: rgb(255, 0, 0);")
-            self.tbx_con_geoname.setStyleSheet("color: rgb(255, 0, 0);")
-            self.tbx_con_temporal.setStyleSheet("color: rgb(255, 0, 0);")
-            self.tbx_con_description.setStyleSheet("color: rgb(255, 0, 0);")
-            
-            # Clear text boxes for attributes.
-            self.tbx_con_name.setText("")
-            self.tbx_con_geoname.setText("")
-            self.tbx_con_temporal.setText("")
-            self.tbx_con_description.setText("")
-        except:
-            print("Error occurs in main::refreshConsolidationInfo(self)")
-       
-    def refreshMaterialInfo(self):
-        print("main::refreshMaterialInfo(self)")
-        
-        self.rad_mat_new.setChecked(True)
-        
-        # Clear the file list for consolidation.
-        self.tre_fls.clearSelection()
-        self.tre_fls.clear()
-        
-        # Only the add new material button enabled.
-        self.btn_mat_add.setDisabled(False)
-        self.btn_mat_del.setDisabled(True)
-        self.btn_mat_take.setDisabled(True)
-        self.btn_mat_update.setDisabled(True)
-        
-        # Text boxes for attributes are enabled.
-        self.tbx_mat_name.setDisabled(False)
-        self.tbx_mat_geo_lat.setDisabled(False)
-        self.tbx_mat_geo_lon.setDisabled(False)
-        self.tbx_mat_geo_alt.setDisabled(False)
-        self.tbx_mat_tmp_bgn.setDisabled(False)
-        self.tbx_mat_tmp_mid.setDisabled(False)
-        self.tbx_mat_tmp_end.setDisabled(False)
-        self.tbx_mat_description.setDisabled(False)
-        
-        # Change text color for text boxes.
-        self.tbx_mat_number.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_name.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_geo_lat.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_geo_lon.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_geo_alt.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_tmp_bgn.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_tmp_mid.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_tmp_end.setStyleSheet("color: rgb(255, 0, 0);")
-        self.tbx_mat_description.setStyleSheet("color: rgb(255, 0, 0);")
-        
-        # Clear text boxes for attributes.
-        self.tbx_mat_number.setText("")
-        self.tbx_mat_name.setText("")
-        self.tbx_mat_geo_lat.setText("")
-        self.tbx_mat_geo_lon.setText("")
-        self.tbx_mat_geo_alt.setText("")
-        self.tbx_mat_tmp_bgn.setText("")
-        self.tbx_mat_tmp_mid.setText("")
-        self.tbx_mat_tmp_end.setText("")
-        self.tbx_mat_description.setText("")
-        
-    def refreshImageInfo(self):
-        noimage_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
-        self.showImage(noimage_path)
-        
-        self.tre_img_prop.clear()
-        
-        self.cbx_img_pub.setChecked(False)
-        self.cbx_img_edit.setChecked(True)
-        self.cbx_img_edit.setDisabled(False)
-        
-        self.tbx_img_capt.setText("")
-        self.tbx_img_stts.setText("")
-        self.tbx_img_eope.setText("")
-    # ==========================
-    # object operation
-    # ==========================
-    def toggleEditModeForConsolidation(self):
-        print("main::toggleEditModeForConsolidation(self)")
-        global ROOT_DIR
-        
-        try: 
-            if self.grp_con_ope.checkedId() == 1:
-                # Only the add new consolidation button is disabled.
-                self.btn_con_add.setDisabled(True)
-                self.btn_con_update.setDisabled(False)
-                self.btn_con_take.setDisabled(False)
-                self.btn_con_del.setDisabled(False)
-                
-                # Change text color for text boxes.
-                self.tbx_con_name.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_con_geoname.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_con_temporal.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_con_description.setStyleSheet("color: rgb(0, 0, 0);")
-                
-                # All text boxes for attributes of consolidation is enabled.
-                self.tbx_con_name.setDisabled(False)
-                self.tbx_con_geoname.setDisabled(False)
-                self.tbx_con_temporal.setDisabled(False)
-                self.tbx_con_description.setDisabled(False)
-            else:
-                self.refreshConsolidationInfo()
-        except:
-                # Connection error.
-                error_title = "エラーが発生しました"
-                error_msg = "統合体の編集モードを変更できません。"
-                error_info = "不明のエラーです。"
-                error_icon = QMessageBox.Critical
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-    
-    def toggleEditModeForMaterial(self):
-        print("main::toggleEditModeForMaterial(self)")
-        try:
-            if self.grp_mat_ope.checkedId() == 1:
-                # Only the add new consolidation button is disabled.
-                self.btn_mat_add.setDisabled(True)
-                self.btn_mat_update.setDisabled(False)
-                self.btn_mat_take.setDisabled(False)
-                self.btn_mat_del.setDisabled(False)
-                
-                # All text boxes for attributes of material is enabled.
-                self.tbx_mat_number.setDisabled(False)
-                self.tbx_mat_name.setDisabled(False)
-                self.tbx_mat_geo_lat.setDisabled(False)
-                self.tbx_mat_geo_lon.setDisabled(False)
-                self.tbx_mat_geo_alt.setDisabled(False)
-                self.tbx_mat_tmp_bgn.setDisabled(False)
-                self.tbx_mat_tmp_mid.setDisabled(False)
-                self.tbx_mat_tmp_end.setDisabled(False)
-                self.tbx_mat_description.setDisabled(False)
-                
-                # Change text color for text boxes.
-                self.tbx_mat_number.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_name.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_geo_lat.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_geo_lon.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_geo_alt.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_tmp_bgn.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_tmp_mid.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_tmp_end.setStyleSheet("color: rgb(0, 0, 0);")
-                self.tbx_mat_description.setStyleSheet("color: rgb(0, 0, 0);")
-            else:
-                self.refreshMaterialInfo()
-        except:
-                # Connection error.
-                error_title = "エラーが発生しました"
-                error_msg = "資料の編集モードを変更できません。"
-                error_info = "不明のエラーです。"
-                error_icon = QMessageBox.Critical
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-    
-    def toggleShowFileMode(self):
-        # Initialyze the uuid for the consolidation and the material.
-        sop_object = None
-        
-        con_uuid = ""
-        mat_uuid = ""
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        # Get the current consolidation.
-        item_uuid = select_uuid
-                    
-        if select_type == "consolidation":
-            # Define the path to the consolidation.
-            con_uuid = item_uuid
-            
-            # Get the item path under the consolidaiton path.
-            sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
-            self.refreshFileList(sop_object)
-        elif select_type == "material":
-            # Get the consolidation uuid.
-            con_uuid = select_item.parent().text(0)
-            mat_uuid = item_uuid
-            
-            # Get the item path under the consolidaiton path.
-            con_path = os.path.join(CON_DIR, con_uuid)
-            sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
-            self.refreshFileList(sop_object)
-        else:
-            return(None)
-    
-    def getConsolidation(self):
-        print("main::getConsolidation(self)")
-        global DATABASE
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            print("Error occurs in mainPanel::getConsolidation(self).checkSelection()")
-            return(None)
-        
-        if select_type == "consolidation":
-            # Reflesh the last selection.
-            self.refreshItemInfo()
-            
-            # Set active control tab for consolidation.
-            self.tab_target.setCurrentIndex(0)
-            
-            # Initialyze the edit consolidation mode as modifying.
-            self.rad_con_mod.setChecked(True)
-            self.toggleEditModeForConsolidation()
-            
-            try:
-                # Instantiate by the DB record.
-                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Set attributes to text boxes.
-                self.tbx_con_name.setText(con.name)
-                self.tbx_con_geoname.setText(con.geographic_annotation)
-                self.tbx_con_temporal.setText(con.temporal_annotation)
-                self.tbx_con_description.setText(con.description)
-                
-                # Refresh the consolidation files.
-                self.refreshFileList(con)
-            except Error as e:
-                print("Catch except in mainPanel::getConsolidation(self)")
-                
-                # Create error messages.
-                error_title = "エラーが発生しました"
-                error_msg = "インスタンスを取得することができませんでした。"
-                error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-                error_icon = QMessageBox.Critical
-                error_detailed = e.args[0]
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-    
-    def getMaterial(self):
-        print("main::getMaterial(self)")
-        global DATABASE
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            print("Error occurs in mainPanel::getConsolidation(self).checkSelection()")
-            
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        # Reflesh the last selection.
-        self.refreshItemInfo()
-        
-        # Set active control tab for material.
-        self.tab_target.setCurrentIndex(1)
-        
-        # Initialyze the edit material mode as modifying.
-        self.rad_mat_mod.setChecked(True)
-        self.toggleEditModeForMaterial()
-        
-        if select_type == "material":
-            try:
-                # Instantiate by the DB record.
-                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Set attributes to text boxes.
-                self.tbx_mat_number.setText(mat.material_number)
-                self.tbx_mat_name.setText(mat.name)
-                self.tbx_mat_tmp_bgn.setText(mat.estimated_period_beginning)
-                self.tbx_mat_tmp_mid.setText(mat.estimated_period_peak)
-                self.tbx_mat_tmp_end.setText(mat.estimated_period_ending)
-                self.tbx_mat_geo_lat.setText(mat.latitude)
-                self.tbx_mat_geo_lon.setText(mat.longitude)
-                self.tbx_mat_geo_alt.setText(mat.altitude)
-                self.tbx_mat_description.setText(mat.description)
-                
-                # Refresh the material image files.
-                con_path = os.path.join(CON_DIR, mat.consolidation)
-                con_mat = os.path.join(os.path.join(con_path, "Materials"), mat.uuid)
-                mat_img_path = os.path.join(con_mat,"Images")
-                
-                # Refresh the image file list.
-                self.refreshFileList(mat)
-            except Error as e:
-                print("Catch except in mainPanel::getMaterial(self)")
-                
-                # Create error messages.
-                error_title = "エラーが発生しました"
-                error_msg = "インスタンスを取得することができませんでした。"
-                error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-                error_icon = QMessageBox.Critical
-                error_detailed = e.args[0]
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-    
-    def addConsolidation(self):
-        print("main::addConsolidation(self)")
-        global CON_DIR
-        
-        try:
-            # Initialize the Consolidation Class.
-            con = features.Consolidation(is_new=True, uuid=None, dbfile=None)
-            
-            # Instantiate the consolidation class
-            con.name = self.tbx_con_name.text()
-            con.geographic_annotation = self.tbx_con_geoname.text()
-            con.temporal_annotation = self.tbx_con_temporal.text()
-            con.description = self.tbx_con_description.text()
-            
-            # Insert the instance into DBMS.
-            con.dbInsert(DATABASE)
-            
-            # Create a directory to store consolidation.
-            general.createDirectories(os.path.join(CON_DIR,con.uuid), True)
-            
-            # Update the tree view.
-            tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
-            tre_prj_item_items.setText(0, con.uuid)
-            tre_prj_item_items.setText(1, con.name)
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
-            
-            # Change edit mode to modifying.
-            self.rad_con_mod.setChecked(True)
-            self.toggleEditModeForConsolidation()
-        except:
-            # Create error messages.
-            error_title = "統合体の作成エラー"
-            error_msg = "統合体の作成に失敗しました。"
-            error_info = "不明なエラーです。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-    
-    def addMaterial(self):
-        print("main::addMaterial(self)")
-        global CON_DIR
-        
-        # Check the selection state.
-        check_select = self.checkSelection()
-        
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            # Create error messages.
-            error_title = "資料の作成エラー"
-            error_msg = "資料の作成ができません。"
-            error_info = "資料を包括する統合体を選択してください。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            return(None)
-        
-        if select_type == "material":
-            # Initialize the Consolidation Class.
-            con_uuid = select_item.parent().text(0)
-            
-            # Confirm whether select the parent consolidations.
-            reply = QMessageBox.question(
-                    self, 
-                    '資料を内包する統合体が指定されていません。', 
-                    u"現在の統合体（" + con_uuid + u"）に新規資料を追加しますか？", 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            # Handle the return value.
-            if reply == QMessageBox.Yes:
-                # Set tree view item from parent node.
-                tre_prj_item_items = QTreeWidgetItem(select_item.parent())
-            else:
-                return(None)
-        elif select_type == "consolidation":
-            # Get the current consolidation from the selection.
-            con_uuid = select_uuid
-            
-            # Get the current consolidation from the selection.
-            tre_prj_item_items = QTreeWidgetItem(select_item)
-        else:
-            return(None)
-        
-        try:
-            # Generate the GUID for the material
-            mat = features.Material(is_new=True, uuid=None, dbfile=None)
-            
-            # Get attributes from text boxes.
-            mat.consolidation = con_uuid
-            mat.material_number = self.tbx_mat_number.text()
-            mat.name = self.tbx_mat_name.text()
-            mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
-            mat.estimated_period_peak = self.tbx_mat_tmp_mid.text()
-            mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
-            mat.latitude = self.tbx_mat_geo_lat.text()
-            mat.longitude = self.tbx_mat_geo_lon.text()
-            mat.altitude = self.tbx_mat_geo_alt.text()
-            mat.description = self.tbx_mat_description.text()
-            
-            # Create the SQL query for inserting the new consolidation.
-            mat.dbInsert(DATABASE)
-            
-            # Create a directory to store consolidation.
-            con_dir = os.path.join(CON_DIR, mat.consolidation)
-            mat_dir = os.path.join(con_dir, "Materials")
-            
-            general.createDirectories(os.path.join(mat_dir, mat.uuid), False)
-            
-            # Update the tree view.
-            tre_prj_item_items.setText(0, mat.uuid)
-            tre_prj_item_items.setText(1, mat.name)
-            
-            self.tre_prj_item.show()
-            
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
-        except:
-            # Create error messages.
-            error_title = "資料の作成エラー"
-            error_msg = "資料の作成に失敗しました。"
-            error_info = "不明なエラーです。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-    
-    def updateConsolidation(self):
-        # Check the selection state.
-        check_select = self.checkSelection()
-        
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        if select_type == "consolidation":
-            try:
-                # Initialize the Consolidation Class.
-                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Instantiate the consolidation class
-                con.name = self.tbx_con_name.text()
-                con.geographic_annotation = self.tbx_con_geoname.text()
-                con.temporal_annotation = self.tbx_con_temporal.text()
-                con.description = self.tbx_con_description.text()
-                
-                # Update the instance into DBMS.
-                con.dbUpdate(DATABASE)
-                
-                # Update the tree view.
-                select_item.setText(1, con.name)
-                select_item.setText(2, con.description)
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-            except:
-                # Create error messages.
-                error_title = "統合体の更新エラー"
-                error_msg = "統合体の更新に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-        else:
-            # Returns nothing.
-            return(None)
-    
-    def updateMaterial(self):
-        # Check the selection state.
-        check_select = self.checkSelection()
-        
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            # Create error messages.
-            error_title = "資料の更新エラー"
-            error_msg = "資料の更新ができません。"
-            error_info = "資料を包括する統合体を選択してください。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-        
-        if select_type == "material":
-            try:
-                # Generate the GUID for the material
-                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Get attributes from text boxes.
-                mat.name = self.tbx_mat_name.text()
-                mat.material_number = self.tbx_mat_number.text()
-                mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
-                mat.estimated_period_peak = self.tbx_mat_tmp_mid.text()
-                mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
-                mat.latitude = self.tbx_mat_geo_lat.text()
-                mat.longitude = self.tbx_mat_geo_lon.text()
-                mat.altitude = self.tbx_mat_geo_alt.text()
-                mat.description = self.tbx_mat_description.text()
-                
-                # Create the SQL query for updating the new consolidation.
-                mat.dbUpdate(DATABASE)
-                
-                # Update the tree view.
-                select_item.setText(1, mat.name)
-                select_item.setText(2, mat.description)
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-            except:
-                # Create error messages.
-                error_title = "資料の更新エラー"
-                error_msg = "資料の更新に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-        else:
-            # Create error messages.
-            error_title = "資料の更新エラー"
-            error_msg = "資料の更新に失敗しました。"
-            error_info = "更新対象の資料が選択されていません。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            return(None)
-    
-    def updateFile(self):
-        global ROOT_DIR
-        
-        if not ROOT_DIR == None:
-            selected = self.tre_fls.selectedItems()
-            
-            if not selected == None or not len(selected) == 0:
-                fil_uuid = selected[0].text(0)
-                print(fil_uuid)
-        else:
-            # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            self.refreshItemInfo()
-            
-            # Returns nothing.
-            return(None)
-    
-    def deleteConsolidation(self):
-        global CON_DIR
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        if select_type == "consolidation":
-            # Confirm deletion.
-            reply = QMessageBox.question(
-                    self, 
-                    '統合体の削除', 
-                    '統合体が内包する全ての資料およびデータが削除されます。本当に削除しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            
-            # Confirm deleting the consolidation.
-            if not reply == QMessageBox.Yes:
-                return(None)
-            
-            try:
-                # Remove the consolidation from the tree view.
-                root = self.tre_prj_item.invisibleRootItem()
-                
-                # Update the tree view.
-                root.removeChild(select_item)
-                
-                # Clear selection.
-                self.tre_prj_item.clearSelection()
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-                
-                # Delete all files from consolidation directory.
-                shutil.rmtree(os.path.join(CON_DIR,select_uuid))
-                
-                # Initialize the Consolidation Class.
-                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Drop the consolidation from the DB table.
-                con.dbDrop(DATABASE)
-                
-                # Reflesh the last selection.
-                self.refreshItemInfo()
-            except:
-                # Create error messages.
-                error_title = "統合体の削除エラー"
-                error_msg = "統合体の削除に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
-    
-    def deleteMaterial(self):
-        global CON_DIR
-        
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        if select_type == "material":
-            # Confirm deleting the consolidation.
-            reply = QMessageBox.question(
-                    self, 
-                    '資料の削除', 
-                    '資料が内包する全てのデータが削除されます。本当に削除しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            if not reply == QMessageBox.Yes:
-                return(None)
-            
-            try:
-                # Get the directory storing information about the material
-                con_uuid = select_item.parent().text(0)
-                
-                # Update the tree view.
-                select_item.parent().removeChild(select_item)
-                
-                # Clear selection.
-                self.tre_prj_item.clearSelection()
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-                
-                # Delete all files from consolidation directory.
-                con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
-                mat_path = os.path.join(con_mat_path, select_uuid)
-                
-                # Delete files.
-                shutil.rmtree(mat_path)
-                
-                # Generate the GUID for the material
-                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Drop the consolidation from the DB table.
-                mat.dbDrop(DATABASE)
-                
-                # Reflesh the last selection.
-                self.refreshItemInfo()
-            except:
-                # Create error messages.
-                error_title = "資料の削除エラー"
-                error_msg = "資料の削除に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
     
     # ==========================
     # Cemera operation
@@ -2919,7 +2962,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Check the result of the tethered image.
-            self.dialogRecording = RecordWithImage(parent=self, img_path=img_path, snd_path=img_path)
+            self.dialogRecording = RecordWithImage(parent=self, img_path=img_path, snd_path=recording_path)
             isAccepted = self.dialogRecording.exec_()
             
             now = datetime.datetime.utcnow().isoformat()
