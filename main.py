@@ -36,6 +36,7 @@ import soundfile as sf
 
 # Define the default path.
 SRC_DIR = None
+ICN_DIR = None
 TMP_DIR = None
 ROOT_DIR = None
 TABLE_DIR = None
@@ -49,8 +50,8 @@ IMGPROC = None
 CAMERA = None
 
 # Labels for Consolidation and Material
-LAB_CON = "統合体"
-LAB_MAT = "資料"
+LAB_CON = u"統合体"
+LAB_MAT = u"資料"
 
 # Define the default extensions.
 QT_IMG = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
@@ -68,6 +69,9 @@ class RecordThreading(QThread):
 
     def __del__(self):
         self.wait()
+    
+    def stop(self):
+        self.terminate()
 
     def run(self):
         try:
@@ -105,11 +109,11 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         # Get the root directory for this script.
         global SRC_DIR
         global TMP_DIR
+        global ICN_DIR
         
         # Set the source directory which this program located.
         SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-        
-        icon_path = os.path.join(SRC_DIR, "icon")
+        ICN_DIR = os.path.join(SRC_DIR, "icon")
         
         super(RecordWithImage, self).__init__(parent)
         self.setupUi(self)
@@ -122,23 +126,18 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.path_img = img_path
         self.path_snd = snd_path
         
-        # Initialyze the sound file control objects.
-        self.btn_refresh.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_sync_black_24dp_1x.png'))))
-        self.btn_refresh.setIconSize(QSize(24,24))
-        self.btn_refresh.clicked.connect(self.getSoundFiles)
-        
         # Initialyze the play button.
-        self.btn_play.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_play_circle_filled_black_24dp_1x.png'))))
+        self.btn_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
         self.btn_play.setIconSize(QSize(24,24))
-        self.btn_play.clicked.connect(self.playing)
+        self.btn_play.clicked.connect(self.startPlaying)
         
         # Initialyze the record button.
-        self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_fiber_manual_record_black_24dp_1x.png'))))
+        self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_fiber_manual_record_black_24dp_1x.png'))))
         self.btn_rec_start.setIconSize(QSize(24,24))
-        self.btn_rec_start.clicked.connect(self.recording)
+        self.btn_rec_start.clicked.connect(self.startRecording)
         
         # Initialyze the stop button.
-        self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_pause_circle_filled_black_24dp_1x.png'))))
+        self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_pause_circle_filled_black_24dp_1x.png'))))
         self.btn_rec_stop.setIconSize(QSize(24,24))
         
         # Define the return values.
@@ -163,26 +162,63 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         #========================================
         self.recThread = RecordThreading(self.path_snd)
     
-    def recording(self):
-        # Start the recording thread.
-        self.recThread.start()
-        
-        # Stop the threading.
-        self.btn_rec_stop.clicked.connect(self.recThread.terminate)
+    def startRecording(self):
+        try:
+            # Change the icon color black to red.
+            self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_fiber_manual_record_red_24dp_1x.png'))))
+            
+            # Start the recording thread.
+            self.recThread.start()
+            
+            # Stop the threading.
+            self.btn_rec_stop.clicked.connect(self.stopRecording)
+        except:
+            self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_fiber_manual_record_black_24dp_1x.png'))))
+            print("Error in RecordWithImage::recording(self)")
     
-    def playing(self):
-        # Get the path to the sound path.
-        if not self.lst_snd_fls.currentItem() == None:
-            snd_file_name = self.lst_snd_fls.currentItem().text()
-            snd_path = os.path.join(self.path_snd, snd_file_name)
-        
-        data, fs = sf.read(snd_path, dtype='float32')
-        sd.play(data, fs)
-        
-        self.btn_rec_stop.clicked.connect(self.stopping)
+    def startPlaying(self):
+        try:
+            # Get the path to the sound path.
+            if not self.lst_snd_fls.currentItem() == None:
+                snd_file_name = self.lst_snd_fls.currentItem().text()
+                snd_path = os.path.join(self.path_snd, snd_file_name)
+            
+            # Change the icon color black to green.
+            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))))
+            
+            # Start the playing thread.
+            data, fs = sf.read(snd_path, dtype='float32')
+            sd.play(data, fs)
+            
+            self.btn_rec_stop.clicked.connect(self.stopPlaying)
+        except:
+            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
+            print("Error in RecordWithImage::playing(self)")
     
-    def stopping(self):
-        sd.stop()
+    def stopRecording(self):
+        print("RecordWithImage::stopRecording(self)")
+        
+        try:
+            # Change the icon color red to black.
+            self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_fiber_manual_record_black_24dp_1x.png'))))
+            
+            # Stop recording threading.
+            self.recThread.stop()
+            
+            # Refresh temporal sound data.
+            self.getSoundFiles()
+        except:
+            print("Error in RecordWithImage::stopRecording(self)")
+    
+    def stopPlaying(self):
+        try:
+            # Change the icon color green to black.
+            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
+            
+            # Stop audio.
+            sd.stop()        
+        except:
+            print("Error in RecordWithImage::stopping(self)")
         
     def getSoundFiles(self):
         global SND_EXT
@@ -463,7 +499,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             os.mkdir(TMP_DIR)
         
         # Define icon path.
-        icon_path = os.path.join(SRC_DIR, "icon")
+        ICN_DIR = os.path.join(SRC_DIR, "icon")
         
         # Make this class as the super class and initialyze the class.
         super(mainPanel, self).__init__(parent)
@@ -477,19 +513,23 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         #========================================
         self.bar_menu.setNativeMenuBar(False)
         self.act_prj_open.triggered.connect(self.getTheRootDirectory)
-        self.act_prj_open.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_folder_open_black_24dp_1x.png'))))
+        self.act_prj_open.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_folder_open_black_24dp_1x.png'))))
+        
+        
+        self.act_export_html.triggered.connect(self.exportAsHtml)
+        
         
         # Handle current selection of consolidations and materials.
         self.tre_prj_item.itemSelectionChanged.connect(self.toggleSelectedItem)
         
         # Activate the tab for grouping manupilating consolidations and materials.
-        self.tab_target.setTabIcon(0, QIcon(QPixmap(os.path.join(icon_path, 'ic_apps_black_24dp_1x.png'))))
-        self.tab_target.setTabIcon(1, QIcon(QPixmap(os.path.join(icon_path, 'ic_insert_photo_black_24dp_1x.png'))))
-        self.tab_target.currentChanged.connect(self.getCurrentObject)
+        self.tab_target.setTabIcon(0, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_apps_black_24dp_1x.png'))))
+        self.tab_target.setTabIcon(1, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_insert_photo_black_24dp_1x.png'))))
+        self.tab_target.currentChanged.connect(self.toggleCurrentObject)
         
         # Activate the tab for grouping manupilating consolidations and materials.
-        self.tab_control.setTabIcon(0, QIcon(QPixmap(os.path.join(icon_path, 'ic_view_list_black_24dp_1x.png'))))
-        self.tab_control.setTabIcon(1, QIcon(QPixmap(os.path.join(icon_path, 'ic_add_a_photo_black_24dp_1x.png'))))
+        self.tab_control.setTabIcon(0, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_view_list_black_24dp_1x.png'))))
+        self.tab_control.setTabIcon(1, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_add_a_photo_black_24dp_1x.png'))))
         self.tab_control.setCurrentIndex(0)
         
         #========================================
@@ -497,27 +537,27 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         #========================================
         # Activate the adding a consolidation button.
         self.btn_con_add.clicked.connect(self.addConsolidation)
-        self.btn_con_add.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_add_box_black_24dp_1x.png'))))
+        self.btn_con_add.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_add_box_black_24dp_1x.png'))))
         self.btn_con_add.setIconSize(QSize(24,24))
         
         # Activate the updating the selected consolidation button.
         self.btn_con_update.clicked.connect(self.updateConsolidation)
-        self.btn_con_update.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_check_box_black_24dp_1x.png'))))
+        self.btn_con_update.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_check_box_black_24dp_1x.png'))))
         self.btn_con_update.setIconSize(QSize(24,24))
         
         # Activate the deleting the selected consolidation button.
         self.btn_con_del.clicked.connect(self.deleteConsolidation)
-        self.btn_con_del.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_indeterminate_check_box_black_24dp_1x.png'))))
+        self.btn_con_del.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_indeterminate_check_box_black_24dp_1x.png'))))
         self.btn_con_del.setIconSize(QSize(24,24))
         
         # Activate the taking a image of the consolidation button.
         self.btn_con_take.clicked.connect(self.tetheredShooting)
-        self.btn_con_take.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_local_see_black_24dp_1x.png'))))
+        self.btn_con_take.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_con_take.setIconSize(QSize(24,24))
         
         # Activate the opening recording dialog button.
         self.btn_con_rec.clicked.connect(self.recordWithPhoto)
-        self.btn_con_rec.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_keyboard_voice_black_24dp_1x.png'))))
+        self.btn_con_rec.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_keyboard_voice_black_24dp_1x.png'))))
         self.btn_con_rec.setIconSize(QSize(24,24))
         
         # Activate operation mode selecting button.
@@ -536,27 +576,27 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Activate the adding a material button.
         self.btn_mat_add.clicked.connect(self.addMaterial)
-        self.btn_mat_add.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_add_circle_black_24dp_1x.png'))))
+        self.btn_mat_add.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_add_circle_black_24dp_1x.png'))))
         self.btn_mat_add.setIconSize(QSize(24,24))
         
         # Activate the updating the selected material button.
         self.btn_mat_update.clicked.connect(self.updateMaterial)
-        self.btn_mat_update.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_check_circle_black_24dp_1x.png'))))
+        self.btn_mat_update.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_check_circle_black_24dp_1x.png'))))
         self.btn_mat_update.setIconSize(QSize(24,24))
         
         # Activate the consolidation delete button.
         self.btn_mat_del.clicked.connect(self.deleteMaterial)
-        self.btn_mat_del.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_remove_circle_black_24dp_1x.png'))))
+        self.btn_mat_del.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_remove_circle_black_24dp_1x.png'))))
         self.btn_mat_del.setIconSize(QSize(24,24))
         
         # Activate the taking a image of the material button.
         self.btn_mat_take.clicked.connect(self.tetheredShooting)
-        self.btn_mat_take.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_local_see_black_24dp_1x.png'))))
+        self.btn_mat_take.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_mat_take.setIconSize(QSize(24,24))
         
         # Activate the opening recording dialog button.
         self.btn_mat_rec.clicked.connect(self.recordWithPhoto)
-        self.btn_mat_rec.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_keyboard_voice_black_24dp_1x.png'))))
+        self.btn_mat_rec.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_keyboard_voice_black_24dp_1x.png'))))
         self.btn_mat_rec.setIconSize(QSize(24,24))
         
         # Activate selecting operation mode button.
@@ -574,64 +614,64 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Handle current selection of consolidations and materials.
         self.tre_fls.itemSelectionChanged.connect(self.toggleSelectedFile)
         
-        self.tab_src.setTabIcon(0, QIcon(QPixmap(os.path.join(icon_path, 'ic_collections_black_24dp_1x.png'))))
-        self.tab_src.setTabIcon(1, QIcon(QPixmap(os.path.join(icon_path, 'ic_library_music_black_24dp_1x.png'))))
+        self.tab_src.setTabIcon(0, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_collections_black_24dp_1x.png'))))
+        self.tab_src.setTabIcon(1, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_library_music_black_24dp_1x.png'))))
         self.tab_src.setCurrentIndex(0)
         
-        self.cbx_img_pub.setChecked(False)
-        self.cbx_img_pub.clicked.connect(self.updateFile)
+        self.cbx_fil_pub.setChecked(False)
+        self.cbx_fil_pub.clicked.connect(self.updateFile)
         
         self.cbx_fil_original.clicked.connect(self.toggleShowFileMode)
         self.cbx_fil_deleted.clicked.connect(self.toggleShowFileMode)
         
         self.btn_open_gimp.clicked.connect(self.openWithGimp)
-        self.btn_open_gimp.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'gimp-icon.png'))))
+        self.btn_open_gimp.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'gimp-icon.png'))))
         self.btn_open_gimp.setIconSize(QSize(24,24))
         self.btn_open_gimp.setToolTip("選択したファイルをGIMPで開きます。")  
         
         # Activate image proccessing tool buttons.
         self.btn_img_cnt.clicked.connect(self.extractContour)
-        self.btn_img_cnt.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_crop_black_24dp_1x.png'))))
+        self.btn_img_cnt.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_crop_black_24dp_1x.png'))))
         self.btn_img_cnt.setIconSize(QSize(24,24))
         self.btn_img_cnt.setToolTip("選択したファイルの画像領域を自動で抽出します。")  
         
         self.btn_img_inv.clicked.connect(self.negativeToPositive)
-        self.btn_img_inv.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_compare_black_24dp_1x.png'))))
+        self.btn_img_inv.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_compare_black_24dp_1x.png'))))
         self.btn_img_inv.setIconSize(QSize(24,24))
         self.btn_img_inv.setToolTip("選択したファイルをネガティブ画像からポジティブ画像に変換します。")
         
         self.btn_img_del.clicked.connect(self.deleteSelectedImage)
-        self.btn_img_del.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_delete_forever_black_24dp_1x.png'))))
+        self.btn_img_del.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_delete_forever_black_24dp_1x.png'))))
         self.btn_img_del.setIconSize(QSize(24,24))
         self.btn_img_del.setToolTip("選択したファイルを削除します（データベースには残ります）。")
         
         self.btn_img_rot_r.clicked.connect(self.rotateImageRight)
-        self.btn_img_rot_r.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_rotate_right_black_24dp_1x.png'))))
+        self.btn_img_rot_r.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_rotate_right_black_24dp_1x.png'))))
         self.btn_img_rot_r.setIconSize(QSize(24,24))
         self.btn_img_rot_r.setToolTip("選択したファイルを右に回転します。")
         
         self.btn_img_rot_l.clicked.connect(self.rotateImageLeft)
-        self.btn_img_rot_l.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_rotate_left_black_24dp_1x.png'))))
+        self.btn_img_rot_l.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_rotate_left_black_24dp_1x.png'))))
         self.btn_img_rot_l.setIconSize(QSize(24,24))
         self.btn_img_rot_l.setToolTip("選択したファイルを左に回転します。")
         
         self.btn_img_rot_u.clicked.connect(self.rotateImageInvert)
-        self.btn_img_rot_u.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_sync_black_24dp_1x.png'))))
+        self.btn_img_rot_u.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_sync_black_24dp_1x.png'))))
         self.btn_img_rot_u.setIconSize(QSize(24,24))
         self.btn_img_rot_u.setToolTip("選択したファイルを180度回転します。")
         
         self.btn_img_mno.clicked.connect(self.makeMonoImage)
-        self.btn_img_mno.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_monochrome_photos_black_24dp_1x.png'))))
+        self.btn_img_mno.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_monochrome_photos_black_24dp_1x.png'))))
         self.btn_img_mno.setIconSize(QSize(24,24))
         self.btn_img_mno.setToolTip("選択したファイルをモノクロ画像に変換します。")
         
         self.btn_img_enh.clicked.connect(self.enhanceImage)
-        self.btn_img_enh.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_photo_filter_black_24dp_1x.png'))))
+        self.btn_img_enh.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_photo_filter_black_24dp_1x.png'))))
         self.btn_img_enh.setIconSize(QSize(24,24))
         self.btn_img_enh.setToolTip("選択したファイルにヒストグラム平滑化処理を加えます")
         
         self.btn_img_sav.clicked.connect(self.saveImageAs)
-        self.btn_img_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_move_to_inbox_black_24dp_1x.png'))))
+        self.btn_img_sav.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_move_to_inbox_black_24dp_1x.png'))))
         self.btn_img_sav.setIconSize(QSize(24,24))
         self.btn_img_sav.setToolTip("選択したファイルを指定のファイル名で出力します。")
         
@@ -641,11 +681,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Activate detecting a connected camera button.
         self.btn_cam_detect.clicked.connect(self.detectCamera)
-        self.btn_cam_detect.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ic_party_mode_black_24dp_1x.png'))))
+        self.btn_cam_detect.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_party_mode_black_24dp_1x.png'))))
         self.btn_cam_detect.setIconSize(QSize(24,24))
+        
+        #========================================
+        # Initialyze objects for audio file
+        #========================================
+        
+        # Initialyze the play button.
+        self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
+        self.btn_snd_play.setIconSize(QSize(24,24))
+        self.btn_snd_play.clicked.connect(self.soundPlay)
+        
+        self.btn_snd_stop.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_pause_circle_filled_black_24dp_1x.png'))))
+        self.btn_snd_stop.setIconSize(QSize(24,24))
         
         # Detect the camera automatically.
         self.detectCamera()
+        self.refreshItemInfo()
     
     # ==========================
     # General operation
@@ -845,85 +898,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Finally set the root path to the text box.
         self.lbl_prj_path.setText(ROOT_DIR)
     
-    def getImageFileInfo(self, sop_image):
-        print("main::getImageFileInfo(self)")
-        global CON_DIR
-        
-        # Get the full path of the image.
-        if sop_image.filename == "":
-            img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
-        else:
-            if not os.path.exists(os.path.join(ROOT_DIR, sop_image.filename)):
-                img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
-            else:
-                img_file_path = os.path.join(ROOT_DIR, sop_image.filename)
-        
-        # Clear.
-        self.tre_img_prop.clear()
-        self.lbl_img_preview.setText("")
-        
-        # Get the image properties from the instance.
-        if sop_image.public == "1":
-            self.cbx_img_pub.setChecked(True)
-        else:
-            self.cbx_img_pub.setChecked(False)
-        
-        if sop_image.lock == "1":
-            self.cbx_img_edit.setChecked(False)
-            self.cbx_img_edit.setDisabled(True)
-        else:
-            self.cbx_img_edit.setChecked(True)
-            self.cbx_img_edit.setDisabled(False)
-            self.cbx_img_edit.setEnabled(True)
-            
-        self.tbx_img_capt.setText(sop_image.caption)
-        self.tbx_img_stts.setText(sop_image.status)
-        self.tbx_img_eope.setText(sop_image.operation)
-        
-        try:
-            # Get file information by using "dcraw" library.
-            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
-            
-            # Get each metadata entry.
-            for entry in img_stat:
-                # Split metadata entry by ":".
-                entry_line = entry.split(":")
-                
-                # Get the metadata key.
-                entry_key = entry_line[0]
-                
-                # Get the metadata value.
-                entry_val = entry_line[1]
-                
-                # Add file information to the tree list.
-                self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
-        except:
-            print("Cannot get the meta information.")
-        # Get file information by using python "stat" library.
-        fl_stat = os.stat(img_file_path)
-        
-        # Get file size.
-        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
-        
-        # Get time for last access, modified and creat.
-        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
-        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
-        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
-        
-        # Add file information to the tree list.
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
-        
-        # Refresh the tree view.
-        self.tre_img_prop.show()
-        
-        # Show preview.
-        self.showImage(img_file_path)
-    
     def getSoundFileInfo(self, sop_sound):
-        print("main::getImageFileInfo(self, sop_sound)")
+        print("main::getSoundFileInfo(self, sop_sound)")
     
     def showImage(self, img_file_path):
         print("main::showImage(self)")
@@ -973,48 +949,85 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Returns nothing.
             return(None)
     
-    def getCurrentObject(self):
-        print("main::getCurrentObject(self)")
+    def toggleCurrentObject(self):
+        print("main::toggleCurrentObject(self)")
         
-        # Check the selection status.
-        check_select = self.checkSelection()
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: return(None)
         
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
+        # Initialyze the variable.
+        select_type = None
+        
+        # Get the item of the material.
+        selected = self.tre_prj_item.selectedItems()
+        
+        # Exit if selected item is 0.
+        if len(selected) == 0: self.errorTreeItemNotSelected("self.tre_prj_item.selectedItems() == 0"); return(None)
+        
+        # Get the current object type from the tree view item.
+        if selected[0].parent() == None:
+            # The case of that a consolidation is selected in the tree view widget.
+            select_type = "consolidation"
+        elif not selected[0].parent() == None:
+            # The case of that a material is selected in the tree view widget.
+            select_type = "material"
         else:
-            # Exit if something happened in checking the selection status on tree view.
+            print("002: Cannot get current object type: main::toggleCurrentObject(self)")
             return(None)
-        
+                
+        # Get the current object in target tab.
         if self.tab_target.currentIndex() == 0:
-            if select_type == "consolidation": # Consolidation to Consolidation.
-                self.getConsolidation(select_uuid)
-            elif select_type == "material":     # Material to Consolidation.
-                # Refresh the consolidation infomation.
-                self.refreshConsolidationInfo()
-                
-                # Refresh the image information.
-                self.refreshImageInfo()
-                
+            # Get the current consolidation uuid.
+            con_uuid = self.tbx_con_uuid.text()
+            
+            # Refresh the consolidation and the material infomation.
+            self.refreshMaterialInfo()
+            
+            # Refresh the image information.
+            self.refreshImageInfo()
+            
+            # Consolidation to Consolidation.
+            if select_type == "consolidation":
+                # Get the current consolidation.
+                self.getConsolidation(con_uuid)
+            # Material to Consolidation.
+            elif select_type == "material":                
                 # Select the parent consolidation.
                 parent = self.tre_prj_item.selectedItems()[0].parent()
                 self.tre_prj_item.setCurrentItem(parent)
                 
                 # Get the current consolidation.
-                self.getConsolidation(parent.text(0))
-                
+                self.getConsolidation(con_uuid)
+            else:
+                self.errorUnknown()
         elif self.tab_target.currentIndex() == 1:
-            if select_type == "consolidation":  # Consolidation to Material.
-                # Refresh the material infomation.
-                self.refreshMaterialInfo()
+            # Get the current consolidation uuid.
+            mat_uuid = self.tbx_mat_uuid.text()
+            
+            # Refresh the consolidation and the material infomation.
+            self.refreshConsolidationInfo()
+            
+            # Refresh the image information.
+            self.refreshImageInfo()
+            
+            # Consolidation to Material.
+            if select_type == "consolidation":
+                # Get the first child of the consolidation.
+                child = selected[0].child(0)
                 
-                # Refresh the image information.
-                self.refreshImageInfo()
-            elif select_type == "material":     # Material to Material.
-                self.getMaterial(select_uuid)
+                if not child == None:
+                    # Select the first child of the consolidation.
+                    self.tre_prj_item.setCurrentItem(selected[0].child(0))
+                else:
+                    self.refreshMaterialInfo()
+            # Material to Material.
+            elif select_type == "material":
+                self.getMaterial(mat_uuid)
+            else:
+                self.errorUnknown()
+        else:
+            print("003: Invalid tab index: main::toggleCurrentObject(self)")
+            return(None)
     
     def toggleSelectedItem(self):
         print("main::toggleSelectedItem(self)")
@@ -1022,51 +1035,42 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         global DATABASE
         global CON_DIR
         
-        if not ROOT_DIR == None:
-            # Get the item of the material.
-            selected = self.tre_prj_item.selectedItems()
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+    
+        # Get the item of the material.
+        selected = self.tre_prj_item.selectedItems()
+        
+        # Exit if selected item is 0.
+        if len(selected) == 0: return(None)
+        
+        if len(selected) > 0:
+            # Clear all information beforehand.
+            self.refreshItemInfo()
             
-            # Exit if selected item is 0.
-            if len(selected) == 0:
-                # Returns nothing if none of items selected.
-                return(None)
-            elif len(selected) > 0:
-                if selected[0].parent() == None:
-                    # Get the Consolidation if the node have no parent.
-                    selected_uuid = selected[0].text(0)
-                    self.getConsolidation(selected_uuid)
-                    
-                    # Returns True.
-                    return(True)
-                elif selected[0].parent() != None:
-                    # Get the Materil if the node have a parent.
-                    selected_uuid = selected[0].text(0)
-                    self.getMaterial(selected_uuid)
-                    
-                    # Returns True.
-                    return(True)
-                else:  
-                    # Returns True.
-                    return(False)
-            else:
-                # Create error messages.
-                error_title = "取得エラー"
-                error_msg = "統合体あるいは資料が選択されていません。"
-                error_info = "ツリービューから再度選択してください。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
+            if selected[0].parent() == None:
+                # Get the Consolidation if the node have no parent.
+                selected_uuid = selected[0].text(0)
+                self.getConsolidation(selected_uuid)
                 
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                # Returns True.
+                return(True)
+            elif selected[0].parent() != None:
+                # Get the Materil if the node have a parent.
+                selected_uuid = selected[0].text(0)
+                self.getMaterial(selected_uuid)
                 
-                # Returns nothing.
+                # Returns True.
+                return(True)
+            else:  
+                # Returns True.
                 return(False)
         else:
             # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
+            error_title = "取得エラー"
+            error_msg = LAB_CON + u"あるいは" + LAB_MAT + u"が選択されていません。"
+            error_info = "ツリービューから再度選択してください。"
+            error_icon = QMessageBox.Information
             error_detailed = None
             
             # Handle error.
@@ -1077,9 +1081,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def toggleSelectedFile(self):
         print("main::toggleSelectedFile(self)")
-        if not ROOT_DIR == None:
-            selected = self.tre_fls.selectedItems()
-            
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Get the current tree view item.
+        selected = self.tre_fls.selectedItems()
+        
+        try:
             if not selected == None:
                 if not len(selected) == 0:
                     # Get the uuid of the selected file.
@@ -1088,125 +1097,63 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Instantiate the file object of SOP.
                     sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
                     
+                    # Get the image properties from the instance.
+                    if sop_file.public == "1":
+                        self.cbx_fil_pub.setChecked(True)
+                    else:
+                        self.cbx_fil_pub.setChecked(False)
+                    
+                    if sop_file.lock == "1":
+                        self.cbx_fil_edit.setChecked(False)
+                        self.cbx_fil_edit.setDisabled(True)
+                    else:
+                        self.cbx_fil_edit.setChecked(True)
+                        self.cbx_fil_edit.setDisabled(False)
+                    
+                    self.tbx_fil_capt.setText(sop_file.caption)
+                    self.tbx_fil_stts.setText(sop_file.status)
+                    self.tbx_fil_eope.setText(sop_file.operation)
+                    
                     if sop_file.file_type == "image":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(0)
                         self.getImageFileInfo(sop_file)
-                    if sop_file.file_type == "sound":
+                    if sop_file.file_type == "audio":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(1)
                         self.getSoundFileInfo(sop_file)
-        else:
-            # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            self.refreshItemInfo()
-            
-            # Returns nothing.
-            return(None)
+                else:
+                    print("main::toggleSelectedFile(self) == 0")
+        except Exception as e:
+            self.errorUnknown("main::toggleSelectedFile(self)", e)
     
     def toggleShowFileMode(self):
         # Initialyze the uuid for the consolidation and the material.
         sop_object = None
         
-        con_uuid = ""
-        mat_uuid = ""
+        # Initialyze the variables.
+        con_uuid = None
+        mat_uuid = None
+        item_path = None
         
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        # Get the current consolidation.
-        item_uuid = select_uuid
-                    
-        if select_type == "consolidation":
-            # Define the path to the consolidation.
-            con_uuid = item_uuid
+        # Get the current object from the selected tab index.
+        if self.tab_target.currentIndex() == 0:
+            # Get the current consolidaiton uuid.
+            con_uuid = self.tbx_con_uuid.text()
             
-            # Get the item path under the consolidaiton path.
+            # Instantiate the consolidation.
             sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
-            self.refreshFileList(sop_object)
-        elif select_type == "material":
-            # Get the consolidation uuid.
-            con_uuid = select_item.parent().text(0)
-            mat_uuid = item_uuid
+        elif self.tab_target.currentIndex() == 1:
+            # Get the current material uuid.
+            mat_uuid = self.tbx_mat_uuid.text()
             
-            # Get the item path under the consolidaiton path.
-            con_path = os.path.join(CON_DIR, con_uuid)
+            # Instantiate the material.
             sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
-            self.refreshFileList(sop_object)
         else:
             return(None)
-    
-    def checkSelection(self):
-        print("main::checkSelection(self)")
-        global DATABASE
-        global CON_DIR
         
-        # Initialyze the value for the result.
-        result = dict()
-        
-        if not ROOT_DIR == None:
-            # Get the item of the material.
-            selected = self.tre_prj_item.selectedItems()
-            
-            # Exit if selected item is 0.
-            if len(selected) == 0:
-                result["selection"] = [None, None, None]
-                return(result)
-            
-            elif len(selected) > 0:
-                if not selected[0].parent() == None:
-                    result["selection"] = ["material", selected[0].text(0), selected[0]]
-                    return(result)
-                
-                if selected[0].parent() == None:
-                    result["selection"] = ["consolidation", selected[0].text(0), selected[0]]
-                    return(result)
-            else:
-                # Create error messages.
-                error_title = "取得エラー"
-                error_msg = "統合体あるいは資料が選択されていません。"
-                error_info = "ツリービューから再度選択してください。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                result["selection"] = [None, None, None]
-                return(result)
-        else:
-            # Create error messages.
-            error_title = "プロジェクトのエラー"
-            error_msg = "プロジェクトが開かれていません。"
-            error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            # Returns nothing.
-            result["selection"] = [None, None, None]
-            return(result)
+        # Refresh the file list.
+        if not sop_object == None: self.refreshFileList(sop_object)
     
     def refreshItemInfo(self):
         print("main::refreshItemInfo(self)")
@@ -1222,7 +1169,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::refreshFileList(self, sop_object)")
         
         try:
+            # "Clear the file list view"
             self.tre_fls.clear()
+            
             # Get images from the given class.
             images = sop_object.images
             sounds = sop_object.sounds
@@ -1237,6 +1186,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_fls.resizeColumnToContents(1)
             self.tre_fls.resizeColumnToContents(2)
             
+            # Selct the top item as the default.
             self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
             self.tre_fls.show()
         except:
@@ -1249,6 +1199,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def addConsolidation(self):
         print("main::addConsolidation(self)")
         global CON_DIR
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
         
         try:
             # Initialize the Consolidation Class.
@@ -1282,8 +1235,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.toggleEditModeForConsolidation()
         except:
             # Create error messages.
-            error_title = "統合体の作成エラー"
-            error_msg = "統合体の作成に失敗しました。"
+            error_title = LAB_CON + u"の作成エラー"
+            error_msg = LAB_CON + u"の作成に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
             error_detailed = None
@@ -1296,12 +1249,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def getConsolidation(self, uuid):
         print("main::getConsolidation(self)")
+        
         global DATABASE
         
         try:
-            # Set active control tab for material.
-            self.tab_target.setCurrentIndex(0)
-            
             # Instantiate by the DB record.
             consolidation = features.Consolidation(is_new=False, uuid=uuid, dbfile=DATABASE)
             
@@ -1327,128 +1278,120 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def updateConsolidation(self):
-        # Check the selection state.
-        check_select = self.checkSelection()
+        print("main::updateConsolidation(self)")
         
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        try:
+            con_uuid = self.tbx_con_uuid.text()
+            
+            # Initialize the Consolidation Class.
+            con = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+            
+            # Instantiate the consolidation class
+            con.name = self.tbx_con_name.text()
+            con.geographic_annotation = self.tbx_con_geoname.text()
+            con.temporal_annotation = self.tbx_con_temporal.text()
+            con.description = self.tbx_con_description.text()
+            
+            # Update the instance into DBMS.
+            con.dbUpdate(DATABASE)
+            
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()[0]
+            
+            # Update the tree view.
+            if selected.text(0) == con.uuid:
+                selected.setText(1, con.name)
+            
+            # Refresh the tree view.
+            self.tre_prj_item.show()
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+        except:
+            # Create error messages.
+            error_title = LAB_CON + u"の更新エラー"
+            error_msg = LAB_CON + u"の更新に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
             return(None)
-        
-        if select_type == "consolidation":
-            try:
-                # Initialize the Consolidation Class.
-                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Instantiate the consolidation class
-                con.name = self.tbx_con_name.text()
-                con.geographic_annotation = self.tbx_con_geoname.text()
-                con.temporal_annotation = self.tbx_con_temporal.text()
-                con.description = self.tbx_con_description.text()
-                
-                # Update the instance into DBMS.
-                con.dbUpdate(DATABASE)
-                
-                # Update the tree view.
-                select_item.setText(1, con.name)
-                select_item.setText(2, con.description)
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-            except:
-                # Create error messages.
-                error_title = "統合体の更新エラー"
-                error_msg = "統合体の更新に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
         else:
             # Returns nothing.
             return(None)
     
     def deleteConsolidation(self):
+        print("main::deleteConsolidation(self)")
+        
         global CON_DIR
         
-        # Check the selection status.
-        check_select = self.checkSelection()
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
         
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
+        # Confirm deletion.
+        reply = QMessageBox.question(
+                self, 
+                LAB_CON + u"の削除", 
+                LAB_CON + u"が内包する全ての" + LAB_MAT + u"およびデータが削除されます。本当に削除しますか？", 
+                QMessageBox.Yes, 
+                QMessageBox.No
+            )
         
-        if select_type == "consolidation":
-            # Confirm deletion.
-            reply = QMessageBox.question(
-                    self, 
-                    '統合体の削除', 
-                    '統合体が内包する全ての資料およびデータが削除されます。本当に削除しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
+        # Confirm deleting the consolidation.
+        if not reply == QMessageBox.Yes: return(None)
+        
+        try:
+            con_uuid = self.tbx_con_uuid.text()
             
-            # Confirm deleting the consolidation.
-            if not reply == QMessageBox.Yes:
-                return(None)
+            # Initialize the Consolidation Class.
+            con = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
             
-            try:
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()[0]
+            
+            # Update the tree view.
+            if selected.text(0) == con.uuid:
                 # Remove the consolidation from the tree view.
                 root = self.tre_prj_item.invisibleRootItem()
                 
                 # Update the tree view.
-                root.removeChild(select_item)
+                root.removeChild(selected)
                 
                 # Clear selection.
                 self.tre_prj_item.clearSelection()
                 
                 # Refresh the tree view.
                 self.tre_prj_item.show()
-                
                 self.tre_prj_item.resizeColumnToContents(0)
                 self.tre_prj_item.resizeColumnToContents(1)
-                
-                # Delete all files from consolidation directory.
-                shutil.rmtree(os.path.join(CON_DIR,select_uuid))
-                
-                # Initialize the Consolidation Class.
-                con = features.Consolidation(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Drop the consolidation from the DB table.
-                con.dbDrop(DATABASE)
-                
-                # Reflesh the last selection.
-                self.refreshItemInfo()
-            except:
-                # Create error messages.
-                error_title = "統合体の削除エラー"
-                error_msg = "統合体の削除に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
+            
+            # Delete all files from consolidation directory.
+            shutil.rmtree(os.path.join(CON_DIR, con.uuid))
+            
+            # Drop the consolidation from the DB table.
+            con.dbDrop(DATABASE)
+            
+            # Reflesh the last selection.
+            self.refreshItemInfo()
+        except:
+            # Create error messages.
+            error_title = LAB_CON + u"の削除エラー"
+            error_msg = LAB_CON + u"の削除に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
     
     def setConsolidationInfo(self, consolidation):
         print("main::setConsolidationInfo(self, consolidation)")
@@ -1456,9 +1399,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Initialyze the consolidation info.
             self.refreshConsolidationInfo()
-            
-            # Set active control tab for consolidation.
-            self.tab_target.setCurrentIndex(0)
             
             # Initialyze the edit material mode as modifying.
             self.rad_con_mod.setChecked(True)
@@ -1470,8 +1410,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_con_geoname.setText(consolidation.geographic_annotation)
             self.tbx_con_temporal.setText(consolidation.temporal_annotation)
             self.tbx_con_description.setText(consolidation.description)
-        # Returns the value.
-            return(True)
+            
+            # Set active control tab for consolidation.
+            self.tab_target.setCurrentIndex(0)
         except:
             print("Error occors in main::setConsolidationInfo(self, consolidation)")
             return(False)
@@ -1540,7 +1481,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except:
                 # Connection error.
                 error_title = "エラーが発生しました"
-                error_msg = "統合体の編集モードを変更できません。"
+                error_msg = LAB_CON + u"の編集モードを変更できません。"
                 error_info = "不明のエラーです。"
                 error_icon = QMessageBox.Critical
                 error_detailed = None
@@ -1556,57 +1497,49 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     def addMaterial(self):
         print("main::addMaterial(self)")
+        
         global CON_DIR
         
-        # Check the selection state.
-        check_select = self.checkSelection()
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
         
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            # Create error messages.
-            error_title = "資料の作成エラー"
-            error_msg = "資料の作成ができません。"
-            error_info = "資料を包括する統合体を選択してください。"
-            error_icon = QMessageBox.Information
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
-            return(None)
+        # Get the item of the material.
+        con_uuid = None
+        tre_prj_item_items = None
+        selected = self.tre_prj_item.selectedItems()
         
-        if select_type == "material":
-            # Initialize the Consolidation Class.
-            con_uuid = select_item.parent().text(0)
+        # Exit if no tree items are selected.
+        if not len(selected) > 0: return(None)
+        
+        # Check the selected object is consolidation or not.
+        if not selected[0].parent() == None:
+            # Get the parent consolidation uuid if the selected object is a material.
+            con_uuid = selected[0].parent().text(0)
+            
+            # Set the tree view item.
+            tre_prj_item_items = QTreeWidgetItem(selected[0].parent())
             
             # Confirm whether select the parent consolidations.
             reply = QMessageBox.question(
                     self, 
-                    '資料を内包する統合体が指定されていません。', 
-                    u"現在の統合体（" + con_uuid + u"）に新規資料を追加しますか？", 
+                    LAB_MAT + u"を内包する" + LAB_CON + u"が指定されていません。", 
+                    u"現在の" + LAB_CON + u"（" + con_uuid.decode("utf-8") + u"）に新規の" + LAB_MAT + u"を追加しますか？", 
                     QMessageBox.Yes, 
                     QMessageBox.No
                 )
-            # Handle the return value.
-            if reply == QMessageBox.Yes:
-                # Set tree view item from parent node.
-                tre_prj_item_items = QTreeWidgetItem(select_item.parent())
-            else:
-                return(None)
-        elif select_type == "consolidation":
-            # Get the current consolidation from the selection.
-            con_uuid = select_uuid
             
-            # Get the current consolidation from the selection.
-            tre_prj_item_items = QTreeWidgetItem(select_item)
+            # Handle the return value.
+            if not reply == QMessageBox.Yes: return(None)
         else:
-            return(None)
+            # Get the consolidation uuid from the selected object.
+            con_uuid = selected[0].text(0)
+            
+            # Set the tree view item.
+            tre_prj_item_items = QTreeWidgetItem(selected[0])
         
+        # Exit if the conslidation uuid is None.
+        if con_uuid == None: return(None)
+        print()
         try:
             # Generate the GUID for the material
             mat = features.Material(is_new=True, uuid=None, dbfile=None)
@@ -1637,13 +1570,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             tre_prj_item_items.setText(1, mat.name)
             
             self.tre_prj_item.show()
-            
             self.tre_prj_item.resizeColumnToContents(0)
             self.tre_prj_item.resizeColumnToContents(1)
         except:
             # Create error messages.
-            error_title = "資料の作成エラー"
-            error_msg = "資料の作成に失敗しました。"
+            error_title = LAB_MAT + u"の作成エラー"
+            error_msg = LAB_MAT + u"の作成に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
             error_detailed = None
@@ -1658,15 +1590,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::getMaterial(self)")
         
         try:
-            # Set active control tab for material.
-            self.tab_target.setCurrentIndex(1)
-            
             # Instantiate by the DB record.
             material = features.Material(is_new=False, uuid=uuid, dbfile=DATABASE)
-            
+            print("ok:set material")
             # Set material information.
             self.setMaterialInfo(material)
-            
+            print("ok:set material info")
             # Refresh the image file list.
             self.refreshFileList(material)
         except Error as e:
@@ -1687,6 +1616,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def updateMaterial(self):
         print("main::updateMaterial(self)")
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
         
         try:
             # Generate the GUID for the material
@@ -1723,8 +1655,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_prj_item.resizeColumnToContents(1)
         except:
             # Create error messages.
-            error_title = "資料の更新エラー"
-            error_msg = "資料の更新に失敗しました。"
+            error_title = LAB_MAT + u"の更新エラー"
+            error_msg = LAB_MAT + u"の更新に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
             error_detailed = None
@@ -1736,77 +1668,77 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def deleteMaterial(self):
+        print("main::deleteMaterial(self)")
+        
         global CON_DIR
         
-        # Check the selection status.
-        check_select = self.checkSelection()
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
         
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
+        # Confirm deleting the consolidation.
+        reply = QMessageBox.question(
+                self, 
+                LAB_MAT + u"の削除", 
+                LAB_MAT + u"が内包する全てのデータが削除されます。本当に削除しますか？", 
+                QMessageBox.Yes, 
+                QMessageBox.No
+            )
+        if not reply == QMessageBox.Yes: return(None)
         
-        if select_type == "material":
-            # Confirm deleting the consolidation.
-            reply = QMessageBox.question(
-                    self, 
-                    '資料の削除', 
-                    '資料が内包する全てのデータが削除されます。本当に削除しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            if not reply == QMessageBox.Yes:
-                return(None)
+        try:
+            # Generate the GUID for the material
+            mat_uuid = self.tbx_mat_uuid.text()
             
-            try:
-                # Get the directory storing information about the material
-                con_uuid = select_item.parent().text(0)
-                
-                # Update the tree view.
-                select_item.parent().removeChild(select_item)
-                
-                # Clear selection.
-                self.tre_prj_item.clearSelection()
-                
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-                
-                # Delete all files from consolidation directory.
-                con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
-                mat_path = os.path.join(con_mat_path, select_uuid)
-                
-                # Delete files.
-                shutil.rmtree(mat_path)
-                
-                # Generate the GUID for the material
-                mat = features.Material(is_new=False, uuid=select_uuid, dbfile=DATABASE)
-                
-                # Drop the consolidation from the DB table.
-                mat.dbDrop(DATABASE)
-                
-                # Reflesh the last selection.
-                self.refreshItemInfo()
-            except:
-                # Create error messages.
-                error_title = "資料の削除エラー"
-                error_msg = "資料の削除に失敗しました。"
-                error_info = "不明なエラーです。"
-                error_icon = QMessageBox.Information
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
+            # Generate the GUID for the material
+            mat = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+            con_uuid = mat.consolidation
+            
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()
+            
+            # Exit if no tree items are selected.
+            if not len(selected) > 0: return(None)
+            
+            # Exit if the parent consolidation is selected.
+            if selected[0].parent() == None: return(None)
+            
+            # Update the tree view.
+            if selected[0].text(0) == mat.uuid:
+                selected[0].parent().removeChild(selected[0])
+            
+            # Clear selection.
+            self.tre_prj_item.clearSelection()
+            
+            # Refresh the tree view.
+            self.tre_prj_item.show()
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+            
+            # Delete all files from consolidation directory.
+            con_mat_path = os.path.join(os.path.join(CON_DIR,con_uuid),"Materials")
+            mat_path = os.path.join(con_mat_path, mat.uuid)
+            
+            # Delete files.
+            shutil.rmtree(mat_path)
+            
+            # Drop the consolidation from the DB table.
+            mat.dbDrop(DATABASE)
+            
+            # Reflesh the last selection.
+            self.refreshItemInfo()
+        except:
+            # Create error messages.
+            error_title = LAB_MAT + u"の削除エラー"
+            error_msg = LAB_MAT + u"の削除に失敗しました。"
+            error_info = "不明なエラーです。"
+            error_icon = QMessageBox.Information
+            error_detailed = None
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
     
     def setMaterialInfo(self, material):
         print("main::setMaterialInfo(self, material)")
@@ -1814,9 +1746,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Initialyze the material info.
             self.refreshMaterialInfo()
-            
-            # Set active control tab for material.
-            self.tab_target.setCurrentIndex(1)
             
             # Initialyze the edit material mode as modifying.
             self.rad_mat_mod.setChecked(True)
@@ -1834,6 +1763,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_mat_description.setText(material.description)
             
             self.toggleEditModeForMaterial()
+            
+            # Set active control tab for material.
+            self.tab_target.setCurrentIndex(1)
             
             # Returns the value.
             return(True)
@@ -1858,6 +1790,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.btn_mat_update.setDisabled(True)
             
             # Text boxes for attributes are enabled.
+            self.tbx_mat_number.setDisabled(False)
             self.tbx_mat_name.setDisabled(False)
             self.tbx_mat_geo_lat.setDisabled(False)
             self.tbx_mat_geo_lon.setDisabled(False)
@@ -1927,9 +1860,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 if self.tbx_mat_uuid.text() == "":
                     # Get the item of the material.
-                    error_title = "編集対象の資料が選択されていません。"
-                    error_msg = "資料の編集モードを変更できません。"
-                    error_info = "編集対象の資料を再選択してください。"
+                    error_title = "編集対象の" + LAB_MAT + u"が選択されていません。"
+                    error_msg = LAB_MAT + u"の編集モードを変更できません。"
+                    error_info = "編集対象の" + LAB_MAT + u"を再選択してください。"
                     error_icon = QMessageBox.Critical
                     error_detailed = None
                     
@@ -1945,7 +1878,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except:
                 # Connection error.
                 error_title = "エラーが発生しました"
-                error_msg = "資料の編集モードを変更できません。"
+                error_msg = LAB_MAT + u"の編集モードを変更できません。"
                 error_info = "不明のエラーです。"
                 error_icon = QMessageBox.Critical
                 error_detailed = None
@@ -1959,23 +1892,80 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Image
     # ==========================
+    def getImageFileInfo(self, sop_image):
+        print("main::getImageFileInfo(self)")
+        
+        # Get the full path of the image.
+        if sop_image.filename == "":
+            img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
+        else:
+            if not os.path.exists(os.path.join(ROOT_DIR, sop_image.filename)):
+                img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
+            else:
+                img_file_path = os.path.join(ROOT_DIR, sop_image.filename)
+        
+        # Clear.
+        self.tre_img_prop.clear()
+        
+        try:
+            # Get file information by using "dcraw" library.
+            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
+            
+            # Get each metadata entry.
+            for entry in img_stat:
+                # Split metadata entry by ":".
+                entry_line = entry.split(":")
+                
+                # Get the metadata key.
+                entry_key = entry_line[0]
+                
+                # Get the metadata value.
+                entry_val = entry_line[1]
+                
+                # Add file information to the tree list.
+                self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
+        except:
+            print("Cannot get the meta information.")
+        # Get file information by using python "stat" library.
+        fl_stat = os.stat(img_file_path)
+        
+        # Get file size.
+        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
+        
+        # Get time for last access, modified and creat.
+        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
+        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
+        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
+        
+        # Add file information to the tree list.
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
+        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
+        
+        # Refresh the tree view.
+        self.tre_img_prop.show()
+        
+        # Show preview.
+        self.showImage(img_file_path)
+    
     def setFileInfo(self, sop_object):
         if sop_object.public == "1":
-            self.cbx_img_pub.setChecked(True)
+            self.cbx_fil_pub.setChecked(True)
         else:
-            self.cbx_img_pub.setChecked(False)
+            self.cbx_fil_pub.setChecked(False)
         
         if sop_object.lock == "1":
-            self.cbx_img_edit.setChecked(False)
-            self.cbx_img_edit.setDisabled(True)
+            self.cbx_fil_edit.setChecked(False)
+            self.cbx_fil_edit.setDisabled(True)
         else:
-            self.cbx_img_edit.setChecked(True)
-            self.cbx_img_edit.setDisabled(False)
-            self.cbx_img_edit.setEnabled(True)
+            self.cbx_fil_edit.setChecked(True)
+            self.cbx_fil_edit.setDisabled(False)
+            self.cbx_fil_edit.setEnabled(True)
             
-        self.tbx_img_capt.setText(sop_object.caption)
-        self.tbx_img_stts.setText(sop_object.status)
-        self.tbx_img_eope.setText(sop_object.operation)
+        self.tbx_fil_capt.setText(sop_object.caption)
+        self.tbx_fil_stts.setText(sop_object.status)
+        self.tbx_fil_eope.setText(sop_object.operation)
         
         fil_status = sop_object.status
         
@@ -2048,8 +2038,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_fls.clear()
             
             # Initialyze the checkboxes.
-            self.cbx_img_pub.setChecked(False)
-            self.cbx_img_edit.setChecked(False)
+            self.cbx_fil_pub.setChecked(False)
+            self.cbx_fil_edit.setChecked(False)
             
             # Define the no image avatar for preview panel.
             noimage_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
@@ -2059,16 +2049,54 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_img_prop.clear()
             
             # Initialyze checkboxes.
-            self.cbx_img_pub.setChecked(False)
-            self.cbx_img_edit.setChecked(True)
-            self.cbx_img_edit.setDisabled(False)
+            self.cbx_fil_pub.setChecked(False)
+            self.cbx_fil_edit.setChecked(True)
+            self.cbx_fil_edit.setDisabled(False)
             
             # Clear texts relating to the previous instance.
-            self.tbx_img_capt.setText("")
-            self.tbx_img_stts.setText("")
-            self.tbx_img_eope.setText("")
+            self.tbx_fil_capt.setText("")
+            self.tbx_fil_stts.setText("")
+            self.tbx_fil_eope.setText("")
         except:
             print("Error occurs in main::refreshImageInfo(self)")
+    
+    # ==========================
+    # Sound Play
+    # ==========================
+    def soundPlay(self):
+        # Handle the selected SOP file object.
+        selected = self.tre_fls.selectedItems()
+        
+        if len(selected) > 0:
+            fil_uuid = selected[0].text(0)
+            
+            # Instantiate the SOP File object by selected uuid.
+            fil_object = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
+            
+            if fil_object.file_type == "audio":
+                # Get the path to the sound path.
+                snd_path = os.path.join(ROOT_DIR, fil_object.filename)
+                
+                # Set data and samplig rate.
+                data, fs = sf.read(snd_path, dtype='float32')
+                
+                # Start playing.
+                sd.play(data, fs)
+                
+                # Connect to the stop button.
+                self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))))
+                self.btn_snd_stop.clicked.connect(self.soundStop)
+            else:
+                # Create error messages.
+                error_title = "音声再生エラー"
+                error_msg = "選択中のファイルは音声ファイルではありません。"
+                error_info = "再生可能な音声ファイルを選択してください。"
+                error_icon = QMessageBox.Critical
+                error_detailed = None
+    
+    def soundStop(self):
+        self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
+        sd.stop()
     
     # ==========================
     # Image processing tools
@@ -2076,64 +2104,46 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def getCurrentImage(self):
         print("main::getCurrentImage(self)")
         
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
         try:
-            if not ROOT_DIR == None:
-                selected = self.tre_fls.selectedItems()
-                
-                if not selected == None:
-                    if not len(selected) == 0:
-                        # Get the uuid of the selected file.
-                        fil_uuid = selected[0].text(0)
-                        
-                        # Instantiate the file object of SOP.
-                        sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
-                        
-                        if sop_file.file_type == "image":
-                            # Set active control tab for material.
-                            self.tab_src.setCurrentIndex(0)
-                            self.getImageFileInfo(sop_file)
-                                                    
-                            # Get the image path.
-                            return(sop_file)
-                        else:
-                            # Create error messages.
-                            error_title = "画像編集エラー"
-                            error_msg = "選択中のファイルは画像ファイルではありません。"
-                            error_info = "編集可能な画像ファイルを選択してください。"
-                            error_icon = QMessageBox.Critical
-                            error_detailed = None
-                            
-                            # Handle error.
-                            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                            
-                            # Returns nothing.
-                            return(None)
+            selected = self.tre_fls.selectedItems()
+            
+            if not selected == None:
+                if not len(selected) == 0:
+                    # Get the uuid of the selected file.
+                    fil_uuid = selected[0].text(0)
+                    
+                    # Instantiate the file object of SOP.
+                    sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
+                    
+                    if sop_file.file_type == "image":
+                        # Set active control tab for material.
+                        self.tab_src.setCurrentIndex(0)
+                        self.getImageFileInfo(sop_file)
+                                                
+                        # Get the image path.
+                        return(sop_file)
                     else:
+                        # Create error messages.
+                        error_title = "画像編集エラー"
+                        error_msg = "選択中のファイルは画像ファイルではありません。"
+                        error_info = "編集可能な画像ファイルを選択してください。"
+                        error_icon = QMessageBox.Critical
+                        error_detailed = None
+                        
+                        # Handle error.
+                        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                        
+                        # Returns nothing.
                         return(None)
-            else:
-                # Create error messages.
-                error_title = "プロジェクトのエラー"
-                error_msg = "プロジェクトが開かれていません。"
-                error_info = "プロジェクトのディレクトリを参照し、指定ください。"
-                error_icon = QMessageBox.Critical
-                error_detailed = None
-                
-                # Handle error.
-                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                
-                # Returns nothing.
-                return(None)
+                else:
+                    self.errorTreeItemNotSelected("self.tre_fls.selectedItems() == 0")
+                    return(None)
         except:
-            # Create error messages.
-            error_title = "画像編集エラー"
-            error_msg = "予期しないのエラーです。"
-            error_info = "管理者にお問い合わせください。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            
+            # Display the error message.
+            self.errorUnknown("main::getCurrentImage(self)")
             return(None)
     
     def openWithGimp(self):
@@ -2235,12 +2245,30 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
     def rotateImageLeft(self):
+        print("rotateImageLeft(self)")
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Rotate the image -90 degree.
         self.rotateImage(-90)
     
     def rotateImageRight(self):
+        print("rotateImageRight(self)")
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Rotate the image 90 degree.
         self.rotateImage(90)
     
     def rotateImageInvert(self):
+        print("rotateImageInvert(self)")
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Rotate the image 180 degree.
         self.rotateImage(180)
     
     def rotateImage(self, angle):
@@ -2500,8 +2528,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Instantiate the file object of SOP.
         sop_file = self.getCurrentImage()
         
-        if sop_file == None:
-            return(None)
+        if sop_file == None: return(None)
         
         if sop_file.file_type == "image":
             # Set active control tab for material.
@@ -2584,8 +2611,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Instantiate the file object of SOP.
         sop_file = self.getCurrentImage()
         
-        if sop_file == None:
-            return(None)
+        if sop_file == None: return(None)
         
         if sop_file.file_type == "image":
             # Set active control tab for material.
@@ -2730,7 +2756,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def deleteSelectedImage(self):
         print("main::deleteSelectedImage(self)")
         
-        if not self.cbx_img_edit.isChecked():
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        if not self.cbx_fil_edit.isChecked():
             # Create error messages.
             error_title = "ファイルの更新エラー"
             error_msg = "ファイルの削除ができません。"
@@ -2887,7 +2916,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             for opt in param["choice"]:
                 opt_txt = str(opt.keys()[0])
                 opt_val = str(opt.values()[0])
-                cbx.addItem(opt_val + " : " + opt_txt)
+                
+                cbx.addItem(opt_txt)
         except:
             # Create error messages.
             error_title = "エラーが発生しました"
@@ -2903,47 +2933,58 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
     def recordWithPhoto(self):
+        print("recordWithPhoto(self)")
+        
         global TMP_DIR
         global CON_DIR
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Get the item of the material.
+        selected = self.tre_prj_item.selectedItems()
+        
+        # Exit if selected item is 0.
+        if len(selected) == 0: self.errorTreeItemNotSelected("self.tre_prj_item.selectedItems() == 0"); return(None)
         
         # Initialyze the uuid for the consolidation and the material.
         sop_object = None
         
-        con_uuid = ""
-        mat_uuid = ""
+        # Initialyze the variables.
+        con_uuid = None
+        mat_uuid = None
+        item_path = None
         
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        # Get the current consolidation.
-        item_uuid = select_uuid
-        
-        if select_type == "consolidation":
-            # Define the path to the consolidation.
-            con_uuid = item_uuid
+        # Get the current object from the selected tab index.
+        if self.tab_target.currentIndex() == 0:
+            # Get the current consolidaiton uuid.
+            con_uuid = self.tbx_con_uuid.text()
             
-            # Get the item path under the consolidaiton path.
+            # Instantiate the consolidation.
+            sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+            
+            # Get the item path of the selected consolidaiton.
             item_path = os.path.join(CON_DIR, con_uuid)
-        elif select_type == "material":
-            # Get the consolidation uuid.
-            con_uuid = select_item.parent().text(0)
-            mat_uuid = item_uuid
+        elif self.tab_target.currentIndex() == 1:
+            # Get the current material uuid.
+            mat_uuid = self.tbx_mat_uuid.text()
             
-            # Get the item path under the consolidaiton path.
-            con_path = os.path.join(CON_DIR, con_uuid)
-            item_path = os.path.join(os.path.join(con_path, "Materials"),mat_uuid)
+            # Instantiate the material.
+            sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+            
+            # Instantiate the consolidation.
+            con_uuid = sop_object.consolidation
+            con_path = os.path.join(CON_DIR, sop_object.consolidation)
+            item_path = os.path.join(os.path.join(con_path, "Materials"), mat_uuid) 
         else:
             return(None)
+        
+        print(con_uuid)
+        
+        # Exit if none of objecs are instantiated.
+        if sop_object == None: return(None)
+        
+        if sop_object.sounds == None: sop_object.sounds = list()
         
         # Initialyze the temporal directory.
         recording_path = os.path.join(TMP_DIR, "recording")
@@ -2965,22 +3006,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.dialogRecording = RecordWithImage(parent=self, img_path=img_path, snd_path=recording_path)
             isAccepted = self.dialogRecording.exec_()
             
-            now = datetime.datetime.utcnow().isoformat()
-            
             if isAccepted == 1:
+                # Get the current date and time from accepted timing.
+                now = datetime.datetime.utcnow().isoformat()    
+                
                 # Define the output directory.
                 snd_lst_main = general.getFilesWithExtensionList(recording_path, SND_EXT)
-                print(snd_lst_main)
+                
                 # Move to proper directory.
                 if len(snd_lst_main) > 0:
+                    # Get the resultants recursively.
                     for i in range(0, len(snd_lst_main)):
-                        print(1)
+                        # Get the temporal file path and the destination path for putting.
                         snd_orig = os.path.join(recording_path, snd_lst_main[i])
                         snd_dest = os.path.join(snd_path, snd_lst_main[i])
-                        print(2)
+                        
                         # Move to "Main" in the consolidation.
                         shutil.move(snd_orig, snd_dest)
-                        print(3)
+                        
                         # Instantiate the File class.
                         snd_file = features.File(is_new=True, uuid=None, dbfile=None)
                         snd_file.material = mat_uuid
@@ -2999,79 +3042,85 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         snd_file.caption = "Original audio"
                         snd_file.description = ""
                         
+                        # Insert the new entry into the database.
                         snd_file.dbInsert(DATABASE)
-                        print(4)
                         
-                        # Remove tethered path from the temporal directory.
-                        shutil.rmtree(recording_path)
-                        print(5)
-                        if select_type == "consolidation":
-                            sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
-                            self.refreshFileList(sop_object)
-                        elif select_type == "material":
-                            sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
-                            self.refreshFileList(sop_object)
-        except:
-            # Create error messages.
-            error_title = "エラーが発生しました"
-            error_msg = "不明なエラーです。"
-            error_info = "担当者にお問い合わせ下さい。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                        # Add the image to the boject.
+                        sop_object.sounds.insert(0, snd_file)
+                else:
+                    print("There are no resultants.")
+                    return(None)
+                
+                # Remove tethered path from the temporal directory.
+                shutil.rmtree(recording_path)
+                
+                # Refresh the file list.
+                self.refreshFileList(sop_object)
+            else:
+                print("The result is not accepted.")
+                return(None)
+        except Exception as e:
+            self.errorUnknown("recordWithPhoto(self)", e)
            
             # Returns nothing.
             return(None)
     
     def tetheredShooting(self):
+        print("main::tetheredShooting(self)")
+        
         global CUR_CAM
         global TMP_DIR
         global CON_DIR
-        global TETHERED
+        
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        # Get the item of the material.
+        selected = self.tre_prj_item.selectedItems()
+        
+        # Exit if selected item is 0.
+        if len(selected) == 0: self.errorTreeItemNotSelected("self.tre_prj_item.selectedItems() == 0"); return(None)
         
         # Initialyze the uuid for the consolidation and the material.
         sop_object = None
         
-        con_uuid = ""
-        mat_uuid = ""
+        # Initialyze the variables.
+        con_uuid = None
+        mat_uuid = None
+        item_path = None
         
-        # Check the selection status.
-        check_select = self.checkSelection()
-        
-        # Get the selection status.
-        if not check_select == None:
-            # Translate resultants.
-            select_type = check_select["selection"][0]
-            select_uuid = check_select["selection"][1]
-            select_item = check_select["selection"][2]
-        else:
-            # Exit if something happened in checking the selection status on tree view.
-            return(None)
-        
-        # Get the current consolidation.
-        item_uuid = select_uuid
-        
-        if select_type == "consolidation":
-            # Define the path to the consolidation.
-            con_uuid = item_uuid
+        # Get the current object from the selected tab index.
+        if self.tab_target.currentIndex() == 0:
+            # Get the current consolidaiton uuid.
+            con_uuid = self.tbx_con_uuid.text()
             
-            # Get the item path under the consolidaiton path.
+            # Instantiate the consolidation.
+            sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+            
+            # Get the item path of the selected consolidaiton.
             item_path = os.path.join(CON_DIR, con_uuid)
-        elif select_type == "material":
-            # Get the consolidation uuid.
-            con_uuid = select_item.parent().text(0)
-            mat_uuid = item_uuid
+        elif self.tab_target.currentIndex() == 1:
+            # Get the current material uuid.
+            mat_uuid = self.tbx_mat_uuid.text()
             
-            # Get the item path under the consolidaiton path.
-            con_path = os.path.join(CON_DIR, con_uuid)
-            item_path = os.path.join(os.path.join(con_path, "Materials"),mat_uuid)
+            # Instantiate the material.
+            sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+            
+            # Instantiate the consolidation.
+            con_uuid = sop_object.consolidation
+            con_path = os.path.join(CON_DIR, sop_object.consolidation)
+            item_path = os.path.join(os.path.join(con_path, "Materials"), mat_uuid) 
         else:
             return(None)
+        
+        # Exit if none of objecs are instantiated.
+        if sop_object == None: return(None)
+        
+        if sop_object.images == None: sop_object.images = list()
         
         # Initialyze the temporal directory.
         tethered_path = os.path.join(TMP_DIR, "tethered")
+        
         if not os.path.exists(tethered_path):
             # Create the temporal directory if not exists.
             os.mkdir(tethered_path)
@@ -3113,7 +3162,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     img_main = os.path.join(img_path, "Main")
                     img_raw = os.path.join(img_path, "Raw")
                     
-                    # Move to proper directory.
+                    # Move main images from the temporal directory to the object's directory.
                     if len(img_lst_main) > 0:
                         for i in range(0, len(img_lst_main)):
                             main_orig = os.path.join(tethered_path, img_lst_main[i])
@@ -3140,8 +3189,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             img_file.caption = "Original image"
                             img_file.description = ""
                             
+                            # Execute the SQL script.
                             img_file.dbInsert(DATABASE)
                             
+                            # Add the image to the boject.
+                            sop_object.images.insert(0, img_file)
+                    else:
+                        print("There are no main images.")
+                    
+                    # Move raw images from the temporal directory to the object's directory.
                     if len(img_lst_raw) > 0:
                         for j in range(0, len(img_lst_raw)):
                             raw_orig = os.path.join(tethered_path, img_lst_raw[j])
@@ -3168,30 +3224,76 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             raw_file.caption = "Original image"
                             raw_file.description = ""
                             
+                            # Execute the SQL script.
                             raw_file.dbInsert(DATABASE)
+                            
+                            # Add the image to the boject.
+                            sop_object.images.insert(0, raw_file)
+                    else:
+                        print("There are no raw images.")
                 
                 # Remove tethered path from the temporal directory.
                 shutil.rmtree(tethered_path)
                 
-                if select_type == "consolidation":
-                    sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
-                    self.refreshFileList(sop_object)
-                elif select_type == "material":
-                    sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
-                    self.refreshFileList(sop_object)
+                # Refresh the file list.
+                self.refreshFileList(sop_object)
         except:
-            # Create error messages.
-            error_title = "エラーが発生しました"
-            error_msg = "不明なエラーです。"
-            error_info = "担当者にお問い合わせ下さい。"
-            error_icon = QMessageBox.Critical
-            error_detailed = None
-            
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-           
-            # Returns nothing.
+            self.errorUnknown("main::tetheredShooting(self)")
             return(None)
+    
+    # ==========================
+    # Error messages
+    # ==========================
+    def errorProjectNotOpened(self):
+        print("errorProjectNotOpened(self)")
+        
+        # Create error messages.
+        error_title = "プロジェクトのエラー"
+        error_msg = "プロジェクトが開かれていません。"
+        error_info = "プロジェクトのディレクトリを参照し、指定ください。"
+        error_icon = QMessageBox.Critical
+        error_detailed = None
+        
+        # Handle error.
+        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+    
+    def errorUnknown(self, module, e=None):
+        print("errorUnknown(self)")
+        
+        # Create error messages.
+        error_title = "エラーが発生しました"
+        error_msg = "不明なエラーです。"
+        error_info = "Error occurs in " + module
+        error_icon = QMessageBox.Critical
+        error_detailed = str(e)
+        
+        # Handle error.
+        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+    
+    def errorTreeItemNotSelected(self, treeView):
+        print("errorProjectNotOpened(self)")
+        
+        # Create error messages.
+        error_title = "オブジェクトの選択エラー"
+        error_msg = "オブジェクトを再選択し、実行しなおして下さい。"
+        error_info = "ツリービューのオブジェクトが選択されていません。"
+        error_icon = QMessageBox.Critical
+        error_detailed = treeView
+        
+        # Handle error.
+        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+    
+    
+    def exportAsHtml(self):
+        # Exit if the root directory is not loaded.
+        if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+        
+        try:
+            output = os.path.join(ROOT_DIR,"project.html")
+            
+            features.exportAsHtml(DATABASE, output)
+        except Exception as e:
+            self.errorUnknown("main::exportAsHtml(self)", e)
 
 def main():
     app = QApplication(sys.argv)

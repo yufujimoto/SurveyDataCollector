@@ -26,6 +26,12 @@
        </property>
        <item>
         <widget class="QLabel" name="image_panel">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>500</height>
+          </size>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -64,13 +70,6 @@
           <widget class="QPushButton" name="btn_play">
            <property name="text">
             <string>再生する</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btn_refresh">
-           <property name="text">
-            <string>リスト更新</string>
            </property>
           </widget>
          </item>

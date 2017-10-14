@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/recordWithPhotoDialog.ui'
+# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/ui/recordWithPhotoDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -21,6 +21,7 @@ class Ui_testDialog(object):
         self.verticalLayout.setContentsMargins(0, -1, -1, -1)
         self.verticalLayout.setObjectName("verticalLayout")
         self.image_panel = QtWidgets.QLabel(testDialog)
+        self.image_panel.setMinimumSize(QtCore.QSize(0, 500))
         self.image_panel.setText("")
         self.image_panel.setAlignment(QtCore.Qt.AlignCenter)
         self.image_panel.setObjectName("image_panel")
@@ -41,9 +42,6 @@ class Ui_testDialog(object):
         self.btn_play = QtWidgets.QPushButton(testDialog)
         self.btn_play.setObjectName("btn_play")
         self.horizontalLayout_3.addWidget(self.btn_play)
-        self.btn_refresh = QtWidgets.QPushButton(testDialog)
-        self.btn_refresh.setObjectName("btn_refresh")
-        self.horizontalLayout_3.addWidget(self.btn_refresh)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setContentsMargins(0, 0, -1, -1)
@@ -74,5 +72,4 @@ class Ui_testDialog(object):
         self.btn_rec_start.setText(_translate("testDialog", "録音する"))
         self.btn_rec_stop.setText(_translate("testDialog", "停止する"))
         self.btn_play.setText(_translate("testDialog", "再生する"))
-        self.btn_refresh.setText(_translate("testDialog", "リスト更新"))
 

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: UTF-8 -*-
+# coding: UTF-8
 
 import os, sys, subprocess, uuid as unique
 from lxml import etree as et
@@ -134,8 +134,8 @@ class Consolidation(SimpleObject):
             self._name = None
             self._geographic_annotation = None
             self._temporal_annotation = None
-            self._images = None
-            self._sounds = None
+            self._images = list()
+            self._sounds = list()
             self._description = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
@@ -185,14 +185,14 @@ class Consolidation(SimpleObject):
         
         if not entry == None:
             # Get attributes from the row.
-            self._id = str(entry[0])
-            self._uuid = str(uuid)
-            self._name = str(entry[1])
-            self._geographic_annotation = str(entry[2])
-            self._temporal_annotation = str(entry[3])
+            self._id = entry[0]
+            self._uuid = uuid
+            self._name = entry[1]
+            self._geographic_annotation = entry[2]
+            self._temporal_annotation = entry[3]
             self._images = self._getFileList(dbfile, "image")
             self._sounds = self._getFileList(dbfile, "audio")
-            self._description = str(entry[4])
+            self._description = entry[4]
         else:
             return(None)
     
@@ -251,20 +251,25 @@ class Consolidation(SimpleObject):
         super(Consolidation, self).excuteSQL(dbfile, sql_delete, values)
     
     def _getFileList(self, dbfile, file_type):
-        # Get image files related to the consolidation.
-        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
-        
-        # Execute the query.
-        images = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
+        print("Consolidation::_getFileList(self, dbfile, file_type)")
         
         # Initialyze the return value.
-        sop_images = list()
+        sop_file_list = list()
         
-        # Create sop image ojects from the DB table.
-        for image in images:
-            sop_images.append(File(is_new=False, uuid=image[0], dbfile=dbfile))
-        
-        return(sop_images)
+        try:
+            # Get image files related to the consolidation.
+            sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
+            
+            # Execute the query.
+            sop_files = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
+            
+            # Create sop image ojects from the DB table.
+            for sop_file in sop_files:
+                sop_file_list.append(File(is_new=False, uuid=sop_file[0], dbfile=dbfile))
+                
+            return(sop_file_list)
+        except Exception as e:
+            print(str(e))
     
 class Material(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
@@ -283,8 +288,8 @@ class Material(SimpleObject):
             self._altitude = None
             self._material_number = None
             self._description = None
-            self._images = None
-            self._sounds = None
+            self._images = list()
+            self._sounds = list()
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
             self._initInstanceByUuid(uuid, dbfile)
@@ -364,21 +369,21 @@ class Material(SimpleObject):
         
         if not entry == None:
             # Get attributes from the row.
-            self._id = str(entry[0])
-            self._uuid = str(uuid)
-            self._consolidation = str(entry[1])
-            self._name = str(entry[2])
-            self._material_number = str(entry[3])
-            self._estimated_period_beginning = str(entry[4])
-            self._estimated_period_peak = str(entry[5])
-            self._estimated_period_ending = str(entry[6])
-            self._latitude = str(entry[7])
-            self._longitude = str(entry[8])
-            self._altitude = str(entry[9])
-            self._material_number = str(entry[10])
+            self._id = entry[0]
+            self._uuid = uuid
+            self._consolidation = entry[1]
+            self._name = entry[2]
+            self._material_number = entry[3]
+            self._estimated_period_beginning = entry[4]
+            self._estimated_period_peak = entry[5]
+            self._estimated_period_ending = entry[6]
+            self._latitude = entry[7]
+            self._longitude = entry[8]
+            self._altitude = entry[9]
+            self._material_number = entry[10]
             self._images = self._getFileList(dbfile, "image")
             self._sounds = self._getFileList(dbfile, "audio")
-            self._description = str(entry[11])
+            self._description = entry[11]
         else:
             return(None)
     
@@ -459,19 +464,24 @@ class Material(SimpleObject):
         super(Material, self).excuteSQL(dbfile, sql_delete, values)
     
     def _getFileList(self, dbfile, file_type):
-        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id=? AND file_type=? ORDER BY id DESC;"""
-        
-        # Execute the query.
-        images = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._consolidation, self._uuid, file_type])
+        print("Material::_getFileList(self, dbfile, file_type)")
         
         # Initialyze the return value.
-        sop_images = list()
+        sop_file_list = list()
         
-        # Create sop image ojects from the DB table.
-        for image in images:
-            sop_images.append(File(is_new=False, uuid=image[0], dbfile=dbfile))
-        
-        return(sop_images)
+        try:
+            sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id=? AND file_type=? ORDER BY id DESC;"""
+            
+            # Execute the query.
+            sop_files = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._consolidation, self._uuid, file_type])
+            
+            # Create sop image ojects from the DB table.
+            for sop_file in sop_files:
+                sop_file_list.append(File(is_new=False, uuid=sop_file[0], dbfile=dbfile))
+                
+            return(sop_file_list)
+        except:
+            print("Error in instantiating the File object.")
 
 class File(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
@@ -734,3 +744,88 @@ class File(SimpleObject):
         except:
             print("Error occurs in XML output.")
             return(None)
+
+
+def exportAsHtml(dbfile, output, title="Archive"):
+    try:
+        # Establish the connection between DB.
+        conn = sqlite.connect(dbfile)
+        
+        if conn == None: return(None)
+        
+        # Open the file stream
+        output_html = open(output,"w") 
+        
+        output_html.write("<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>%s</title>\n\t</head>\t<body>\n\t\t<hr />\n" % (title))
+    
+        # Make the SQL statement.
+        sql_sel_con = """SELECT uuid,
+                                name,
+                                geographic_annotation,
+                                temporal_annotation,
+                                description
+                        FROM consolidation ORDER BY id;"""
+        
+        # Instantiate the cursor for query.
+        cur_sel_con = conn.cursor()
+        cur_sel_con.execute(sql_sel_con)
+        
+        # Fetch one row.
+        con_rows = cur_sel_con.fetchall()
+        
+        # Replace NULL values by blank.
+        for con_row in con_rows:
+            output_html.write("\t\t<div id='%s' style='text-align:center;'>\n" % (con_row[0].encode('utf-8')))
+            output_html.write("\t\t\t<table width='800' style='margin: auto; border: hidden; text-align: left'>\n\t\t\t\t<col width='200'>\n\t\t\t\t<col width='600'>\n")
+            output_html.write("\t\t\t\t<tr><td colspan='2'><h1 style='text-align: center;'>%s</h1></td></tr>\n" % (con_row[1].encode('utf-8')))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Geographic Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[2].encode('utf-8')))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Temporal Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[3].encode('utf-8')))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top' height='50'>Description :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[4].encode('utf-8')))
+            
+            # Make the SQL statement.
+            sql_sel_mat = """SELECT uuid,
+                                    name,
+                                    material_number,
+                                    estimated_period_beginning,
+                                    estimated_period_peak,
+                                    estimated_period_ending,
+                                    latitude,
+                                    longitude,
+                                    altitude,
+                                    description
+                                FROM material WHERE con_id=?"""
+            # Instantiate the cursor for query.
+            cur_sel_mat = conn.cursor()
+            cur_sel_mat.execute(sql_sel_mat, [con_row[0]])
+            
+            # Fetch one row.
+            mat_rows = cur_sel_mat.fetchall()
+            
+            for mat_row in mat_rows:
+                output_html.write("\t\t\t<div id='%s' style='text-align:center;'>\n\t\t\t\t\n" % (mat_row[0].encode('utf-8')))
+                output_html.write("\t\t\t<table width='800' style='margin: auto; border: hidden; text-align: left'>\n\t\t\t\t<col width='200'>\n\t\t\t\t<col width='600'>\n")
+                output_html.write("\t\t\t\t\t<tr><td colspan='2'><h2 style='text-align: center;'>%s</h2></td></tr>\n" % (mat_row[1].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Material Number :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[2].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Latitude :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[6].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Longitude :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[7].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Altitude :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[8].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Begining :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[3].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Peak :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[4].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Ending :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[5].encode('utf-8')))
+                output_html.write("\t\t\t\t\t<tr><td style='text-align: right; vertical-align: top' height='50'>Description :</td><td style='vertical-align: top'>%s</td></tr>\n" % (mat_row[9].encode('utf-8')))
+                output_html.write("\t\t\t\t</table>\n\t\t\t</div>\n")
+                
+            output_html.write("\t\t</div>\n\t\t<hr />\n")
+        output_html.write("\t</body>\n</html>")
+        
+        output_html.close()
+    except Exception as e:
+        print(e)
+
+def whatisthis(s):
+    if isinstance(s, str):
+        print "ordinary string"
+    elif isinstance(s, unicode):
+        print "unicode string"
+    else:
+        print "not a string"

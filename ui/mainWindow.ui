@@ -1174,463 +1174,510 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="lay_h_con_fls">
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-           </layout>
-          </item>
-          <item>
-           <widget class="QTabWidget" name="tab_src">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
+           <widget class="QTabWidget" name="tab_img_info">
             <property name="currentIndex">
              <number>0</number>
             </property>
-            <property name="iconSize">
-             <size>
-              <width>24</width>
-              <height>24</height>
-             </size>
-            </property>
-            <widget class="QWidget" name="tab_src_img">
+            <widget class="QWidget" name="tab_img_preview">
              <attribute name="title">
-              <string>画像</string>
+              <string>プレビュー</string>
              </attribute>
-             <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
               <item>
-               <widget class="QTabWidget" name="tab_img_info">
-                <property name="currentIndex">
+               <layout class="QVBoxLayout" name="verticalLayout_9">
+                <property name="leftMargin">
                  <number>0</number>
                 </property>
-                <widget class="QWidget" name="tab_img_preview">
-                 <attribute name="title">
-                  <string>プレビュー</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_6">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <property name="topMargin">
                    <number>0</number>
                   </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_4">
-                    <property name="topMargin">
-                     <number>0</number>
+                   <widget class="QLabel" name="lbl_img_preview">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>preview</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_4">
+                    <property name="spacing">
+                     <number>3</number>
                     </property>
                     <item>
-                     <widget class="QLabel" name="lbl_img_preview">
-                      <property name="minimumSize">
+                     <widget class="QPushButton" name="btn_img_rot_l">
+                      <property name="maximumSize">
                        <size>
-                        <width>0</width>
-                        <height>0</height>
+                        <width>40</width>
+                        <height>16777215</height>
                        </size>
                       </property>
                       <property name="text">
-                       <string>preview</string>
+                       <string/>
                       </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
+                      <property name="checkable">
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <layout class="QVBoxLayout" name="verticalLayout_4">
-                      <property name="spacing">
-                       <number>3</number>
+                     <widget class="QPushButton" name="btn_img_rot_r">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
                       </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_rot_u">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_enh">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_inv">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_mno">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_cnt">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_sav">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_del">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>24</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_10">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>2</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QCheckBox" name="cbx_fil_pub">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>公開設定</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="cbx_fil_edit">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>削除可能</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_11">
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="lbl_fil_capt">
+                    <property name="minimumSize">
+                     <size>
+                      <width>110</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>キャプション : </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                    <property name="margin">
+                     <number>5</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="tbx_fil_capt">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="lbl_fil_stts">
+                    <property name="minimumSize">
+                     <size>
+                      <width>110</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>ステータス : </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                    <property name="margin">
+                     <number>5</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="tbx_fil_stts">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>4</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="lbl_fil_eope">
+                    <property name="minimumSize">
+                     <size>
+                      <width>110</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>100</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>追加処理 : </string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                    <property name="margin">
+                     <number>5</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="tbx_fil_eope">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QTabWidget" name="tab_src">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="tabPosition">
+                   <enum>QTabWidget::North</enum>
+                  </property>
+                  <property name="tabShape">
+                   <enum>QTabWidget::Rounded</enum>
+                  </property>
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="elideMode">
+                   <enum>Qt::ElideNone</enum>
+                  </property>
+                  <property name="documentMode">
+                   <bool>false</bool>
+                  </property>
+                  <property name="tabsClosable">
+                   <bool>false</bool>
+                  </property>
+                  <property name="tabBarAutoHide">
+                   <bool>false</bool>
+                  </property>
+                  <widget class="QWidget" name="tab_src_img">
+                   <attribute name="title">
+                    <string>画像</string>
+                   </attribute>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <item>
+                     <widget class="QPushButton" name="btn_open_gimp">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>25</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>GIMP</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                  <widget class="QWidget" name="tab_src_snd">
+                   <attribute name="title">
+                    <string>音声</string>
+                   </attribute>
+                   <layout class="QVBoxLayout" name="verticalLayout_8">
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_12">
                       <item>
-                       <widget class="QPushButton" name="btn_img_rot_l">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
+                       <widget class="QPushButton" name="btn_snd_play">
                         <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
+                         <string>Play</string>
                         </property>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QPushButton" name="btn_img_rot_r">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
+                       <widget class="QPushButton" name="btn_snd_stop">
                         <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_rot_u">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_enh">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_inv">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_mno">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_cnt">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_sav">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_img_del">
-                        <property name="maximumSize">
-                         <size>
-                          <width>40</width>
-                          <height>16777215</height>
-                         </size>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="iconSize">
-                         <size>
-                          <width>24</width>
-                          <height>24</height>
-                         </size>
-                        </property>
-                        <property name="checkable">
-                         <bool>false</bool>
+                         <string>Stop</string>
                         </property>
                        </widget>
                       </item>
                      </layout>
                     </item>
                    </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_11">
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="lbl_img_capt">
-                      <property name="minimumSize">
-                       <size>
-                        <width>110</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>100</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>キャプション : </string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="margin">
-                       <number>5</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="tbx_img_capt">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>16777215</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="lbl_img_stts">
-                      <property name="minimumSize">
-                       <size>
-                        <width>110</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>100</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>ステータス : </string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="margin">
-                       <number>5</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="tbx_img_stts">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="lbl_img_eope">
-                      <property name="minimumSize">
-                       <size>
-                        <width>110</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>100</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>追加処理 : </string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                      <property name="margin">
-                       <number>5</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="tbx_img_eope">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_10">
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QCheckBox" name="cbx_img_pub">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>16777215</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>公開設定</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QCheckBox" name="cbx_img_edit">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>16777215</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>削除可能</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btn_open_gimp">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>25</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>GIMP</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="tab_img_prop">
-                 <attribute name="title">
-                  <string>プロパティ</string>
-                 </attribute>
-                 <layout class="QHBoxLayout" name="horizontalLayout_3">
-                  <item>
-                   <widget class="QTreeWidget" name="tre_img_prop">
-                    <attribute name="headerDefaultSectionSize">
-                     <number>100</number>
-                    </attribute>
-                    <column>
-                     <property name="text">
-                      <string>プロパティ</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>値</string>
-                     </property>
-                    </column>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </widget>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="tab_src_snd">
+            <widget class="QWidget" name="tab_img_prop">
              <attribute name="title">
-              <string>音声</string>
+              <string>プロパティ</string>
              </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QTreeWidget" name="tre_img_prop">
+                <attribute name="headerDefaultSectionSize">
+                 <number>100</number>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>プロパティ</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>値</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </widget>
           </item>
@@ -1680,24 +1727,16 @@
     <property name="title">
      <string>プロジェクト</string>
     </property>
-    <addaction name="act_prj_open"/>
-   </widget>
-   <widget class="QMenu" name="men_dat">
-    <property name="title">
-     <string>データ</string>
-    </property>
-    <widget class="QMenu" name="men_dat_imp">
+    <widget class="QMenu" name="mem_prj_exp">
      <property name="title">
-      <string>インポート</string>
+      <string>Export</string>
      </property>
-     <addaction name="act_imp_db"/>
-     <addaction name="act_imp_txt"/>
-     <addaction name="act_imp_fls"/>
+     <addaction name="act_export_html"/>
     </widget>
-    <addaction name="men_dat_imp"/>
+    <addaction name="act_prj_open"/>
+    <addaction name="mem_prj_exp"/>
    </widget>
    <addaction name="men_prj"/>
-   <addaction name="men_dat"/>
   </widget>
   <action name="actionCreate_New_Project">
    <property name="text">
@@ -1733,6 +1772,11 @@
   <action name="act_imp_fls">
    <property name="text">
     <string>ファイルシステム</string>
+   </property>
+  </action>
+  <action name="act_export_html">
+   <property name="text">
+    <string>Export as HTML</string>
    </property>
   </action>
  </widget>
