@@ -775,12 +775,59 @@ def exportAsHtml(dbfile, output, title="Archive"):
         
         # Replace NULL values by blank.
         for con_row in con_rows:
-            output_html.write("\t\t<div id='%s' style='text-align:center;'>\n" % (con_row[0].encode('utf-8')))
+            con_uuid = con_row[0].encode('utf-8')
+            con_cnam = con_row[1].encode('utf-8')
+            con_gano = con_row[2].encode('utf-8')
+            con_tano = con_row[3].encode('utf-8')
+            con_desc = con_row[4].encode('utf-8')
+            
+            output_html.write("\t\t<div id='%s' style='text-align:center;'>\n" % (con_uuid))
             output_html.write("\t\t\t<table width='800' style='margin: auto; border: hidden; text-align: left'>\n\t\t\t\t<col width='200'>\n\t\t\t\t<col width='600'>\n")
-            output_html.write("\t\t\t\t<tr><td colspan='2'><h1 style='text-align: center;'>%s</h1></td></tr>\n" % (con_row[1].encode('utf-8')))
-            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Geographic Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[2].encode('utf-8')))
-            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Temporal Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[3].encode('utf-8')))
-            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top' height='50'>Description :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_row[4].encode('utf-8')))
+            output_html.write("\t\t\t\t<tr><td colspan='2'><h1 style='text-align: center;'>%s</h1></td></tr>\n" % (con_cnam))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Geographic Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_gano))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top'>Temporal Annotation :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_tano))
+            output_html.write("\t\t\t\t<tr><td style='text-align: right; vertical-align: top' height='50'>Description :</td><td style='vertical-align: top'>%s</td></tr>\n" % (con_desc))
+            output_html.write("\t\t\t</table>\n")
+            
+            sql_sel_con_img = '''SELECT    uuid,
+                                            created_date,
+                                            modified_date,
+                                            file_name,
+                                            alias_name,
+                                            status,
+                                            source,
+                                            file_operation,
+                                            caption,
+                                            description
+                                FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;'''
+            
+            # Instantiate the cursor for query.
+            cur_sel_con_img = conn.cursor()
+            cur_sel_con_img.execute(sql_sel_con_img, [con_uuid, "image"])
+            
+            con_img_rows = cur_sel_con_img.fetchall()
+            print("con img")
+            output_html.write("\t\t\t<table width='800' style='margin: auto; border: hidden; text-align: left'>\n")
+            output_html.write("\t\t\t\t<col width='200'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n")
+            output_html.write("\t\t\t\t<tr><td colspan='4'><h1 style='text-align: center;'>%s</h1></td></tr>\n" % ("Images"))
+            for con_img_row in con_img_rows:
+                con_img_uuid = con_img_row[0].encode('utf-8')
+                con_img_cdat = con_img_row[1].encode('utf-8')
+                con_img_mdat = con_img_row[2].encode('utf-8')
+                con_img_fnam = con_img_row[3].encode('utf-8')
+                con_img_stts = con_img_row[4].encode('utf-8')
+                con_img_srce = con_img_row[5].encode('utf-8')
+                con_img_fope = con_img_row[6].encode('utf-8')
+                con_img_capt = con_img_row[7].encode('utf-8')
+                con_img_desc = con_img_row[8].encode('utf-8')
+                
+                img_ext = os.path.splitext(con_img_fnam)[1]
+                
+                if img_ext == ".jpeg" or img_ext == ".jpg":
+                    output_html.write("\t\t\t\t<tr style='vertical-align: top'>")
+                    output_html.write("<td><img src='%s' height='40'/>$s</td><td>%s</td><td>$s</td><td>$s</td>" % (con_img_fnam, con_img_capt, con_img_stts, con_img_srce, con_img_desc))
+                    output_html.write("<td>$s</td></tr>\n")
+            output_html.write("\t\t\t</table>\n")
             
             # Make the SQL statement.
             sql_sel_mat = """SELECT uuid,
@@ -794,6 +841,7 @@ def exportAsHtml(dbfile, output, title="Archive"):
                                     altitude,
                                     description
                                 FROM material WHERE con_id=?"""
+            
             # Instantiate the cursor for query.
             cur_sel_mat = conn.cursor()
             cur_sel_mat.execute(sql_sel_mat, [con_row[0]])

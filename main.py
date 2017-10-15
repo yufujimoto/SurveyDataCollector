@@ -172,7 +172,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             
             # Stop the threading.
             self.btn_rec_stop.clicked.connect(self.stopRecording)
-        except:
+        except Error as e:
             self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_fiber_manual_record_black_24dp_1x.png'))))
             print("Error in RecordWithImage::recording(self)")
     
@@ -191,7 +191,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             sd.play(data, fs)
             
             self.btn_rec_stop.clicked.connect(self.stopPlaying)
-        except:
+        except Error as e:
             self.btn_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
             print("Error in RecordWithImage::playing(self)")
     
@@ -207,7 +207,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             
             # Refresh temporal sound data.
             self.getSoundFiles()
-        except:
+        except Error as e:
             print("Error in RecordWithImage::stopRecording(self)")
     
     def stopPlaying(self):
@@ -217,7 +217,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             
             # Stop audio.
             sd.stop()        
-        except:
+        except Error as e:
             print("Error in RecordWithImage::stopping(self)")
         
     def getSoundFiles(self):
@@ -299,7 +299,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
                 error_msg = "このファイルはプレビューに対応していません。"
                 error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
                 error_icon = QMessageBox.Critical
-                error_detailed = None
+                error_detailed = str(e)
                 
                 # Handle error.
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -467,7 +467,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 error_msg = "このファイルはプレビューに対応していません。"
                 error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
                 error_icon = QMessageBox.Critical
-                error_detailed = None
+                error_detailed = str(e)
                 
                 # Handle error.
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -482,6 +482,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Get the root directory for this script.
         global SRC_DIR
         global TMP_DIR
+        global ICN_DIR
         
         # Set the source directory which this program located.
         SRC_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -941,7 +942,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_msg = "このファイルはプレビューに対応していません。"
             error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
             error_icon = QMessageBox.Critical
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1071,7 +1072,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_msg = LAB_CON + u"あるいは" + LAB_MAT + u"が選択されていません。"
             error_info = "ツリービューから再度選択してください。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1161,7 +1162,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshConsolidationInfo()
             self.refreshMaterialInfo()
             self.refreshImageInfo()
-        except:
+        except Error as e:
             print("Error occurs in mainPanel::refreshItemInfo(self)")
             return(None)
     
@@ -1189,7 +1190,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Selct the top item as the default.
             self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
             self.tre_fls.show()
-        except:
+        except Error as e:
             print("Error occurs in mainPanel::refreshFileList")
             return(None)
     
@@ -1233,13 +1234,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Change edit mode to modifying.
             self.rad_con_mod.setChecked(True)
             self.toggleEditModeForConsolidation()
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_CON + u"の作成エラー"
             error_msg = LAB_CON + u"の作成に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1309,13 +1310,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_prj_item.show()
             self.tre_prj_item.resizeColumnToContents(0)
             self.tre_prj_item.resizeColumnToContents(1)
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_CON + u"の更新エラー"
             error_msg = LAB_CON + u"の更新に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1379,13 +1380,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Reflesh the last selection.
             self.refreshItemInfo()
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_CON + u"の削除エラー"
             error_msg = LAB_CON + u"の削除に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1413,7 +1414,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Set active control tab for consolidation.
             self.tab_target.setCurrentIndex(0)
-        except:
+        except Error as e:
             print("Error occors in main::setConsolidationInfo(self, consolidation)")
             return(False)
     
@@ -1450,7 +1451,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_con_geoname.setText("")
             self.tbx_con_temporal.setText("")
             self.tbx_con_description.setText("")
-        except:
+        except Error as e:
             print("Error occurs in main::refreshConsolidationInfo(self)")
     
     def toggleEditModeForConsolidation(self):
@@ -1478,13 +1479,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.tbx_con_description.setDisabled(False)
             else:
                 self.refreshConsolidationInfo()
-        except:
+        except Error as e:
                 # Connection error.
                 error_title = "エラーが発生しました"
                 error_msg = LAB_CON + u"の編集モードを変更できません。"
                 error_info = "不明のエラーです。"
                 error_icon = QMessageBox.Critical
-                error_detailed = None
+                error_detailed = str(e)
                 
                 # Handle error.
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1539,7 +1540,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the conslidation uuid is None.
         if con_uuid == None: return(None)
-        print()
+        
         try:
             # Generate the GUID for the material
             mat = features.Material(is_new=True, uuid=None, dbfile=None)
@@ -1572,13 +1573,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_prj_item.show()
             self.tre_prj_item.resizeColumnToContents(0)
             self.tre_prj_item.resizeColumnToContents(1)
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_MAT + u"の作成エラー"
             error_msg = LAB_MAT + u"の作成に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1653,13 +1654,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             self.tre_prj_item.resizeColumnToContents(0)
             self.tre_prj_item.resizeColumnToContents(1)
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_MAT + u"の更新エラー"
             error_msg = LAB_MAT + u"の更新に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1726,13 +1727,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Reflesh the last selection.
             self.refreshItemInfo()
-        except:
+        except Error as e:
             # Create error messages.
             error_title = LAB_MAT + u"の削除エラー"
             error_msg = LAB_MAT + u"の削除に失敗しました。"
             error_info = "不明なエラーです。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1769,7 +1770,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Returns the value.
             return(True)
-        except:
+        except Error as e:
             print("Error occors in main::setMaterialInfo(self, material)")
             return(False)
     
@@ -1822,7 +1823,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_mat_tmp_mid.setText("")
             self.tbx_mat_tmp_end.setText("")
             self.tbx_mat_description.setText("")
-        except:
+        except Error as e:
             print("Error occcurs in main::refreshMaterialInfo(self)")
     
     def toggleEditModeForMaterial(self):
@@ -1864,7 +1865,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = LAB_MAT + u"の編集モードを変更できません。"
                     error_info = "編集対象の" + LAB_MAT + u"を再選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1875,13 +1876,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     return(None)
             else:
                 self.refreshMaterialInfo()
-        except:
+        except Error as e:
                 # Connection error.
                 error_title = "エラーが発生しました"
                 error_msg = LAB_MAT + u"の編集モードを変更できません。"
                 error_info = "不明のエラーです。"
                 error_icon = QMessageBox.Critical
-                error_detailed = None
+                error_detailed = str(e)
                 
                 # Handle error.
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -1895,6 +1896,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def getImageFileInfo(self, sop_image):
         print("main::getImageFileInfo(self)")
         
+        # Clear.
+        self.tre_img_prop.clear()
+        
         # Get the full path of the image.
         if sop_image.filename == "":
             img_file_path = os.path.join(os.path.join(SRC_DIR, "images"),"noimage.jpg")
@@ -1904,45 +1908,42 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 img_file_path = os.path.join(ROOT_DIR, sop_image.filename)
         
-        # Clear.
-        self.tre_img_prop.clear()
-        
-        try:
-            # Get file information by using "dcraw" library.
-            img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
-            
-            # Get each metadata entry.
-            for entry in img_stat:
-                # Split metadata entry by ":".
-                entry_line = entry.split(":")
-                
-                # Get the metadata key.
-                entry_key = entry_line[0]
-                
-                # Get the metadata value.
-                entry_val = entry_line[1]
-                
-                # Add file information to the tree list.
-                self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
-        except:
-            print("Cannot get the meta information.")
-        # Get file information by using python "stat" library.
-        fl_stat = os.stat(img_file_path)
-        
-        # Get file size.
-        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
-        
-        # Get time for last access, modified and creat.
-        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
-        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
-        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
-        
-        # Add file information to the tree list.
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
-        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
-        
+                try:
+                    # Get file information by using "dcraw" library.
+                    img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
+                    
+                    # Get each metadata entry.
+                    for entry in img_stat:
+                        # Split metadata entry by ":".
+                        entry_line = entry.split(":")
+                        
+                        # Get the metadata key.
+                        entry_key = entry_line[0]
+                        
+                        # Get the metadata value.
+                        entry_val = entry_line[1]
+                        
+                        # Add file information to the tree list.
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
+                        
+                        # Get file information by using python "stat" library.
+                        fl_stat = os.stat(img_file_path)
+                        
+                        # Get file size.
+                        fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
+                        
+                        # Get time for last access, modified and creat.
+                        fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
+                        fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
+                        fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
+                        
+                        # Add file information to the tree list.
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
+                except Error as e:
+                    print("Cannot get the meta information.")
         # Refresh the tree view.
         self.tre_img_prop.show()
         
@@ -2020,7 +2021,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_msg = "プロジェクトが開かれていません。"
             error_info = "プロジェクトのディレクトリを参照し、指定ください。"
             error_icon = QMessageBox.Critical
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2057,42 +2058,54 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_fil_capt.setText("")
             self.tbx_fil_stts.setText("")
             self.tbx_fil_eope.setText("")
-        except:
+        except Error as e:
             print("Error occurs in main::refreshImageInfo(self)")
     
     # ==========================
     # Sound Play
     # ==========================
     def soundPlay(self):
+        print("main::soundPlay(self)")
+        
+        global ICN_DIR
+        
         # Handle the selected SOP file object.
         selected = self.tre_fls.selectedItems()
         
-        if len(selected) > 0:
-            fil_uuid = selected[0].text(0)
-            
-            # Instantiate the SOP File object by selected uuid.
-            fil_object = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
-            
-            if fil_object.file_type == "audio":
-                # Get the path to the sound path.
-                snd_path = os.path.join(ROOT_DIR, fil_object.filename)
+        try:
+            if len(selected) > 0:
+                fil_uuid = selected[0].text(0)
                 
-                # Set data and samplig rate.
-                data, fs = sf.read(snd_path, dtype='float32')
+                # Instantiate the SOP File object by selected uuid.
+                fil_object = features.File(is_new=False, uuid=fil_uuid, dbfile=DATABASE)
                 
-                # Start playing.
-                sd.play(data, fs)
-                
-                # Connect to the stop button.
-                self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))))
-                self.btn_snd_stop.clicked.connect(self.soundStop)
-            else:
-                # Create error messages.
-                error_title = "音声再生エラー"
-                error_msg = "選択中のファイルは音声ファイルではありません。"
-                error_info = "再生可能な音声ファイルを選択してください。"
-                error_icon = QMessageBox.Critical
-                error_detailed = None
+                if fil_object.file_type == "audio":
+                    # Get the path to the sound path.
+                    snd_path = os.path.join(ROOT_DIR, fil_object.filename)
+                    
+                    # Set data and samplig rate.
+                    data, fs = sf.read(snd_path, dtype='float32')
+                    print(fs)
+                    # Start playing.
+                    sd.play(data, fs)
+                    print(ICN_DIR)
+                    # Connect to the stop button.
+                    print(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))
+                    self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))))
+                    print(os.path.join(ICN_DIR, 'ic_play_circle_filled_green_24dp_1x.png'))
+                    self.btn_snd_stop.clicked.connect(self.soundStop)
+                    print(4)
+                else:
+                    # Create error messages.
+                    error_title = "音声再生エラー"
+                    error_msg = "選択中のファイルは音声ファイルではありません。"
+                    error_info = "再生可能な音声ファイルを選択してください。"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = str(e)
+        except Exception as e:
+            # Display the error message.
+            self.errorUnknown("main::getCurrentImage(self)", e)
+            return(None)
     
     def soundStop(self):
         self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
@@ -2131,7 +2144,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         error_msg = "選択中のファイルは画像ファイルではありません。"
                         error_info = "編集可能な画像ファイルを選択してください。"
                         error_icon = QMessageBox.Critical
-                        error_detailed = None
+                        error_detailed = str(e)
                         
                         # Handle error.
                         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2141,7 +2154,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 else:
                     self.errorTreeItemNotSelected("self.tre_fls.selectedItems() == 0")
                     return(None)
-        except:
+        except Error as e:
             # Display the error message.
             self.errorUnknown("main::getCurrentImage(self)")
             return(None)
@@ -2175,7 +2188,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "選択中のファイルはJPEGファイルではありません。"
                     error_info = "GIMPで編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2236,7 +2249,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_msg = "選択中のファイルは画像ファイルではありません。"
             error_info = "GIMPで編集可能な画像ファイルを選択してください。"
             error_icon = QMessageBox.Critical
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2298,7 +2311,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2382,7 +2395,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2466,7 +2479,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2549,7 +2562,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2632,7 +2645,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2717,7 +2730,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error_msg = "このファイルはJPEGファイルではありません。"
                     error_info = "編集可能な画像ファイルを選択してください。"
                     error_icon = QMessageBox.Critical
-                    error_detailed = None
+                    error_detailed = str(e)
                     
                     # Handle error.
                     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2745,7 +2758,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         error_msg = "すでに、ファイルが存在しています。"
                         error_info = "別名で保存するか、保存場所を変更してください。"
                         error_icon = QMessageBox.Critical
-                        error_detailed = None
+                        error_detailed = str(e)
                         
                         # Handle error.
                         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2765,7 +2778,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error_msg = "ファイルの削除ができません。"
             error_info = "このファイルはロックされているため削除できません。"
             error_icon = QMessageBox.Information
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -2918,13 +2931,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 opt_val = str(opt.values()[0])
                 
                 cbx.addItem(opt_txt)
-        except:
+        except Error as e:
             # Create error messages.
             error_title = "エラーが発生しました"
             error_msg = "カメラのプロパティをセットできませんでした。"
             error_info = "カメラが対応していない可能性があります。"
             error_icon = QMessageBox.Critical
-            error_detailed = None
+            error_detailed = str(e)
             
             # Handle error.
             general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
@@ -3237,7 +3250,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Refresh the file list.
                 self.refreshFileList(sop_object)
-        except:
+        except Error as e:
             self.errorUnknown("main::tetheredShooting(self)")
             return(None)
     
@@ -3252,7 +3265,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         error_msg = "プロジェクトが開かれていません。"
         error_info = "プロジェクトのディレクトリを参照し、指定ください。"
         error_icon = QMessageBox.Critical
-        error_detailed = None
+        error_detailed = str(e)
         
         # Handle error.
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
