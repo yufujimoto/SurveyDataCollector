@@ -612,65 +612,78 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         #========================================
         # Initialyze objects for file
         #========================================
+        
         # Handle current selection of consolidations and materials.
         self.tre_fls.itemSelectionChanged.connect(self.toggleSelectedFile)
         
+        # Initialyze the tab icons for source media tabs.
         self.tab_src.setTabIcon(0, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_collections_black_24dp_1x.png'))))
         self.tab_src.setTabIcon(1, QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_library_music_black_24dp_1x.png'))))
         self.tab_src.setCurrentIndex(0)
         
+        # Activate the check boxes for publishing mode.
         self.cbx_fil_pub.setChecked(False)
         self.cbx_fil_pub.clicked.connect(self.updateFile)
         
+        # Activate the check boxes for locking mode.
         self.cbx_fil_original.clicked.connect(self.toggleShowFileMode)
         self.cbx_fil_deleted.clicked.connect(self.toggleShowFileMode)
         
+        # Activate the buttons for opening GIMP.
         self.btn_open_gimp.clicked.connect(self.openWithGimp)
         self.btn_open_gimp.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'gimp-icon.png'))))
         self.btn_open_gimp.setIconSize(QSize(24,24))
         self.btn_open_gimp.setToolTip("選択したファイルをGIMPで開きます。")  
         
-        # Activate image proccessing tool buttons.
+        # Activate the image proccessing tool button of cropping.
         self.btn_img_cnt.clicked.connect(self.extractContour)
         self.btn_img_cnt.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_crop_black_24dp_1x.png'))))
         self.btn_img_cnt.setIconSize(QSize(24,24))
         self.btn_img_cnt.setToolTip("選択したファイルの画像領域を自動で抽出します。")  
         
+        # Activate the image processing tool button for inverting.
         self.btn_img_inv.clicked.connect(self.negativeToPositive)
         self.btn_img_inv.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_compare_black_24dp_1x.png'))))
         self.btn_img_inv.setIconSize(QSize(24,24))
         self.btn_img_inv.setToolTip("選択したファイルをネガティブ画像からポジティブ画像に変換します。")
         
+        # Activate the image processing tool button for deleting.
         self.btn_img_del.clicked.connect(self.deleteSelectedImage)
         self.btn_img_del.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_delete_forever_black_24dp_1x.png'))))
         self.btn_img_del.setIconSize(QSize(24,24))
         self.btn_img_del.setToolTip("選択したファイルを削除します（データベースには残ります）。")
         
+        # Activate the image processing tool button for rotating clockwise.
         self.btn_img_rot_r.clicked.connect(self.rotateImageRight)
         self.btn_img_rot_r.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_rotate_right_black_24dp_1x.png'))))
         self.btn_img_rot_r.setIconSize(QSize(24,24))
         self.btn_img_rot_r.setToolTip("選択したファイルを右に回転します。")
         
+        # Activating the image processing tool button for rotating anti-clockwise.
         self.btn_img_rot_l.clicked.connect(self.rotateImageLeft)
         self.btn_img_rot_l.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_rotate_left_black_24dp_1x.png'))))
         self.btn_img_rot_l.setIconSize(QSize(24,24))
         self.btn_img_rot_l.setToolTip("選択したファイルを左に回転します。")
         
+        # Activating the image processing tool button for ratating 180 degree.
         self.btn_img_rot_u.clicked.connect(self.rotateImageInvert)
         self.btn_img_rot_u.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_sync_black_24dp_1x.png'))))
         self.btn_img_rot_u.setIconSize(QSize(24,24))
         self.btn_img_rot_u.setToolTip("選択したファイルを180度回転します。")
         
+        # Activating the image processing tool button for making monochrome image.
         self.btn_img_mno.clicked.connect(self.makeMonoImage)
         self.btn_img_mno.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_monochrome_photos_black_24dp_1x.png'))))
         self.btn_img_mno.setIconSize(QSize(24,24))
         self.btn_img_mno.setToolTip("選択したファイルをモノクロ画像に変換します。")
         
+        # Activating the image processing tool button for enhancing.
         self.btn_img_enh.clicked.connect(self.enhanceImage)
         self.btn_img_enh.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_photo_filter_black_24dp_1x.png'))))
         self.btn_img_enh.setIconSize(QSize(24,24))
         self.btn_img_enh.setToolTip("選択したファイルにヒストグラム平滑化処理を加えます")
         
+        # Activating the image processing tool button for export the selected image.
         self.btn_img_sav.clicked.connect(self.saveImageAs)
         self.btn_img_sav.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_move_to_inbox_black_24dp_1x.png'))))
         self.btn_img_sav.setIconSize(QSize(24,24))
@@ -679,8 +692,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         #========================================
         # Initialyze objects for camera & images
         #========================================
-        
         # Activate detecting a connected camera button.
+        
         self.btn_cam_detect.clicked.connect(self.detectCamera)
         self.btn_cam_detect.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_party_mode_black_24dp_1x.png'))))
         self.btn_cam_detect.setIconSize(QSize(24,24))
@@ -688,8 +701,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         #========================================
         # Initialyze objects for audio file
         #========================================
+        # Activate the play button.
         
-        # Initialyze the play button.
         self.btn_snd_play.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_play_circle_filled_black_24dp_1x.png'))))
         self.btn_snd_play.setIconSize(QSize(24,24))
         self.btn_snd_play.clicked.connect(self.soundPlay)
@@ -699,12 +712,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
-        self.refreshItemInfo()
     
     # ==========================
     # General operation
-    # ==========================
+    # ==========================   
     def getTheRootDirectory(self):
+        print("main::getTheRootDirectory(self)")
+        
         # Define constants.
         global ROOT_DIR
         global TABLE_DIR
@@ -734,45 +748,37 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     QMessageBox.Yes, 
                     QMessageBox.No
                 )
-            # Create the directory of consolidation
-            if reply == QMessageBox.No:
-                # Initialyze  global vaiables.
-                ROOT_DIR = None
-                TABLE_DIR = None
-                CON_DIR = None
-                DATABASE = None
-                
-                # Exit if canceled.
-                return(None)
-            elif reply == QMessageBox.Yes:
-                try:
+            try:
+                # Create the directory of consolidation
+                if not reply == QMessageBox.Yes:
+                    # Initialyze  global vaiables.
+                    ROOT_DIR = None
+                    TABLE_DIR = None
+                    CON_DIR = None
+                    DATABASE = None
+                    
+                    return(None)
+                elif reply == QMessageBox.Yes:
                     # Create the consolidation directory and the table directory.
                     os.mkdir(CON_DIR)
                     os.mkdir(TABLE_DIR)
                     
-                    # Create the connection object to create empty database file.
-                    conn = sqlite.connect(DATABASE)
-                    
                     # Create new tables which defined by Simple Object Profile(SOP).
                     general.createTables(DATABASE)
-                except Error as e:
-                    # Create error messages.
-                    error_title = "エラーが発生しました"
-                    error_msg = "新規プロジェクトを作成できませんでした。"
-                    error_info = "エラーの詳細を確認してください。"
-                    error_icon = QMessageBox.Critical
-                    error_detailed = e.args[0]
-                    
-                    # Handle error.
-                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                    
-                    # Returns nothing.
-                    return(None)
-                finally:
-                    # Finally close the connection.
-                    conn.close()
-            else:
-                # Exit if canceled.
+                else:
+                    raise
+            except Error as e:
+                # Create error messages.
+                error_title = "エラーが発生しました"
+                error_msg = "新規プロジェクトを作成できませんでした。"
+                error_info = "エラーの詳細を確認してください。"
+                error_icon = QMessageBox.Critical
+                error_detailed = e.args[0]
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
                 return(None)
         
         if os.path.exists(DATABASE):
@@ -788,44 +794,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     if not general.checkTableExist(DATABASE, "file"): general.createTableFile(DATABASE)
                     
                     # Check wether columns exists or not.
-                    con_fields = [("uuid", "text"),
-                                  ("name", "text"),
-                                  ("geographic_annotation", "text"),
-                                  ("temporal_annotation", "text"),
-                                  ("description", "text")]
+                    general.checkConsolidationTableFields(DATABASE)
+                    general.checkMaterialTableFields(DATABASE)
+                    general.checkFileTableFields(DATABASE)
                     
-                    mat_fields= [("con_id", "text"),
-                                ("name", "text"),
-                                ("material_number", "text"),
-                                ("estimated_period_beginning", "character varying(255)"),
-                                ("estimated_period_peak", "character varying(255)"),
-                                ("estimated_period_ending", "character varying(255)"),
-                                ("latitude", "real"),
-                                ("longitude", "real"),
-                                ("altitude", "real"),
-                                ("material_number", "text"),
-                                ("description", "text")]
                     
-                    fil_fields = [("uuid", "text"),
-                                  ("con_id", "text"),
-                                  ("mat_id", "text"),
-                                  ("created_date", "datetime"),
-                                  ("modified_date", "datetime"),
-                                  ("file_name", "character varying(255)"),
-                                  ("file_type", "character varying(20)"),
-                                  ("make_public", "bool"),
-                                  ("alias_name", "character varying(255)"),
-                                  ("status", "character varying(255)"),
-                                  ("is_locked", "bool"),
-                                  ("source", "character varying(255)"),
-                                  ("file_operation", "character varying(255)"),
-                                  ("operating_application", "character varying(255)"),
-                                  ("caption", "character varying(255)"),
-                                  ("description", "text")]
-                    
-                    general.checkFieldsExists(DATABASE, "consolidation", con_fields)
-                    general.checkFieldsExists(DATABASE, "material", mat_fields)
-                    general.checkFieldsExists(DATABASE, "file", fil_fields)
                     
                     # Create the SQL query for selecting consolidation.
                     sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
@@ -893,8 +866,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Returns nothing.
                 return(None)
-            finally:
-                conn.close()
         
         # Finally set the root path to the text box.
         self.lbl_prj_path.setText(ROOT_DIR)
@@ -904,50 +875,60 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def showImage(self, img_file_path):
         print("main::showImage(self)")
-        # Check the image file can be displayed directry.
-        img_base, img_ext = os.path.splitext(img_file_path)
-        img_valid = False
         
-        # Get container size.
-        panel_w = self.lbl_img_preview.width()
-        panel_h = self.lbl_img_preview.height()
-        
-        for qt_ext in QT_IMG:
-            # Exit loop if extension is matched with Qt supported image.
-            if img_ext.lower() == qt_ext.lower():
-                img_valid = True
-                break
-        
-        # Check whether the image is Raw image or not.
-        if not img_valid == True:
-            # Extract the thumbnail image from the RAW image by using "dcraw".
-            imageProcessing.getThumbnail(img_file_path)
+        try:
+            # Check the image file can be displayed directry.
+            img_base, img_ext = os.path.splitext(img_file_path)
+            img_valid = False
             
-            # Get the extracted thumbnail image.
-            img_file_path = img_base + ".thumb.jpg"
-        
-        if os.path.exists(img_file_path):
-            # Create the container for displaying the image
-            org_pixmap = QPixmap(img_file_path)
-            scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
+            # Get container size.
+            panel_w = self.lbl_img_preview.width()
+            panel_h = self.lbl_img_preview.height()
             
-            # Set the image file to the image view container.
-            self.lbl_img_preview.setPixmap(scl_pixmap)
-                        
-            # Show the selected image.
-            self.lbl_img_preview.show()
-        else:
-            # Create error messages.
-            error_title = "エラーが発生しました"
-            error_msg = "このファイルはプレビューに対応していません。"
-            error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
-            error_icon = QMessageBox.Critical
-            error_detailed = str(e)
+            for qt_ext in QT_IMG:
+                # Exit loop if extension is matched with Qt supported image.
+                if img_ext.lower() == qt_ext.lower():
+                    img_valid = True
+                    break
             
-            # Handle error.
-            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            # Check whether the image is Raw image or not.
+            if not img_valid == True:
+                # Extract the thumbnail image from the RAW image by using "dcraw".
+                imageProcessing.getThumbnail(img_file_path)
+                
+                # Get the extracted thumbnail image.
+                img_file_path = img_base + ".thumb.jpg"
             
-            # Returns nothing.
+            if os.path.exists(img_file_path):
+                # Create the container for displaying the image
+                org_pixmap = QPixmap(img_file_path)
+                scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
+                
+                # Set the image file to the image view container.
+                self.lbl_img_preview.setPixmap(scl_pixmap)
+                            
+                # Show the selected image.
+                self.lbl_img_preview.show()
+            else:
+                # Create error messages.
+                error_title = "エラーが発生しました"
+                error_msg = "このファイルはプレビューに対応していません。"
+                error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
+                error_icon = QMessageBox.Critical
+                error_detailed = str(e)
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                
+                # Returns nothing.
+                return(None)
+        except Exception as e:
+            print("Error occurs in main::showImage(self)")
+            
+            # Show the error message.
+            self.errorUnknown("main::showImage(self)", str(e))
+            
+            # Return nothing.
             return(None)
     
     def toggleCurrentObject(self):
@@ -973,61 +954,74 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # The case of that a material is selected in the tree view widget.
             select_type = "material"
         else:
-            print("002: Cannot get current object type: main::toggleCurrentObject(self)")
             return(None)
                 
         # Get the current object in target tab.
         if self.tab_target.currentIndex() == 0:
-            # Get the current consolidation uuid.
-            con_uuid = self.tbx_con_uuid.text()
-            
-            # Refresh the consolidation and the material infomation.
-            self.refreshMaterialInfo()
-            
-            # Refresh the image information.
-            self.refreshImageInfo()
-            
-            # Consolidation to Consolidation.
-            if select_type == "consolidation":
-                # Get the current consolidation.
-                self.getConsolidation(con_uuid)
-            # Material to Consolidation.
-            elif select_type == "material":                
-                # Select the parent consolidation.
-                parent = self.tre_prj_item.selectedItems()[0].parent()
-                self.tre_prj_item.setCurrentItem(parent)
+            try:
+                # Get the current consolidation uuid.
+                con_uuid = self.tbx_con_uuid.text()
                 
-                # Get the current consolidation.
-                self.getConsolidation(con_uuid)
-            else:
-                self.errorUnknown()
-        elif self.tab_target.currentIndex() == 1:
-            # Get the current consolidation uuid.
-            mat_uuid = self.tbx_mat_uuid.text()
-            
-            # Refresh the consolidation and the material infomation.
-            self.refreshConsolidationInfo()
-            
-            # Refresh the image information.
-            self.refreshImageInfo()
-            
-            # Consolidation to Material.
-            if select_type == "consolidation":
-                # Get the first child of the consolidation.
-                child = selected[0].child(0)
+                # Refresh the consolidation and the material infomation.
+                self.refreshMaterialInfo()
                 
-                if not child == None:
-                    # Select the first child of the consolidation.
-                    self.tre_prj_item.setCurrentItem(selected[0].child(0))
+                # Refresh the image information.
+                self.refreshImageInfo()
+                
+                # Consolidation to Consolidation.
+                if select_type == "consolidation":
+                    # Get the current consolidation.
+                    self.getConsolidation(con_uuid)
+                # Material to Consolidation.
+                elif select_type == "material":                
+                    # Select the parent consolidation.
+                    parent = self.tre_prj_item.selectedItems()[0].parent()
+                    self.tre_prj_item.setCurrentItem(parent)
+                    
+                    # Get the current consolidation.
+                    self.getConsolidation(con_uuid)
                 else:
-                    self.refreshMaterialInfo()
-            # Material to Material.
-            elif select_type == "material":
-                self.getMaterial(mat_uuid)
-            else:
-                self.errorUnknown()
+                    self.errorUnknown("main::toggleCurrentObject(self)")
+            except Exception as e:
+                print("Error occurs in main::toggleCurrentObject(self) at self.tab_target.currentIndex() == 0")
+                
+                self.errorUnknown("main::toggleCurrentObject(self)", e)
+                
+                return(None)
+        elif self.tab_target.currentIndex() == 1:
+            try:
+                # Get the current consolidation uuid.
+                mat_uuid = self.tbx_mat_uuid.text()
+                
+                # Refresh the consolidation and the material infomation.
+                self.refreshConsolidationInfo()
+                
+                # Refresh the image information.
+                self.refreshImageInfo()
+                
+                # Consolidation to Material.
+                if select_type == "consolidation":
+                    # Get the first child of the consolidation.
+                    child = selected[0].child(0)
+                    
+                    if not child == None:
+                        # Select the first child of the consolidation.
+                        self.tre_prj_item.setCurrentItem(selected[0].child(0))
+                    else:
+                        self.refreshMaterialInfo()
+                # Material to Material.
+                elif select_type == "material":
+                    self.getMaterial(mat_uuid)
+                else:
+                    self.errorUnknown()
+            except Exception as e:
+                print("Error occurs in main::toggleCurrentObject(self) at self.tab_target.currentIndex() == 1")
+                
+                self.errorUnknown("main::toggleCurrentObject(self)", e)
+                
+                return(None)
         else:
-            print("003: Invalid tab index: main::toggleCurrentObject(self)")
+            print("Invalid tab index: main::toggleCurrentObject(self)")
             return(None)
     
     def toggleSelectedItem(self):

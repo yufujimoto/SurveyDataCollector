@@ -35,6 +35,8 @@ def alert(title, message, icon, info, detailed):
     msg.exec_()
 
 def executeSql(dbfile, sql):
+    print("general::executeSql(dbfile, sql)")
+    
     # Create tables by using SQL queries.
     try:
         # Connect to the DataBase file for SQLite.
@@ -54,17 +56,10 @@ def executeSql(dbfile, sql):
             # Retrun as True.
             return(True)
     except Error as e:
-        # Create error messages.
-        error_title = "エラーが発生しました"
-        error_msg = "テーブルは作成されませんでした!!"
-        error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-        error_icon = QMessageBox.Critical
-        error_detailed = e.args[0]
+        print("Cannot execute the SQL: general::executeSql(dbfile, sql)")
+        print(str(e))
         
-        # Handle error.
-        alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-        
-        # Returns nothing.
+        # Exit with 0.
         return(None)
     finally:
         # Finally close the connection.
@@ -102,6 +97,8 @@ def getFilesWithExtensionList(dir_search, ext_list_search, result=None):
     return(result)
 
 def createTables(dbfile):
+    print("general::createTables(dbfile)")
+    
     try:
         # Define the create table query for consolidation class.
         createTableConsolidation(dbfile)
@@ -111,11 +108,16 @@ def createTables(dbfile):
         
         # Define the create table query for file class.
         createTableFile(dbfile)
-    except:
+    except Exception as e:
         print("Error occurs in general::createTables(dbfile)")
+        print(str(e))
+        
+        # Return Nothing..
         return(None)
 
 def createTableConsolidation(dbfile):
+    print("general::createTableConsolidation(dbfile)")
+    
     try:
         # Define the create table query for consolidation class.
         sql_create = """CREATE TABLE consolidation (
@@ -128,11 +130,16 @@ def createTableConsolidation(dbfile):
                     );"""
         # Execute SQL create.
         executeSql(dbfile, sql_create)
-    except:
+    except Exception as e:
         print("Error occurs in general::createTableConsolidation(dbfile)")
+        print(str(e))
+        
+        # Return Nothing
         return(None)
 
 def createTableMaterial(dbfile):
+    print("general::createTableMaterial(dbfile)")
+    
     try:
         # Define the create table query for material class.
         sql_create = """CREATE TABLE material (
@@ -148,16 +155,21 @@ def createTableMaterial(dbfile):
                         longitude real,
                         altitude real,
                         description text,
-                        FOREIGN KEY (con_id) REFERENCES consolidation (id) ON UPDATE CASCADE ON DELETE CASCADE
+                        FOREIGN KEY (con_id) REFERENCES consolidation (uuid) ON UPDATE CASCADE ON DELETE CASCADE
                     );"""
         
         # Execute SQL create.
         executeSql(dbfile, sql_create)
-    except:
+    except Exception as e:
         print("Error occurs in general::createTableMaterial(dbfile)")
+        print(str(e))
+        
+        # Retrun nothing.
         return(None)
 
 def createTableFile(dbfile):
+    print("general::createTableFile(dbfile)")
+    
     try:
         # Define the create table query for file class.
         sql_create = """CREATE TABLE file (
@@ -178,38 +190,130 @@ def createTableFile(dbfile):
                         operating_application varying(255),
                         caption character varying(255),
                         description text,
-                        FOREIGN KEY (con_id) REFERENCES consolidation (id) ON UPDATE CASCADE ON DELETE CASCADE,
-                        FOREIGN KEY (mat_id) REFERENCES material (id) ON UPDATE CASCADE ON DELETE CASCADE
+                        FOREIGN KEY (con_id) REFERENCES consolidation (uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+                        FOREIGN KEY (mat_id) REFERENCES material (uuid) ON UPDATE CASCADE ON DELETE CASCADE
                     );"""
         
         # Execute SQL create.
         executeSql(dbfile, sql_create)
-    except:
+    except Exception as e:
         print("Error occurs in general::createTables(dbfile)")
+        print(str(e))
+        
+        # Return Nothing.
         return(None)
 
 def checkTableExist(dbfile, table_name):
-    sql_check = """SELECT name FROM sqlite_master WHERE type='table' AND name=?;"""
+    print("general::checkTableExist(dbfile, table_name)")
     
-    # Establish the connection between DB.
-    conn = sqlite.connect(dbfile)
-    
-    if conn is not None:
-        # Instantiate the cursor for query.
-        cur = conn.cursor()
+    try:
+        sql_check = """SELECT name FROM sqlite_master WHERE type='table' AND name=?;"""
         
-        # Execute the query.
-        cur.execute(sql_check, [table_name])
+        # Establish the connection between DB.
+        conn = sqlite.connect(dbfile)
         
-        # Fetch one row.
-        rows = cur.fetchone()
+        if conn is not None:
+            # Instantiate the cursor for query.
+            cur = conn.cursor()
+            
+            # Execute the query.
+            cur.execute(sql_check, [table_name])
+            
+            # Fetch one row.
+            rows = cur.fetchone()
+            
+            if not rows == None:
+                return(True)
+            else:
+                return(False)
+    except Exception as e:
+        print("Error occurs in general::checkTableExist(dbfile, table_name)")
+        print(str(e))
         
-        if not rows == None:
-            return(True)
-        else:
-            return(False)
+        # Return nothing.
+        return(None)
 
+def checkConsolidationTableFields(dbfile):
+    print("general::checkConsolidationTableFields(dbfile)")
+    
+    try:
+        # Create a list for fields checking.
+        con_fields = [
+                        ("uuid", "text"),
+                        ("name", "text"),
+                        ("geographic_annotation", "text"),
+                        ("temporal_annotation", "text"),
+                        ("description", "text")
+                    ]
+        # Check fields.
+        checkFieldsExists(dbfile, "consolidation", con_fields)
+    except Exception as e:
+        print("Error occurs in general::checkConsolidationTableFields(dbfile)")
+        print(str(e))
+        
+        # Return nothing.
+        return(None)
+
+def checkMaterialTableFields(dbfile):
+    print("general::checkMaterialTableFields(dbfile)")
+    
+    try:
+        mat_fields= [
+                        ("con_id", "text"),
+                        ("name", "text"),
+                        ("material_number", "text"),
+                        ("estimated_period_beginning", "character varying(255)"),
+                        ("estimated_period_peak", "character varying(255)"),
+                        ("estimated_period_ending", "character varying(255)"),
+                        ("latitude", "real"),
+                        ("longitude", "real"),
+                        ("altitude", "real"),
+                        ("material_number", "text"),
+                        ("description", "text")
+                    ]
+        # Check fields.
+        checkFieldsExists(dbfile, "material", mat_fields)
+    except Exception as e:
+        print("Error occurs in general::checkMaterialTableFields(dbfile)")
+        print(str(e))
+        
+        # Return nothing.
+        return(None)
+
+def checkFileTableFields(dbfile):
+    print("general::checkFileTableFields(dbfile)")
+    
+    try:
+        fil_fields = [
+                        ("uuid", "text"),
+                        ("con_id", "text"),
+                        ("mat_id", "text"),
+                        ("created_date", "datetime"),
+                        ("modified_date", "datetime"),
+                        ("file_name", "character varying(255)"),
+                        ("file_type", "character varying(20)"),
+                        ("make_public", "bool"),
+                        ("alias_name", "character varying(255)"),
+                        ("status", "character varying(255)"),
+                        ("is_locked", "bool"),
+                        ("source", "character varying(255)"),
+                        ("file_operation", "character varying(255)"),
+                        ("operating_application", "character varying(255)"),
+                        ("caption", "character varying(255)"),
+                        ("description", "text")
+                    ]
+        # Check fields.
+        checkFieldsExists(dbfile, "file", fil_fields)
+    except Exception as e:
+        print("Error occurs in general::checkFileTableFields(dbfile)")
+        print(str(e))
+        
+        # Return nothing.
+        return(None)
+    
 def checkFieldsExists(dbfile, table_name, fields):
+    print("general::checkFieldsExists(dbfile, table_name, fields)")
+    
      # Create tables by using SQL queries.
     sql_check = "PRAGMA table_info('" + table_name + "')"
     

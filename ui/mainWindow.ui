@@ -10,6 +10,11 @@
     <height>822</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>9</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>SurveyDataManager</string>
   </property>
@@ -32,6 +37,11 @@
         <width>500</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -93,6 +103,11 @@
             <width>0</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
           </property>
           <property name="contextMenuPolicy">
            <enum>Qt::CustomContextMenu</enum>
@@ -374,6 +389,11 @@
            <width>16777215</width>
            <height>300</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
          </property>
          <property name="autoFillBackground">
           <bool>false</bool>
@@ -1100,6 +1120,11 @@
            <height>450</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
@@ -1119,6 +1144,11 @@
               </property>
               <item>
                <widget class="QCheckBox" name="cbx_fil_deleted">
+                <property name="font">
+                 <font>
+                  <pointsize>11</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>削除済みを表示</string>
                 </property>
@@ -1141,6 +1171,11 @@
             </item>
             <item>
              <widget class="QTreeWidget" name="tre_fls">
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
+              </property>
               <attribute name="headerCascadingSectionResizes">
                <bool>true</bool>
               </attribute>
@@ -1578,7 +1613,7 @@
                    <enum>QTabWidget::Rounded</enum>
                   </property>
                   <property name="currentIndex">
-                   <number>1</number>
+                   <number>0</number>
                   </property>
                   <property name="iconSize">
                    <size>
@@ -1702,7 +1737,7 @@
      <x>0</x>
      <y>0</y>
      <width>1400</width>
-     <height>28</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -1752,6 +1787,11 @@
    <property name="text">
     <string>開く</string>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -1780,6 +1820,74 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tab_control</tabstop>
+  <tabstop>tre_prj_item</tabstop>
+  <tabstop>btn_cam_detect</tabstop>
+  <tabstop>cbx_cam_size</tabstop>
+  <tabstop>cbx_cam_iso</tabstop>
+  <tabstop>cbx_cam_wht</tabstop>
+  <tabstop>cbx_cam_exp</tabstop>
+  <tabstop>cbx_cam_fval</tabstop>
+  <tabstop>cbx_cam_qoi</tabstop>
+  <tabstop>cbx_cam_fmod</tabstop>
+  <tabstop>cbx_cam_epg</tabstop>
+  <tabstop>cbx_cam_cpt</tabstop>
+  <tabstop>cbx_cam_met</tabstop>
+  <tabstop>tab_target</tabstop>
+  <tabstop>tbx_con_uuid</tabstop>
+  <tabstop>rad_con_new</tabstop>
+  <tabstop>rad_con_mod</tabstop>
+  <tabstop>tbx_con_name</tabstop>
+  <tabstop>tbx_con_geoname</tabstop>
+  <tabstop>tbx_con_temporal</tabstop>
+  <tabstop>tbx_con_description</tabstop>
+  <tabstop>btn_con_add</tabstop>
+  <tabstop>btn_con_update</tabstop>
+  <tabstop>btn_con_take</tabstop>
+  <tabstop>btn_con_rec</tabstop>
+  <tabstop>btn_con_del</tabstop>
+  <tabstop>tbx_mat_uuid</tabstop>
+  <tabstop>rad_mat_new</tabstop>
+  <tabstop>rad_mat_mod</tabstop>
+  <tabstop>tbx_mat_number</tabstop>
+  <tabstop>tbx_mat_name</tabstop>
+  <tabstop>tbx_mat_geo_lat</tabstop>
+  <tabstop>tbx_mat_geo_lon</tabstop>
+  <tabstop>tbx_mat_geo_alt</tabstop>
+  <tabstop>tbx_mat_tmp_bgn</tabstop>
+  <tabstop>tbx_mat_tmp_mid</tabstop>
+  <tabstop>tbx_mat_tmp_end</tabstop>
+  <tabstop>tbx_mat_description</tabstop>
+  <tabstop>btn_mat_add</tabstop>
+  <tabstop>btn_mat_update</tabstop>
+  <tabstop>btn_mat_take</tabstop>
+  <tabstop>btn_mat_rec</tabstop>
+  <tabstop>btn_mat_del</tabstop>
+  <tabstop>cbx_fil_deleted</tabstop>
+  <tabstop>cbx_fil_original</tabstop>
+  <tabstop>tre_fls</tabstop>
+  <tabstop>tab_img_info</tabstop>
+  <tabstop>btn_img_rot_l</tabstop>
+  <tabstop>btn_img_rot_r</tabstop>
+  <tabstop>btn_img_rot_u</tabstop>
+  <tabstop>btn_img_enh</tabstop>
+  <tabstop>btn_img_inv</tabstop>
+  <tabstop>btn_img_mno</tabstop>
+  <tabstop>btn_img_cnt</tabstop>
+  <tabstop>btn_img_sav</tabstop>
+  <tabstop>btn_img_del</tabstop>
+  <tabstop>cbx_fil_pub</tabstop>
+  <tabstop>cbx_fil_edit</tabstop>
+  <tabstop>tbx_fil_capt</tabstop>
+  <tabstop>tbx_fil_stts</tabstop>
+  <tabstop>tbx_fil_eope</tabstop>
+  <tabstop>tab_src</tabstop>
+  <tabstop>btn_snd_play</tabstop>
+  <tabstop>btn_snd_stop</tabstop>
+  <tabstop>btn_open_gimp</tabstop>
+  <tabstop>tre_img_prop</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
