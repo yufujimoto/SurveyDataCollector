@@ -507,6 +507,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btn_con_imp">
+               <property name="text">
+                <string> インポートする</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="btn_con_rec">
                <property name="text">
                 <string>録音する</string>
@@ -1089,6 +1096,13 @@
               <widget class="QPushButton" name="btn_mat_take">
                <property name="text">
                 <string>撮影する</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_mat_imp">
+               <property name="text">
+                <string> インポートする</string>
                </property>
               </widget>
              </item>

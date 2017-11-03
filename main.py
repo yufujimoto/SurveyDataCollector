@@ -562,6 +562,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_con_take.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_con_take.setIconSize(QSize(24,24))
         
+        # Activate the importing files of the consolidation button.
+        self.btn_con_imp.clicked.connect(self.importExternalData)
+        self.btn_con_imp.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_file_download_black_24dp_1x.png'))))
+        self.btn_con_imp.setIconSize(QSize(24,24))
+        
         # Activate the opening recording dialog button.
         self.btn_con_rec.clicked.connect(self.recordWithPhoto)
         self.btn_con_rec.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_keyboard_voice_black_24dp_1x.png'))))
@@ -600,6 +605,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_mat_take.clicked.connect(self.tetheredShooting)
         self.btn_mat_take.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_local_see_black_24dp_1x.png'))))
         self.btn_mat_take.setIconSize(QSize(24,24))
+        
+        # Activate the importing files of the consolidation button.
+        self.btn_mat_imp.clicked.connect(self.importExternalData)
+        self.btn_mat_imp.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_file_download_black_24dp_1x.png'))))
+        self.btn_mat_imp.setIconSize(QSize(24,24))
         
         # Activate the opening recording dialog button.
         self.btn_mat_rec.clicked.connect(self.recordWithPhoto)
@@ -721,7 +731,131 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     # ==========================
     # General operation
-    # ==========================   
+    # ==========================
+    def importExternalData(self):
+        print("main::tetheredShooting(self)")
+        
+        global CON_DIR
+        
+        try:    
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Get the item of the material.
+            selected = self.tre_prj_item.selectedItems()
+            
+            # Exit if selected item is 0.
+            if len(selected) == 0: self.errorTreeItemNotSelected("self.tre_prj_item.selectedItems() == 0"); return(None)
+            
+            # Initialyze the uuid for the consolidation and the material.
+            sop_object = None
+            
+            # Initialyze the variables.
+            con_uuid = None
+            mat_uuid = None
+            item_path = None
+            
+            # Get the current object from the selected tab index.
+            if self.tab_target.currentIndex() == 0:
+                # Get the current consolidaiton uuid.
+                con_uuid = self.tbx_con_uuid.text()
+                
+                # Instantiate the consolidation.
+                sop_object = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+                
+                # Get the item path of the selected consolidaiton.
+                item_path = os.path.join(CON_DIR, con_uuid)
+            elif self.tab_target.currentIndex() == 1:
+                # Get the current material uuid.
+                mat_uuid = self.tbx_mat_uuid.text()
+                
+                # Instantiate the material.
+                sop_object = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+                
+                # Instantiate the consolidation.
+                con_uuid = sop_object.consolidation
+                con_path = os.path.join(CON_DIR, sop_object.consolidation)
+                item_path = os.path.join(os.path.join(con_path, "Materials"), mat_uuid) 
+            else:
+                return(None)
+            
+            # Exit if none of objecs are instantiated.
+            if sop_object == None: return(None)
+            
+            # Add a list for new objects if there are no objects.
+            if sop_object.images == None: sop_object.images = list()
+            if sop_object.sounds == None: sop_object.sounds = list()
+            
+            # Define the path for saving files.
+            img_path = os.path.join(item_path, "Images")
+            img_path_main = os.path.join(img_path, "Main")
+            img_path_raw = os.path.join(img_path, "Raw")
+            snd_path = os.path.join(item_path, "Sounds")
+            txt_path = os.path.join(item_path, "Texts")
+            mov_path = os.path.join(item_path, "Movies")
+            
+            # Create empty lists for storeing file names.
+            img_files = list()
+            snd_files = list()
+            txt_files = list()
+            mov_files = list()
+            
+            # Define directories for storing files.
+            in_dir = QFileDialog.getOpenFileNames(self, "ファイルの選択")
+            for in_fl in in_dir:
+                name, ext = os.path.splitext(in_fl)
+                
+                if ext.lower() == ".jpg" or ext.lower() == ".jpeg": img_path_main.append(in_fl)
+                if ext.lower() == ".wav" or ext.lower() == ".wave": snd_path.append(in_fl)
+            
+            # Move main images from the temporal directory to the object's directory.
+            if len(img_path_main) > 0:
+                for img_file in img_path_main:
+                    # Generate the GUID for the consolidation
+                    img_uuid = str(uuid.uuid4())
+                    
+                    # Get current time.
+                    now = datetime.datetime.utcnow().isoformat()
+                    
+                    # Define the destination file path.
+                    main_dest = os.path.join(img_main, img_uuid)
+                    
+                    # Copy the original file.
+                    shutil.copy(img_file, main_dest)
+                    
+                    # Instantiate the File class.
+                    img_file = features.File(is_new=True, uuid=None, dbfile=None)
+                    img_file.material = mat_uuid
+                    img_file.consolidation = con_uuid
+                    img_file.filename = general.getRelativePath(main_dest, "Consolidation")
+                    img_file.created_date = now
+                    img_file.modified_date = now
+                    img_file.file_type = "image"
+                    img_file.alias = "Imported"
+                    img_file.status = "Original"
+                    img_file.lock = False
+                    img_file.public = False
+                    img_file.source = "Nothing"
+                    img_file.operation = "Imported Shooting"
+                    img_file.operating_application = "This system"
+                    img_file.caption = "Imported image"
+                    img_file.description = ""
+                    
+                    # Execute the SQL script.
+                    img_file.dbInsert(DATABASE)
+                    
+                    # Add the image to the boject.
+                    sop_object.images.insert(0, img_file)
+            
+            # Remove tethered path from the temporal directory.
+            shutil.rmtree(tethered_path)
+            
+            # Refresh the file list.
+            self.refreshFileList(sop_object)
+        except Error as e:
+            self.errorUnknown("main::tetheredShooting(self)")
+            return(None)
+    
     def getTheRootDirectory(self):
         print("main::getTheRootDirectory(self)")
         
@@ -2247,7 +2381,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.tab_src.setCurrentIndex(0)
                 self.getImageFileInfo(sop_file)
                 
-                print("Let's go")           
                 # Get the image path.
                 img_path = os.path.join(ROOT_DIR, sop_file.filename)
                 
@@ -2311,7 +2444,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Refresh the image file list.
                     self.refreshFileList(sop_object)
             else:
-                self.errorImageFileHandling()
+                self.errorFileNotExist()
                 
                 # Returns nothing.
                 return(None)
@@ -2357,82 +2490,78 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Instantiate the file object of SOP.
             sop_file = self.getCurrentImage()
             
+            # Exit if SOP object is not instantiated.
             if sop_file == None: return(None)
+            
+            # Get the image path.
+            img_path = os.path.join(ROOT_DIR, sop_file.filename)
+            
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
             
             if sop_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
                 self.getImageFileInfo(sop_file)
                 
-                # Get the image path.
-                img_path = os.path.join(ROOT_DIR, sop_file.filename)
+                # Chec the extension of the file.
+                ext = os.path.splitext(img_path)[1].lower()
                 
-                if os.path.exists(img_path):
-                    # Chec the extension of the file.
-                    ext = os.path.splitext(img_path)[1].lower()
+                # Cancel if the file extension is not JPEG.
+                if not ext == ".jpg" or ext == ".jpeg":
+                    # Create error messages.
+                    self.errorImageFileHandling()
                     
-                    # Cancel if the file extension is not JPEG.
-                    if not ext == ".jpg" or ext == ".jpeg":
-                        # Create error messages.
-                        error_title = "画像編集エラー"
-                        error_msg = "このファイルはJPEGファイルではありません。"
-                        error_info = "編集可能な画像ファイルを選択してください。"
-                        error_icon = QMessageBox.Critical
-                        error_detailed = str(e)
-                        
-                        # Handle error.
-                        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                        
-                        # Returns nothing.
-                        return(None)
-                    
-                    # Define the new uuid for the image.
-                    new_uuid = str(uuid.uuid4())
-                    
-                    # Get the time for opening GIMP.
-                    time_open = datetime.datetime.utcnow().isoformat()
-                    
-                    # Get the parent directory of the original image.
-                    out_dir = os.path.dirname(img_path)
-                    new_file = os.path.join(out_dir, new_uuid+".jpg")
-                    
-                    # Rotate the image 90 degree.
-                    imageProcessing.rotation(img_path, new_file, angle)
-                    
-                    # Copy the exif information.
-                    general.copyExif(img_path, new_file)
-                    
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Rotated(" + str(angle) + " degree)"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Rotating " + str(angle) + " degree"
-                    img_file.operating_application = "This System"
-                    img_file.caption = "Rotated(" + str(angle) + " degree)"
-                    img_file.description = "Rotated(" + str(angle) + " degree) by this system."
-                    
-                    img_file.dbInsert(DATABASE)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
+                    # Returns nothing.
+                    return(None)
+                
+                # Define the new uuid for the image.
+                new_uuid = str(uuid.uuid4())
+                
+                # Get the time for opening GIMP.
+                time_open = datetime.datetime.utcnow().isoformat()
+                
+                # Get the parent directory of the original image.
+                out_dir = os.path.dirname(img_path)
+                new_file = os.path.join(out_dir, new_uuid+".jpg")
+                
+                # Rotate the image 90 degree.
+                imageProcessing.rotation(img_path, new_file, angle)
+                
+                # Copy the exif information.
+                general.copyExif(img_path, new_file)
+                
+                # Get the time for closing GIMP.
+                time_close = datetime.datetime.utcnow().isoformat()
+                
+                # Instantiate the File class.
+                img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                img_file.material = sop_file.material
+                img_file.consolidation = sop_file.consolidation
+                img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                img_file.created_date = time_open
+                img_file.modified_date = time_close
+                img_file.file_type = "image"
+                img_file.alias = "Rotated(" + str(angle) + " degree)"
+                img_file.status = "Edited"
+                img_file.lock = False
+                img_file.public = False
+                img_file.source = sop_file.uuid
+                img_file.operation = "Rotating " + str(angle) + " degree"
+                img_file.operating_application = "This System"
+                img_file.caption = "Rotated(" + str(angle) + " degree)"
+                img_file.description = "Rotated(" + str(angle) + " degree) by this system."
+                
+                img_file.dbInsert(DATABASE)
+                
+                sop_object = None
+                if img_file.material == "":
+                    sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
+                else:
+                    sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
+                
+                # Refresh the image file list.
+                self.refreshFileList(sop_object)
         except Exception as e:
             print("Error occurs in main::rotateImage(self, angle)")
             print(str(e))
@@ -2448,76 +2577,81 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Instantiate the file object of SOP.
             sop_file = self.getCurrentImage()
             
-            if sop_file == None:
-                return(None)
+            # Exit if SOP object is not instantiated.
+            if sop_file == None: return(None)
+            
+            # Get the image path.
+            img_path = os.path.join(ROOT_DIR, sop_file.filename)
+            
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
             
             if sop_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
                 self.getImageFileInfo(sop_file)
                 
-                # Get the image path.
-                img_path = os.path.join(ROOT_DIR, sop_file.filename)
+                # Chec the extension of the file.
+                ext = os.path.splitext(img_path)[1].lower()
                 
-                if os.path.exists(img_path):
-                    # Chec the extension of the file.
-                    ext = os.path.splitext(img_path)[1].lower()
+                # Cancel if the file extension is not JPEG.
+                if not ext == ".jpg" or ext == ".jpeg":
+                    # Create error messages.
+                    self.errorImageFileHandling()
                     
-                    # Cancel if the file extension is not JPEG.
-                    if not ext == ".jpg" or ext == ".jpeg":
-                        # Create error messages.
-                        self.errorImageFileHandling()
-                        
-                        # Returns nothing.
-                        return(None)
-                    
-                    # Define the new uuid for the image.
-                    new_uuid = str(uuid.uuid4())
-                    
-                    # Get the time for opening GIMP.
-                    time_open = datetime.datetime.utcnow().isoformat()
-                    
-                    # Get the parent directory of the original image.
-                    out_dir = os.path.dirname(img_path)
-                    new_file = os.path.join(out_dir, new_uuid+".jpg")
-                    
-                    # Invert the negative image.
-                    imageProcessing.makeMono(img_path, new_file)
-                    
-                    # Copy exif information.
-                    general.copyExif(img_path, new_file)
-                    
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Grayscale version"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Grayscaling"
-                    img_file.operating_application = "This System"
-                    img_file.caption = "Grayscale version"
-                    img_file.description = "Make grayscale by this system."
-                    
-                    img_file.dbInsert(DATABASE)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
+                    # Returns nothing.
+                    return(None)
+                
+                # Define the new uuid for the image.
+                new_uuid = str(uuid.uuid4())
+                
+                # Get the time for opening GIMP.
+                time_open = datetime.datetime.utcnow().isoformat()
+                
+                # Get the parent directory of the original image.
+                out_dir = os.path.dirname(img_path)
+                new_file = os.path.join(out_dir, new_uuid+".jpg")
+                
+                # Invert the negative image.
+                imageProcessing.makeMono(img_path, new_file)
+                
+                # Copy exif information.
+                general.copyExif(img_path, new_file)
+                
+                # Get the time for closing GIMP.
+                time_close = datetime.datetime.utcnow().isoformat()
+                
+                # Instantiate the File class.
+                img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                img_file.material = sop_file.material
+                img_file.consolidation = sop_file.consolidation
+                img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                img_file.created_date = time_open
+                img_file.modified_date = time_close
+                img_file.file_type = "image"
+                img_file.alias = "Grayscale version"
+                img_file.status = "Edited"
+                img_file.lock = False
+                img_file.public = False
+                img_file.source = sop_file.uuid
+                img_file.operation = "Grayscaling"
+                img_file.operating_application = "This System"
+                img_file.caption = "Grayscale version"
+                img_file.description = "Make grayscale by this system."
+                
+                img_file.dbInsert(DATABASE)
+                
+                # Initialize the SOP object.
+                sop_object = None
+                if img_file.material == "":
+                    sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
+                else:
+                    sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
+                
+                # Refresh the image file list.
+                self.refreshFileList(sop_object)
+            else:
+                self.errorNotImageFile()
         except Exception as e:
             print("Error occurs in main::makeMonoImage(self, angle)")
             print(str(e))
@@ -2529,21 +2663,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def enhanceImage(self):
         print("main::enhanceImage(self)")
         
-        # Instantiate the file object of SOP.
-        sop_file = self.getCurrentImage()
-        
-        if sop_file == None:
-            return(None)
-        
-        if sop_file.file_type == "image":
-            # Set active control tab for material.
-            self.tab_src.setCurrentIndex(0)
-            self.getImageFileInfo(sop_file)
+        try:
+            # Instantiate the file object of SOP.
+            sop_file = self.getCurrentImage()
+            
+            # Exit if SOP object is not instantiated.
+            if sop_file == None: return(None)
             
             # Get the image path.
             img_path = os.path.join(ROOT_DIR, sop_file.filename)
             
-            if os.path.exists(img_path):
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
+            
+            if sop_file.file_type == "image":
+                # Set active control tab for material.
+                self.tab_src.setCurrentIndex(0)
+                self.getImageFileInfo(sop_file)
+                
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
                 
@@ -2555,79 +2692,85 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Returns nothing.
                     return(None)
                 
-                try:
-                    # Define the new uuid for the image.
-                    new_uuid = str(uuid.uuid4())
-                    
-                    # Get the time for opening GIMP.
-                    time_open = datetime.datetime.utcnow().isoformat()
-                    
-                    # Get the parent directory of the original image.
-                    out_dir = os.path.dirname(img_path)
-                    new_file = os.path.join(out_dir, new_uuid+".jpg")
-                    
-                    # Invert the negative image.
-                    imageProcessing.enhance(img_path, new_file)
-                    
-                    # Copy exif information.
-                    general.copyExif(img_path, new_file)
-                    
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Normalized version"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Normalizing"
-                    img_file.operating_application = "This System"
-                    img_file.caption = "Normalized version"
-                    img_file.description = "Make normalized by this system."
-                    
-                    img_file.dbInsert(DATABASE)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
-                except Exception as e:
-                    print("Error occurs in main::enhanceImage(self)")
-                    print(str(e))
-                    
-                    self.errorUnknown("main::enhanceImage(self)", e)
-                    
-                    return(None)
+                # Define the new uuid for the image.
+                new_uuid = str(uuid.uuid4())
+                
+                # Get the time for opening GIMP.
+                time_open = datetime.datetime.utcnow().isoformat()
+                
+                # Get the parent directory of the original image.
+                out_dir = os.path.dirname(img_path)
+                new_file = os.path.join(out_dir, new_uuid+".jpg")
+                
+                # Invert the negative image.
+                imageProcessing.enhance(img_path, new_file)
+                
+                # Copy exif information.
+                general.copyExif(img_path, new_file)
+                
+                # Get the time for closing GIMP.
+                time_close = datetime.datetime.utcnow().isoformat()
+                
+                # Instantiate the File class.
+                img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                img_file.material = sop_file.material
+                img_file.consolidation = sop_file.consolidation
+                img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                img_file.created_date = time_open
+                img_file.modified_date = time_close
+                img_file.file_type = "image"
+                img_file.alias = "Normalized version"
+                img_file.status = "Edited"
+                img_file.lock = False
+                img_file.public = False
+                img_file.source = sop_file.uuid
+                img_file.operation = "Normalizing"
+                img_file.operating_application = "This System"
+                img_file.caption = "Normalized version"
+                img_file.description = "Make normalized by this system."
+                
+                img_file.dbInsert(DATABASE)
+                
+                # Initialize the SOP object.
+                sop_object = None
+                if img_file.material == "":
+                    sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
+                else:
+                    sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
+                
+                # Refresh the image file list.
+                self.refreshFileList(sop_object)
+            else:
+                self.errorNotImageFile()
+        except Exception as e:
+            print("Error occurs in main::enhanceImage(self)")
+            print(str(e))
+            
+            self.errorUnknown("main::enhanceImage(self)", e)
+            
+            return(None)
     
     def extractContour(self):
         print("main::extractContour(self)")
         
-        # Instantiate the file object of SOP.
-        sop_file = self.getCurrentImage()
-        
-        if sop_file == None: return(None)
-        
-        if sop_file.file_type == "image":
-            # Set active control tab for material.
-            self.tab_src.setCurrentIndex(0)
-            self.getImageFileInfo(sop_file)
+        try:
+            # Instantiate the file object of SOP.
+            sop_file = self.getCurrentImage()
+            
+            # Exit if SOP object is not instantiated.
+            if sop_file == None: return(None)
             
             # Get the image path.
             img_path = os.path.join(ROOT_DIR, sop_file.filename)
             
-            if os.path.exists(img_path):
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
+            
+            if sop_file.file_type == "image":
+                # Set active control tab for material.
+                self.tab_src.setCurrentIndex(0)
+                self.getImageFileInfo(sop_file)
+                
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
                 
@@ -2638,79 +2781,84 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Returns nothing.
                     return(None)
                 
-                try:
-                    # Define the new uuid for the image.
-                    new_uuid = str(uuid.uuid4())
-                    
-                    # Get the time for opening GIMP.
-                    time_open = datetime.datetime.utcnow().isoformat()
-                    
-                    # Get the parent directory of the original image.
-                    out_dir = os.path.dirname(img_path)
-                    new_file = os.path.join(out_dir, new_uuid+".jpg")
-                    
-                    # Extract contour and save the inner frame of the contour.
-                    imageProcessing.extractInnerFrame(img_path, new_file, ratio = 0.05)
-                    
-                    # Copy exif information.
-                    general.copyExif(img_path, new_file)
-                    
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Automatically cropped"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Cropping"
-                    img_file.operating_application = "This System"
-                    img_file.caption = "Cropped version"
-                    img_file.description = "Make cropped by this system."
-                    
-                    img_file.dbInsert(DATABASE)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
-                except Exception as e:
-                    print("Error occurs in main::extractContour(self)")
-                    print(str(e))
-                    
-                    self.errorUnknown("main::extractContour(self)", e)
-                    
-                    return(None)
+                # Define the new uuid for the image.
+                new_uuid = str(uuid.uuid4())
+                
+                # Get the time for opening GIMP.
+                time_open = datetime.datetime.utcnow().isoformat()
+                
+                # Get the parent directory of the original image.
+                out_dir = os.path.dirname(img_path)
+                new_file = os.path.join(out_dir, new_uuid+".jpg")
+                
+                # Extract contour and save the inner frame of the contour.
+                imageProcessing.extractInnerFrame(img_path, new_file, ratio = 0.05)
+                
+                # Copy exif information.
+                general.copyExif(img_path, new_file)
+                
+                # Get the time for closing GIMP.
+                time_close = datetime.datetime.utcnow().isoformat()
+                
+                # Instantiate the File class.
+                img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                img_file.material = sop_file.material
+                img_file.consolidation = sop_file.consolidation
+                img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                img_file.created_date = time_open
+                img_file.modified_date = time_close
+                img_file.file_type = "image"
+                img_file.alias = "Automatically cropped"
+                img_file.status = "Edited"
+                img_file.lock = False
+                img_file.public = False
+                img_file.source = sop_file.uuid
+                img_file.operation = "Cropping"
+                img_file.operating_application = "This System"
+                img_file.caption = "Cropped version"
+                img_file.description = "Make cropped by this system."
+                
+                img_file.dbInsert(DATABASE)
+                
+                sop_object = None
+                if img_file.material == "":
+                    sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
+                else:
+                    sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
+                
+                # Refresh the image file list.
+                self.refreshFileList(sop_object)
+            else:
+                self.errorNotImageFile()
+        except Exception as e:
+            print("Error occurs in main::extractContour(self)")
+            print(str(e))
+            
+            self.errorUnknown("main::extractContour(self)", e)
+            
+            return(None)
     
     def negativeToPositive(self):
         print("main::negativeToPositive(self)")
         
-        # Instantiate the file object of SOP.
-        sop_file = self.getCurrentImage()
-        
-        if sop_file == None: return(None)
-        
-        if sop_file.file_type == "image":
-            # Set active control tab for material.
-            self.tab_src.setCurrentIndex(0)
-            self.getImageFileInfo(sop_file)
+        try:
+            # Instantiate the file object of SOP.
+            sop_file = self.getCurrentImage()
+            
+            # Exit if SOP object is not instantiated.
+            if sop_file == None: return(None)
             
             # Get the image path.
             img_path = os.path.join(ROOT_DIR, sop_file.filename)
             
-            if os.path.exists(img_path):
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
+            
+            if sop_file.file_type == "image":
+                # Set active control tab for material.
+                self.tab_src.setCurrentIndex(0)
+                self.getImageFileInfo(sop_file)
+                
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
                 
@@ -2722,81 +2870,85 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Returns nothing.
                     return(None)
                 
-                try:
-                    # Define the new uuid for the image.
-                    new_uuid = str(uuid.uuid4())
-                    
-                    # Get the time for opening GIMP.
-                    time_open = datetime.datetime.utcnow().isoformat()
-                    
-                    # Get the parent directory of the original image.
-                    out_dir = os.path.dirname(img_path)
-                    new_file = os.path.join(out_dir, new_uuid+".jpg")
-                    
-                    
-                    # Invert the negative image.
-                    imageProcessing.negaToPosi(img_path, new_file)
-                    
-                    # Copy exif information.
-                    general.copyExif(img_path, new_file)
-                    
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Automatically cropped"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Cropping"
-                    img_file.operating_application = "This System"
-                    img_file.caption = "Cropped version"
-                    img_file.description = "Make cropped by this system."
-                    
-                    img_file.dbInsert(DATABASE)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
-                except Exception as e:
-                    print("Error occurs in main::negativeToPositive(self)")
-                    print(str(e))
-                    
-                    self.errorUnknown("main::negativeToPositive(self)", e)
-                    
-                    return(None)
+                # Define the new uuid for the image.
+                new_uuid = str(uuid.uuid4())
+                
+                # Get the time for opening GIMP.
+                time_open = datetime.datetime.utcnow().isoformat()
+                
+                # Get the parent directory of the original image.
+                out_dir = os.path.dirname(img_path)
+                new_file = os.path.join(out_dir, new_uuid+".jpg")
+                
+                
+                # Invert the negative image.
+                imageProcessing.negaToPosi(img_path, new_file)
+                
+                # Copy exif information.
+                general.copyExif(img_path, new_file)
+                
+                # Get the time for closing GIMP.
+                time_close = datetime.datetime.utcnow().isoformat()
+                
+                # Instantiate the File class.
+                img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                img_file.material = sop_file.material
+                img_file.consolidation = sop_file.consolidation
+                img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                img_file.created_date = time_open
+                img_file.modified_date = time_close
+                img_file.file_type = "image"
+                img_file.alias = "Automatically cropped"
+                img_file.status = "Edited"
+                img_file.lock = False
+                img_file.public = False
+                img_file.source = sop_file.uuid
+                img_file.operation = "Cropping"
+                img_file.operating_application = "This System"
+                img_file.caption = "Cropped version"
+                img_file.description = "Make cropped by this system."
+                
+                img_file.dbInsert(DATABASE)
+                
+                sop_object = None
+                if img_file.material == "":
+                    sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=DATABASE)
+                else:
+                    sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=DATABASE)
+                
+                # Refresh the image file list.
+                self.refreshFileList(sop_object)
+            else:
+                self.errorNotImageFile()
+        except Exception as e:
+            print("Error occurs in main::negativeToPositive(self)")
+            print(str(e))
+            
+            self.errorUnknown("main::negativeToPositive(self)", e)
+            
+            return(None)
     
     def saveImageAs(self):
         print("main::saveImageAs(self)")
         
-        # Instantiate the file object of SOP.
-        sop_file = self.getCurrentImage()
-        
-        if sop_file == None:
-            return(None)
-        
-        if sop_file.file_type == "image":
-            # Set active control tab for material.
-            self.tab_src.setCurrentIndex(0)
-            self.getImageFileInfo(sop_file)
+        try:
+            # Instantiate the file object of SOP.
+            sop_file = self.getCurrentImage()
+            
+            # Exit if SOP object is not instantiated.
+            if sop_file == None: return(None)
             
             # Get the image path.
             img_path = os.path.join(ROOT_DIR, sop_file.filename)
             
-            if os.path.exists(img_path):
+            # Exit if selected file is not exists.
+            if not os.path.exists(img_path): self.errorFileNotExist(); return(None)
+            
+            if sop_file.file_type == "image":
+                # Set active control tab for material.
+                self.tab_src.setCurrentIndex(0)
+                self.getImageFileInfo(sop_file)
+                
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
                 
@@ -2827,6 +2979,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         
                         # Returns nothing.
                         return(None)
+            else:
+                self.errorNotImageFile()
+        except Exception as e:
+            print("Error occurs in main::negativeToPositive(self)")
+            print(str(e))
+            
+            self.errorUnknown("main::negativeToPositive(self)", e)
+            
+            return(None)
     
     def deleteSelectedImage(self):
         print("main::deleteSelectedImage(self)")
@@ -2885,6 +3046,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Update DB table.
                 sop_file.dbUpdate(DATABASE)
+            
             # Refresh the image file list.
             sop_object = None
             if sop_file.material == "":
@@ -3320,7 +3482,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("errorProjectNotOpened(self)")
         
         # Create error messages.
-        error_title = "プロジェクトのエラー"
+        error_title = "エラーが発生しました"
         error_msg = "プロジェクトが開かれていません。"
         error_info = "プロジェクトのディレクトリを参照し、指定ください。"
         error_icon = QMessageBox.Critical
@@ -3330,8 +3492,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
     def errorFileExport(self):
+        print("errorFileExport(self)")
+        
         # Create error messages.
-        error_title = "エクスポート・エラー"
+        error_title = "エラーが発生しました"
         error_msg = "すでに、ファイルが存在しています。"
         error_info = "別名で保存するか、保存場所を変更してください。"
         error_icon = QMessageBox.Critical
@@ -3341,10 +3505,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
     def errorImageFileHandling(self):
-        print("errorProjectNotOpened(self)")
+        print("errorImageFileHandling(self)")
         
         # Create error messages.
-        error_title = "画像処理エラー"
+        error_title = "エラーが発生しました"
         error_msg = "このファイルは対応した形式ではありません。"
         error_info = "編集可能な画像ファイルを選択してください。"
         error_icon = QMessageBox.Critical
@@ -3353,11 +3517,26 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Handle error.
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
-    def errorFileLocked(self):
+    def errorFileNotExist(self):
+        print("main::errorFileNotExist(self)")
+        
         # Create error messages.
-        error_title = "ファイル・ロック・エラー"
-        error_msg = "ファイルの削除ができません。"
-        error_info = "このファイルはロックされているため削除できません。"
+        error_title = "エラーが発生しました"
+        error_msg = "選択されたファイルは存在しません。"
+        error_info = "すでに削除された可能性あります。選択したファイルを確認してください。"
+        error_icon = QMessageBox.Information
+        error_detailed = ""
+        
+        # Handle error.
+        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+    
+    def errorFileLocked(self):
+        print("main::errorFileLocked(self)")
+        
+        # Create error messages.
+        error_title = "エラーが発生しました"
+        error_msg = "ファイルの削除に失敗しました。"
+        error_info = "このファイルはロックされているか、すでに削除済みのため削除できません。"
         error_icon = QMessageBox.Information
         error_detailed = ""
         
@@ -3378,10 +3557,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
     def errorTreeItemNotSelected(self, treeView):
-        print("errorProjectNotOpened(self)")
+        print("errorTreeItemNotSelected(self)")
         
         # Create error messages.
-        error_title = "オブジェクトの選択エラー"
+        error_title = "エラーが発生しました"
         error_msg = "オブジェクトを再選択し、実行しなおして下さい。"
         error_info = "ツリービューのオブジェクトが選択されていません。"
         error_icon = QMessageBox.Critical
@@ -3390,6 +3569,18 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Handle error.
         general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
+    def errorNotImageFile(self):
+        print("main::errorNotImageFile(self)")
+        
+        # Create error messages.
+        error_title = "エラーが発生しました"
+        error_msg = "画像処理を続行できません。"
+        error_info = "選択されているファイルは画像ファイルではありません。"
+        error_icon = QMessageBox.Critical
+        error_detailed = ""
+        
+        # Handle error.
+        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
     
     # ==========================
     # Exporting operation
