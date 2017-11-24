@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # import the necessary packages
-import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp
+import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
 import os, sys, subprocess, tempfile, pipes, getopt
 
 from sys import argv
@@ -10,7 +10,7 @@ from optparse import OptionParser
 from imutils import perspective, contours
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
-
+from colorcorrect.util import from_pil, to_pil
 
 def setCamera(name, addr):
     print(name)
@@ -361,6 +361,23 @@ def pansharpen(thumbnail, original, output, method="ihs"):
         #BroveyConvert
         img = BroveyConvert(img=col, high=org)
         img.save(output)
+
+def autoWhiteBalance(imgfile, output, method = "automatic"):
+    img = Image.open(imgfile)
+    
+    adj_img = None
+    
+    if method == "stretch": adj_img = to_pil(cca.stretch(from_pil(img)))
+    elif method == "gray_world": adj_img = to_pil(cca.gray_world(from_pil(img)))
+    elif method == "max_white": adj_img = to_pil(cca.max_white(from_pil(img)))
+    elif method == "retinex": adj_img = to_pil(cca.cca.retinex(from_pil(img)))
+    elif method == "retinex_adjusted": adj_img = to_pil(cca.retinex_with_adjust(from_pil(img)))
+    elif method == "stdev_luminance": adj_img = to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(img)))
+    elif method == "stdev_grey_world": adj_img = to_pil(cca.standard_deviation_weighted_grey_world(from_pil(img)))
+    elif method == "luminance_weighted": adj_img = to_pil(cca.luminance_weighted_gray_world(from_pil(img)))
+    elif method == "automatic": adj_img = to_pil(cca.automatic_color_equalization(from_pil(img)))
+    
+    adj_img.save(output)
 
 def normalize(arr):
     arr = arr.astype('float')

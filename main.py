@@ -515,6 +515,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Initialyze the window.
         self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
         
+        '''
+        self.tre_prj_item.setStyleSheet("background-color: #2C2C2C;")
+        self.tre_fls.setStyleSheet("background-color: #2C2C2C;")
+        
+        self.tab_control.setStyleSheet("background-color: #2C2C2C;")
+        self.tab_control.setStyleSheet('QTabBar::tab {background-color: #5B5B5B;}')
+        self.tab_control.tabBar().setTabTextColor(0, QColor("#FFFFFF"))
+        self.tab_control.tabBar().setTabTextColor(1, QColor("#FFFFFF"))
+        
+        self.tab_target.setStyleSheet("background-color: #2C2C2C;")
+        self.tab_target.setStyleSheet('QTabBar::tab {background-color: #5B5B5B;}')
+        self.tab_target.tabBar().setTabTextColor(0, QColor("#FFFFFF"))
+        self.tab_target.tabBar().setTabTextColor(1, QColor("#FFFFFF"))
+        
+        self.tab_img_info.setStyleSheet("background-color: #2C2C2C;")
+        self.tab_img_info.setStyleSheet('QTabBar::tab {background-color: #5B5B5B;}')
+        self.tab_img_info.tabBar().setTabTextColor(0, QColor("#FFFFFF"))
+        self.tab_img_info.tabBar().setTabTextColor(1, QColor("#FFFFFF"))
+        '''
         #========================================
         # Initialyze objects for project
         #========================================
@@ -522,10 +541,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.act_prj_open.triggered.connect(self.getTheRootDirectory)
         self.act_prj_open.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_folder_open_black_24dp_1x.png'))))
         
+        # Activate actions on the menu bar.
         self.act_imp_csv_con.triggered.connect(self.importConsolidationCSV)
         self.act_imp_csv_mat.triggered.connect(self.importMaterialCSV)
         self.act_export_html.triggered.connect(self.exportAsHtml)
         self.act_exp_csv_con.triggered.connect(self.exportConsolidationCSV)
+        self.act_exp_csv_mat.triggered.connect(self.exportMaterialCSV)
         
         # Handle current selection of consolidations and materials.
         self.tre_prj_item.itemSelectionChanged.connect(self.toggleSelectedItem)
@@ -982,6 +1003,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tre_prj_con_items.setText(0, con_uuid)
                     tre_prj_con_items.setText(1, con_name)
                     
+                    #tre_prj_con_items.setForeground(0,QBrush(QColor("white")))
+                    #tre_prj_con_items.setForeground(1,QBrush(QColor("white")))
+                    
                     # Instantiate the cursor for query.
                     cur_mat = conn.cursor()
                     rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
@@ -1003,6 +1027,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         tre_prj_mat_items.setText(0, mat_uuid)
                         tre_prj_mat_items.setText(1, mat_name)
                         
+                        #tre_prj_mat_items.setForeground(0,QBrush(QColor("white")))
+                        #tre_prj_mat_items.setForeground(1,QBrush(QColor("white")))
                     # Refresh the tree view.
                     self.tre_prj_item.show()
                     
@@ -1126,9 +1152,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Finally set the root path to the text box.
         self.lbl_prj_path.setText(ROOT_DIR)
-    
-    def getSoundFileInfo(self, sop_sound):
-        print("main::getSoundFileInfo(self, sop_sound)")
     
     def showImage(self, img_file_path):
         print("main::showImage(self)")
@@ -1594,6 +1617,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     "consolidation.geographic_annotation",
                     "consolidation.temporal_annotation",
                     "consolidation.description",
+                    "consolidation.additional_attributes"
                 ]
                 # Write the header
                 for header in headers:
@@ -1633,66 +1657,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         
                         con_generic_values = con_generic_values + "," + str(con_value).encode('utf-8')
                         
-                    if not (sop_consolidation.additionalAttributes == None or len(sop_consolidation.additionalAttributes) <= 0):
-                        con_additional_values = "{"
-                        
-                        for additionalAttribute in sop_consolidation.additionalAttributes:
-                            con_add_key = additionalAttribute.key
-                            con_add_val = additionalAttribute.value
+                    if not sop_consolidation.additionalAttributes == None:
+                        if not len(sop_consolidation.additionalAttributes) <= 0:
+                            con_additional_values = "{"
                             
-                            if isinstance(con_add_key, unicode) : con_add_key = con_add_key.encode('utf-8')
-                            if isinstance(con_add_val, unicode) : con_add_val = con_add_val.encode('utf-8')
+                            for additionalAttribute in sop_consolidation.additionalAttributes:
+                                con_add_key = additionalAttribute.key
+                                con_add_val = additionalAttribute.value
+                                
+                                if isinstance(con_add_key, unicode) : con_add_key = con_add_key.encode('utf-8')
+                                if isinstance(con_add_val, unicode) : con_add_val = con_add_val.encode('utf-8')
+                                
+                                con_additional_values = "(" + con_add_key + ":" + con_add_val + ")"
                             
-                            con_additional_values = "(" + con_add_key + ":" + con_add_val + ")"
-                        
-                        # Close the bracket.
-                        con_additional_values = con_additional_values + "}"
+                            # Close the bracket.
+                            con_additional_values = con_additional_values + "}"
                     
                     # Writet the attribute lines.
                     output_csv.writelines(con_generic_values.lstrip(",") + con_additional_values + "\n")
-                    
-                    '''
-                    # Create the SQL query for selecting the consolidation.
-                    sql_mat_sel = """SELECT uuid FROM material"""
-                    
-                    # Instantiate the cursor for query.
-                    cur_mat = conn.cursor()
-                    rows_mat = cur_mat.execute(sql_mat_sel)
-                    
-                    for row_mat in rows_mat:
-                        # Get attributes from the row.
-                        mat_uuid = row_mat[0]
-                        
-                        sop_material = features.Material(is_new=False, uuid=con_uuid, dbfile=DATABASE)
-                        
-                        mat_values = [
-                            sop_material.uuid,
-                            sop_material.name,
-                            sop_material.material_number,
-                            sop_material.estimated_period_beginning,
-                            sop_material.estimated_period_peak,
-                            sop_material.estimated_period_ending,
-                            sop_material.latitude,
-                            sop_material.longitude,
-                            sop_material.altitude,
-                            sop_material.description
-                        ]
-                        
-                        mat_generic_values = ""
-                        mat_additional_values = "{"
-                        
-                        for mat_value in mat_values:
-                            mat_generic_values = mat_generic_values + "," + str(mat_value)
-                        
-                        for additionalAttribute in sop_material.additionalAttributes:
-                            mat_add_key = str(additionalAttribute.key)
-                            mat_add_val = str(additionalAttribute.value)
-                            
-                            mat_additional_values = "(" + str(mat_add_key) + ":" + str(mat_add_val) + ")"
-                        
-                        # Close the bracket.
-                        mat_additional_values = mat_additional_values + "}"
-                    '''
         except Error as e:
             # Connection error.
             error_title = "エラーが発生しました"
@@ -1733,8 +1715,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Update the tree view.
             tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
+            
+            # Set text item to the tree widget.
             tre_prj_item_items.setText(0, con.uuid)
             tre_prj_item_items.setText(1, con.name)
+            
+            # Set font color as white.
+            #tre_prj_item_items.setForeground(0,QBrush(QColor("white")))
+            #tre_prj_item_items.setForeground(1,QBrush(QColor("white")))
             
             # Refresh the tree view.
             self.tre_prj_item.show()
@@ -2223,6 +2211,117 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.errorUnknown("main::importConsolidationCSV(self)")
                 return(None)
     
+    def exportMaterialCSV(self):
+        print("main::exportMaterialCSV(self)")
+        
+         # Create a sqLite file if not exists. 
+        try:
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Get the output file name by using file save dialog.
+            output, output_type = QFileDialog.getSaveFileName(self, "Export to", "output.csv","Commna Separation Values(*.csv)")
+            
+            if not output: return(None)
+            
+            # Open the file stream
+            output_csv = open(output,"w")
+            
+            # Establish the connection to the DataBase file.
+            conn = sqlite.connect(DATABASE)
+            
+            if conn is not None:
+                header_line = ""
+                
+                # Create a header.
+                headers = [
+                    "material.consolidation",
+                    "material.uuid",
+                    "material.name",
+                    "material.material_number",
+                    "material.estimated_period_beginning",
+                    "material.estimated_period_peak",
+                    "material.estimated_period_ending",
+                    "material.latitude",
+                    "material.longitude",
+                    "material.altitude",
+                    "material.description",
+                    "material.additional_attributes"
+                ]
+                # Write the header
+                for header in headers:
+                    header_line = header_line + header + ","
+                
+                # Write the hader line.
+                output_csv.writelines(header_line.rstrip(",") + "\n")
+                
+                # Create the SQL query for selecting the Materials.
+                sql_mat_sel = """SELECT uuid FROM material"""
+                
+                # Instantiate the cursor for query.
+                cur_mat = conn.cursor()
+                rows_mat = cur_mat.execute(sql_mat_sel)
+                
+                # Execute the query and get material recursively
+                for row_mat in rows_mat:
+                    # Get attributes from the row.
+                    mat_uuid = row_mat[0]
+                    
+                    # Instantiate the material.
+                    sop_material = features.Material(is_new=False, uuid=mat_uuid, dbfile=DATABASE)
+                    
+                    mat_values = [
+                        sop_material.consolidation,
+                        sop_material.uuid,
+                        sop_material.name,
+                        sop_material.material_number,
+                        sop_material.estimated_period_beginning,
+                        sop_material.estimated_period_peak,
+                        sop_material.estimated_period_ending,
+                        sop_material.latitude,
+                        sop_material.longitude,
+                        sop_material.altitude,
+                        sop_material.description
+                    ]
+                    
+                    mat_generic_values = ""
+                    mat_additional_values = ","
+                    
+                    for mat_value in mat_values:
+                        if isinstance(mat_value, unicode) : mat_value = mat_value.encode('utf-8')
+                        
+                        mat_generic_values = mat_generic_values + "," + str(mat_value)
+                    if not sop_material.additionalAttributes == None:
+                        if not len(sop_material.additionalAttributes) <= 0:
+                            mat_additional_values = "{"
+                            for additionalAttribute in sop_material.additionalAttributes:
+                                mat_add_key = additionalAttribute.key
+                                mat_add_val = additionalAttribute.value
+                                
+                                if isinstance(mat_add_key, unicode) : mat_add_key = mat_add_key.encode('utf-8')
+                                if isinstance(mat_add_val, unicode) : mat_add_val = mat_add_val.encode('utf-8')
+                                
+                                mat_additional_values = "(" + mat_add_key + ":" + mat_add_val + ")"
+                            
+                            # Close the bracket.
+                            mat_additional_values = mat_additional_values + "}"
+                    
+                    # Writet the attribute lines.
+                    output_csv.writelines(mat_generic_values.lstrip(",") + mat_additional_values + "\n")
+        except Error as e:
+            # Connection error.
+            error_title = "エラーが発生しました"
+            error_msg = "データベースの情報を取得できません。"
+            error_info = "エラーの詳細を確認してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = e.args[0]
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
     def addMaterial(self):
         print("main::addMaterial(self)")
         
@@ -2296,6 +2395,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Update the tree view.
             tre_prj_item_items.setText(0, mat.uuid)
             tre_prj_item_items.setText(1, mat.name)
+            
+            # Set font color as white.
+            #tre_prj_item_items.setForeground(0,QBrush(QColor("white")))
+            #tre_prj_item_items.setForeground(1,QBrush(QColor("white")))
             
             self.tre_prj_item.show()
             self.tre_prj_item.resizeColumnToContents(0)
@@ -2754,10 +2857,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 tre_fls_item.setText(0, sop_object.uuid)
                 tre_fls_item.setText(1, sop_object.alias)
                 tre_fls_item.setText(2, sop_object.file_type)
-                
-                tre_fls_item.setForeground(0,QBrush(QColor("#000000")))
-                tre_fls_item.setForeground(1,QBrush(QColor("#000000")))
-                tre_fls_item.setForeground(2,QBrush(QColor("#000000")))
+                '''
+                tre_fls_item.setForeground(0,QBrush(QColor("white")))
+                tre_fls_item.setForeground(1,QBrush(QColor("white")))
+                tre_fls_item.setForeground(2,QBrush(QColor("white")))
+                '''
         except Exception as e:
             print("Error occurs in setFileInfo(self, sop_object)")
             print(str(e))
@@ -2825,6 +2929,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Sound Play
     # ==========================
+    def getSoundFileInfo(self, sop_sound):
+        print("main::getSoundFileInfo(self, sop_sound)")
+        
     def soundPlay(self):
         print("main::soundPlay(self)")
         
@@ -4166,6 +4273,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    #app.setStyleSheet('QMainWindow{background-color:#2C2C2C; border:1px solid #2C2C2C;}')
+    
     form = mainPanel()
     form.show()
     app.exec_()
