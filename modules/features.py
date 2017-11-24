@@ -229,15 +229,20 @@ class Consolidation(SimpleObject):
         super(Consolidation, self).excuteSQL(dbfile, sql_insert, values)
         
         # Insert images of the Consolidation.
-        for image in self._images: image.dbInsert(dbfile)
+        if not self._images == None:
+            if len(self._images) <= 0:
+                for image in self._images: image.dbInsert(dbfile)
         
         # Insert sounds of the Consolidation.
-        for sound in self._sounds: sound.dbInsert(dbfile)
+        if not self._sounds == None:
+            if not len(self._sounds) <= 0:
+                for sound in self._sounds: sound.dbInsert(dbfile)
         
         # Insert additional attributes.
-        for additionalAttribute in self._additionalAttributes:
-            print("hoge")
-            additionalAttribute.dbInsert(dbfile, "consolidation", self._uuid)
+        if not self._additionalAttributes == None:
+            if not len(self._additionalAttributes) <= 0:
+                for additionalAttribute in self._additionalAttributes:
+                    additionalAttribute.dbInsert(dbfile, "consolidation", self._uuid)
     
     def dbUpdate(self, dbfile):
         print("consolidation::dbUpdate(self, dbfile)")
@@ -263,13 +268,20 @@ class Consolidation(SimpleObject):
         super(Consolidation, self).excuteSQL(dbfile, sql_update, values)
         
         # Insert images of the Consolidation.
-        for image in self._images: image.dbUpdate(dbfile)
+        if not self._images == None:
+            if len(self._images) <= 0:
+                for image in self._images: image.dbUpdate(dbfile)
         
         # Insert sounds of the Consolidation.
-        for sound in self._sounds: sound.dbUpdate(dbfile)
+        if not self._sounds == None:
+            if not len(self._sounds) <= 0:
+                for sound in self._sounds: sound.dbUpdate(dbfile)
         
         # Insert additional attributes.
-        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbUpdate(dbfile)
+        if not self._additionalAttributes == None:
+            if not len(self._additionalAttributes) <= 0:
+                for additionalAttribute in self._additionalAttributes:
+                    additionalAttribute.dbUpdate(dbfile)
     
     def dbDrop(self, dbfile):
         print("Consolidation::dbDrop(self, dbfile)")
@@ -492,13 +504,20 @@ class Material(SimpleObject):
         super(Material, self).excuteSQL(dbfile, sql_insert, values)
         
         # Insert images of the Consolidation.
-        for image in self._images: image.dbInsert(dbfile)
+        if not self._images == None:
+            if len(self._images) <= 0:
+                for image in self._images: image.dbInsert(dbfile)
         
         # Insert sounds of the Consolidation.
-        for sound in self._sounds: sound.dbInsert(dbfile)
+        if not self._sounds == None:
+            if not len(self._sounds) <= 0:
+                for sound in self._sounds: sound.dbInsert(dbfile)
         
         # Insert additional attributes.
-        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbInsert(dbfile, "material", self._uuid)
+        if not self._additionalAttributes == None:
+            if not len(self._additionalAttributes) <= 0:
+                for additionalAttribute in self._additionalAttributes:
+                    additionalAttribute.dbInsert(dbfile, "material", self._uuid)
     
     def dbUpdate(self, dbfile):
         print("Material::dbUpdate(self, dbfile)")
@@ -534,14 +553,20 @@ class Material(SimpleObject):
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_update, values)
         
-        # Insert images of the Consolidation.
-        for image in self._images: image.dbUpdate(dbfile)
+        if not self._images == None:
+            if len(self._images) <= 0:
+                for image in self._images: image.dbUpdate(dbfile)
         
         # Insert sounds of the Consolidation.
-        for sound in self._sounds: sound.dbUpdate(dbfile)
+        if not self._sounds == None:
+            if not len(self._sounds) <= 0:
+                for sound in self._sounds: sound.dbUpdate(dbfile)
         
         # Insert additional attributes.
-        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbUpdate(dbfile)
+        if not self._additionalAttributes == None:
+            if not len(self._additionalAttributes) <= 0:
+                for additionalAttribute in self._additionalAttributes:
+                    additionalAttribute.dbUpdate(dbfile)
     
     def dbDrop(self, dbfile):
         print("Material::dbDrop(self, dbfile)")
@@ -970,7 +995,7 @@ class AdditionalAttribute(SimpleObject):
                         datatype = ?,
                         description = ?
                     WHERE uuid = ?"""
-        
+        print(values)
         # Execute the query.
         super(AdditionalAttribute, self).excuteSQL(dbfile, sql_update, values)
     
@@ -1046,7 +1071,7 @@ def exportAsHtml(dbfile, output, title="Archive"):
             cur_sel_con_img.execute(sql_sel_con_img, [con_uuid, "image"])
             
             con_img_rows = cur_sel_con_img.fetchall()
-            print("con img")
+            
             output_html.write("\t\t\t<table width='800' style='margin: auto; border: hidden; text-align: left'>\n")
             output_html.write("\t\t\t\t<col width='200'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n\t\t\t\t<col width='150'>\n")
             output_html.write("\t\t\t\t<tr><td colspan='4'><h1 style='text-align: center;'>%s</h1></td></tr>\n" % ("Images"))

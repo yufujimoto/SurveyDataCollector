@@ -809,7 +809,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             for in_fl in in_dir[0]:
                 name, ext = os.path.splitext(in_fl)
                 
+                # Check the extension of the file and append the file name to the list.
                 if (ext.lower() == ".jpg" or ext.lower() == ".jpeg"): img_files.append(in_fl)
+                if ext.lower() == ".arw": raw_files.append(in_fl)
                 if (ext.lower() == ".wav" or ext.lower() == ".wave"): snd_files.append(in_fl)
             
             # Move main images from the temporal directory to the object's directory.
@@ -936,109 +938,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Error as e:
             self.errorUnknown("main::tetheredShooting(self)")
             return(None)
-    
-    def importMaterialCSV(self):
-        print("main::importMaterialCSV(self)")
-        
-        try:    
-            # Exit if the root directory is not loaded.
-            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
-            
-            # Define directories for storing files.
-            in_file = QFileDialog.getOpenFileName(self, "資料のファイルの選択")
-            
-            # Open and read the imported csv file.
-            with open(in_file[0]) as table:
-                # Initialyze the counter for reading line.
-                cnt_line = 0
-                
-                # Initialyze the variables.
-                feat_type = dict()
-                mat_head = dict()
-                
-                for line in table:
-                    line = line.strip()
-                    
-                    # Parsing each line.
-                    if cnt_line == 0:
-                        # The case of header line.
-                        cnt_haeder = 0
-                        
-                        # Read the header line with comma.
-                        headers = line.split(",")
-                        
-                        for header in headers:
-                            # Separate the class name and the attribute name with a period.
-                            cls, item = header.split(".")
-                            
-                            if cls == "material":
-                                feat_type[cnt_haeder] = "material"
-                                
-                                if item == "consolidation": mat_head[cnt_haeder] = "consolidation"
-                                elif item == "name": mat_head[cnt_haeder] = "name"
-                                elif item == "material_number": mat_head[cnt_haeder] = "material_number"
-                                elif item == "estimated_period_beginning": mat_head[cnt_haeder] = "estimated_period_beginning"
-                                elif item == "estimated_period_peak": mat_head[cnt_haeder] = "estimated_period_peak"
-                                elif item == "estimated_period_ending": mat_head[cnt_haeder] = "estimated_period_ending"
-                                elif item == "latitude": mat_head[cnt_haeder] = "latitude"
-                                elif item == "longitude": mat_head[cnt_haeder] = "longitude"
-                                elif item == "altitude": mat_head[cnt_haeder] = "altitude"
-                                elif item == "description": mat_head[cnt_haeder] = "description"
-                                elif item == "main": mat_head[cnt_haeder] = "main"
-                                elif item == "raw": mat_head[cnt_haeder] = "raw"
-                                elif item == "sound": mat_head[cnt_haeder] = "sound"
-                                elif item == "text": mat_head[cnt_haeder] = "text"
-                                elif item == "movie": mat_head[cnt_haeder] = "movie"
-                                else: mat_head[cnt_haeder] = item
-                                
-                                cnt_haeder += 1
-                    else:
-                        entries = line.split(",")
-                        
-                        sop_material = features.Material(is_new=True, uuid=None, dbfile=None)
-                        sop_material.uuid = str(uuid.uuid4())
-                        
-                        for i in range(len(entries)):
-                            # Give a NULL value if the entry is empty.
-                            if entries[i] == "" : entries[i] = "NULL"
-                            
-                            # Convert the string to the unicode.
-                            if isinstance(entries[i], str): entries[i] = entries[i].decode('utf-8')
-                                                    
-                            # Check the class of the current entry.
-                            if feat_type[i] == "material":
-                                if mat_head[i] == "consolidation": sop_material.consolidation = entries[i]
-                                elif mat_head[i] == "name": sop_material.name = entries[i]
-                                elif mat_head[i] == "material_number": sop_material.material_number = entries[i]
-                                elif mat_head[i] == "estimated_period_beginning": sop_material.estimated_period_beginning = entries[i]
-                                elif mat_head[i] == "estimated_period_peak": sop_material.estimated_period_peak = entries[i]
-                                elif mat_head[i] == "estimated_period_ending": sop_material.estimated_period_ending = entries[i]
-                                elif mat_head[i] == "latitude": sop_material.latitude = entries[i]
-                                elif mat_head[i] == "longitude": sop_material.longitude = entries[i]
-                                elif mat_head[i] == "altitude": sop_material.altitude = entries[i]
-                                elif mat_head[i] == "description": sop_material.description = entries[i]
-                                else:
-                                    sop_additional_attribute = features.AdditionalAttribute(is_new=True, uuid=None, dbfile=None)
-                                    sop_additional_attribute.key = mat_head[i]
-                                    sop_additional_attribute.value = entries[i]
-                                    sop_additional_attribute.datatype = "CharacterString"
-                                    sop_additional_attribute.description = ""
-                                    sop_material.additionalAttributes.append(sop_additional_attribute)
-                        # Insert the consolidation.
-                        print("hoge")
-                        sop_material.dbInsert(DATABASE)
-                        
-                        # Create a directory to store consolidation.
-                        con_dir = os.path.join(CON_DIR, sop_material.consolidation)
-                        mat_dir = os.path.join(con_dir, "Materials")
-                        
-                        general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
-                    cnt_line += 1
-            # Refresh the tree view.
-            self.retriveProjectItems()
-        except Error as e:
-                self.errorUnknown("main::importConsolidationCSV(self)")
-                return(None)
     
     def retriveProjectItems(self):
         print("main::retriveProjectItems(self)")
@@ -2121,6 +2020,209 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Material
     # ==========================
+    def importMaterialCSV(self):
+        print("main::importMaterialCSV(self)")
+        
+        try:    
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Define directories for storing files.
+            in_file = QFileDialog.getOpenFileName(self, "資料のファイルの選択")
+            
+            # Open and read the imported csv file.
+            with open(in_file[0]) as table:
+                # Initialyze the counter for reading line.
+                cnt_line = 0
+                
+                # Initialyze the variables.
+                feat_type = dict()
+                mat_head = dict()
+                
+                for line in table:
+                    line = line.strip()
+                    
+                    # Parsing each line.
+                    if cnt_line == 0:
+                        # The case of header line.
+                        cnt_haeder = 0
+                        
+                        # Read the header line with comma.
+                        headers = line.split(",")
+                        
+                        for header in headers:
+                            # Separate the class name and the attribute name with a period.
+                            cls, item = header.split(".")
+                            
+                            if cls == "material":
+                                feat_type[cnt_haeder] = "material"
+                                
+                                if item == "consolidation": mat_head[cnt_haeder] = "consolidation"
+                                elif item == "name": mat_head[cnt_haeder] = "name"
+                                elif item == "material_number": mat_head[cnt_haeder] = "material_number"
+                                elif item == "estimated_period_beginning": mat_head[cnt_haeder] = "estimated_period_beginning"
+                                elif item == "estimated_period_peak": mat_head[cnt_haeder] = "estimated_period_peak"
+                                elif item == "estimated_period_ending": mat_head[cnt_haeder] = "estimated_period_ending"
+                                elif item == "latitude": mat_head[cnt_haeder] = "latitude"
+                                elif item == "longitude": mat_head[cnt_haeder] = "longitude"
+                                elif item == "altitude": mat_head[cnt_haeder] = "altitude"
+                                elif item == "description": mat_head[cnt_haeder] = "description"
+                                elif item == "main": mat_head[cnt_haeder] = "main"
+                                elif item == "raw": mat_head[cnt_haeder] = "raw"
+                                elif item == "sound": mat_head[cnt_haeder] = "sound"
+                                elif item == "text": mat_head[cnt_haeder] = "text"
+                                elif item == "movie": mat_head[cnt_haeder] = "movie"
+                                else: mat_head[cnt_haeder] = item
+                                
+                                cnt_haeder += 1
+                    else:
+                        entries = line.split(",")
+                        
+                        sop_material = features.Material(is_new=True, uuid=None, dbfile=None)
+                        sop_material.uuid = str(uuid.uuid4())
+                        
+                        con_dir = ""
+                        mat_dir = ""
+                        
+                        for i in range(len(entries)):
+                            # Give a NULL value if the entry is empty.
+                            if entries[i] == "" : entries[i] = "NULL"
+                            
+                            # Convert the string to the unicode.
+                            if isinstance(entries[i], str): entries[i] = entries[i].decode('utf-8')
+                            
+                            # Check the class of the current entry.
+                            if feat_type[i] == "material":
+                                if mat_head[i] == "consolidation":
+                                    sop_material.consolidation = entries[i]
+                                    
+                                    con_dir = os.path.join(CON_DIR, sop_material.consolidation)
+                                    
+                                    mat_dir = os.path.join(con_dir, "Materials")
+                                    
+                                    # Create a directory for storing objects.
+                                    general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
+                                elif mat_head[i] == "name": sop_material.name = entries[i]
+                                elif mat_head[i] == "material_number": sop_material.material_number = entries[i]
+                                elif mat_head[i] == "estimated_period_beginning": sop_material.estimated_period_beginning = entries[i]
+                                elif mat_head[i] == "estimated_period_peak": sop_material.estimated_period_peak = entries[i]
+                                elif mat_head[i] == "estimated_period_ending": sop_material.estimated_period_ending = entries[i]
+                                elif mat_head[i] == "latitude": sop_material.latitude = entries[i]
+                                elif mat_head[i] == "longitude": sop_material.longitude = entries[i]
+                                elif mat_head[i] == "altitude": sop_material.altitude = entries[i]
+                                elif mat_head[i] == "description": sop_material.description = entries[i]
+                                elif mat_head[i] == "main":
+                                    con_dir = os.path.join(CON_DIR, sop_material.consolidation)
+                                    itm_dir = os.path.join(mat_dir, sop_material.uuid)
+                                    
+                                    # Define the path for saving files.
+                                    img_path = os.path.join(itm_dir, "Images")
+                                    img_path_main = os.path.join(img_path, "Main")
+                                    
+                                    # Get the original image path.
+                                    main_org = os.path.join(os.path.dirname(in_file[0]), entries[i])
+                                    
+                                    # Generate the GUID for the consolidation
+                                    img_uuid = str(uuid.uuid4())
+                                    
+                                    # Get current time.
+                                    now = datetime.datetime.utcnow().isoformat()
+                                    
+                                    # Define the destination file path.
+                                    main_dest = os.path.join(img_path_main, img_uuid+".jpg")
+                                    
+                                    if os.path.exists(main_org):
+                                        # Copy the original file.
+                                        shutil.copy(main_org, main_dest)
+                                        
+                                        # Instantiate the File class.
+                                        sop_img_file = features.File(is_new=True, uuid=None, dbfile=None)
+                                        
+                                        sop_img_file.material = sop_material.uuid
+                                        sop_img_file.consolidation = sop_material.consolidation
+                                        sop_img_file.filename = general.getRelativePath(main_dest, "Consolidation")
+                                        sop_img_file.created_date = now
+                                        sop_img_file.modified_date = now
+                                        sop_img_file.file_type = "image"
+                                        sop_img_file.alias = "Imported"
+                                        sop_img_file.status = "Original"
+                                        sop_img_file.lock = False
+                                        sop_img_file.public = False
+                                        sop_img_file.source = "Nothing"
+                                        sop_img_file.operation = "Importing"
+                                        sop_img_file.operating_application = "Survey Data Collector"
+                                        sop_img_file.caption = "Imported image"
+                                        sop_img_file.description = ""
+                                        
+                                        # Add the image to the boject.
+                                        sop_material.images.append(sop_img_file)
+                                    else:
+                                        print("File not found:" + main_org)
+                                    
+                                elif mat_head[i] == "raw":
+                                    
+                                    con_dir = os.path.join(CON_DIR, sop_material.consolidation)
+                                    itm_dir = os.path.join(mat_dir, sop_material.uuid)
+                                    
+                                    # Define the path for saving files.
+                                    img_path = os.path.join(itm_dir, "Images")
+                                    img_path_raw = os.path.join(img_path, "Raw")
+                                    
+                                    # Get the original image path.
+                                    raw_org = os.path.join(os.path.dirname(in_file[0]), entries[i])
+                                    ext = os.path.splitext(raw_org)[1]
+                                    
+                                    # Generate the GUID for the consolidation
+                                    raw_uuid = str(uuid.uuid4())
+                                    
+                                    # Get current time.
+                                    now = datetime.datetime.utcnow().isoformat()
+                                    
+                                    # Define the destination file path.
+                                    raw_dest = os.path.join(img_path_raw, raw_uuid + ext)
+                                    
+                                    if os.path.exists(raw_org):
+                                        # Copy the original file.
+                                        shutil.copy(raw_org, raw_dest)
+                                        
+                                        # Instantiate the File class.
+                                        sop_raw_file = features.File(is_new=True, uuid=None, dbfile=None)
+                                        sop_raw_file.material = sop_material.uuid
+                                        sop_raw_file.consolidation = sop_material.consolidation
+                                        sop_raw_file.filename = general.getRelativePath(raw_dest, "Consolidation")
+                                        sop_raw_file.created_date = now
+                                        sop_raw_file.modified_date = now
+                                        sop_raw_file.file_type = "image"
+                                        sop_raw_file.alias = "Imported"
+                                        sop_raw_file.status = "Original"
+                                        sop_raw_file.lock = False
+                                        sop_raw_file.public = False
+                                        sop_raw_file.source = "Nothing"
+                                        sop_raw_file.operation = "Importing"
+                                        sop_raw_file.operating_application = "Survey Data Collector"
+                                        sop_raw_file.caption = "Imported image"
+                                        sop_raw_file.description = ""
+                                        
+                                        # Add the image to the boject.
+                                        sop_material.images.append(sop_raw_file)
+                                    else:
+                                        print("File not found:" + raw_org)
+                                else:
+                                    sop_additional_attribute = features.AdditionalAttribute(is_new=True, uuid=None, dbfile=None)
+                                    sop_additional_attribute.key = mat_head[i]
+                                    sop_additional_attribute.value = entries[i]
+                                    sop_additional_attribute.datatype = "CharacterString"
+                                    sop_additional_attribute.description = ""
+                                    sop_material.additionalAttributes.append(sop_additional_attribute)
+                        # Insert the consolidation.
+                        sop_material.dbInsert(DATABASE)
+                    cnt_line += 1
+            # Refresh the tree view.
+            self.retriveProjectItems()
+        except Error as e:
+                self.errorUnknown("main::importConsolidationCSV(self)")
+                return(None)
+    
     def addMaterial(self):
         print("main::addMaterial(self)")
         
