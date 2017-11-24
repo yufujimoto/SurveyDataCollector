@@ -108,6 +108,9 @@ def createTables(dbfile):
         
         # Define the create table query for file class.
         createTableFile(dbfile)
+        
+        # Define the create table query for additional attribute class.
+        createTableAdditionalAttribute(dbfile)
     except Exception as e:
         print("Error occurs in general::createTables(dbfile)")
         print(str(e))
@@ -192,6 +195,31 @@ def createTableFile(dbfile):
                         description text,
                         FOREIGN KEY (con_id) REFERENCES consolidation (uuid) ON UPDATE CASCADE ON DELETE CASCADE,
                         FOREIGN KEY (mat_id) REFERENCES material (uuid) ON UPDATE CASCADE ON DELETE CASCADE
+                    );"""
+        
+        # Execute SQL create.
+        executeSql(dbfile, sql_create)
+    except Exception as e:
+        print("Error occurs in general::createTables(dbfile)")
+        print(str(e))
+        
+        # Return Nothing.
+        return(None)
+
+def createTableAdditionalAttribute(dbfile):
+    print("general::createTableAdditionalAttribute(dbfile)")
+    
+    try:
+        # Define the create table query for file class.
+        sql_create = """CREATE TABLE additional_attribute (
+                        id integer PRIMARY KEY,
+                        uuid text NOT NULL,
+                        ref_table text,
+                        ref_uuid text,
+                        key text,
+                        value text,
+                        datatype text,
+                        description text
                     );"""
         
         # Execute SQL create.
@@ -306,6 +334,29 @@ def checkFileTableFields(dbfile):
         checkFieldsExists(dbfile, "file", fil_fields)
     except Exception as e:
         print("Error occurs in general::checkFileTableFields(dbfile)")
+        print(str(e))
+        
+        # Return nothing.
+        return(None)
+    
+def checkAdditionalAttributeTableFields(dbfile):
+    print("general::checkAdditionalAttributeTableFields(dbfile)")
+    
+    try:
+        add_fields = [
+                        ("uuid", "text"),
+                        ("ref_table", "text"),
+                        ("mat_id", "text"),
+                        ("ref_uuid", "text"),
+                        ("key", "text"),
+                        ("value", "text"),
+                        ("datatype", "text"),
+                        ("description", "text")
+                    ]
+        # Check fields.
+        checkFieldsExists(dbfile, "additional_attribute", add_fields)
+    except Exception as e:
+        print("Error occurs in general::checkAdditionalAttributeTableFields(dbfile)")
         print(str(e))
         
         # Return nothing.

@@ -1785,7 +1785,59 @@
     <addaction name="act_prj_open"/>
     <addaction name="mem_prj_exp"/>
    </widget>
+   <widget class="QMenu" name="men_dat">
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>データ</string>
+    </property>
+    <widget class="QMenu" name="men_imp">
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>インポート</string>
+     </property>
+     <widget class="QMenu" name="men_imp_csv">
+      <property name="title">
+       <string>CSV File</string>
+      </property>
+      <addaction name="act_imp_csv_con"/>
+      <addaction name="act_imp_csv_mat"/>
+     </widget>
+     <widget class="QMenu" name="men_imp_xml">
+      <property name="title">
+       <string>XML File</string>
+      </property>
+      <addaction name="act_imp_gml"/>
+      <addaction name="act_imp_sop"/>
+     </widget>
+     <addaction name="men_imp_csv"/>
+     <addaction name="men_imp_xml"/>
+    </widget>
+    <widget class="QMenu" name="men_exp">
+     <property name="title">
+      <string>エクスポート</string>
+     </property>
+     <widget class="QMenu" name="mem_exp_csv">
+      <property name="title">
+       <string>CSV File</string>
+      </property>
+      <addaction name="act_exp_csv_con"/>
+      <addaction name="act_exp_csv_mat"/>
+     </widget>
+     <addaction name="mem_exp_csv"/>
+    </widget>
+    <addaction name="men_imp"/>
+    <addaction name="men_exp"/>
+   </widget>
    <addaction name="men_prj"/>
+   <addaction name="men_dat"/>
   </widget>
   <action name="actionCreate_New_Project">
    <property name="text">
@@ -1831,6 +1883,66 @@
   <action name="act_export_html">
    <property name="text">
     <string>Export as HTML</string>
+   </property>
+  </action>
+  <action name="act_imp_csv_con">
+   <property name="text">
+    <string>Consolidation</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="act_imp_csv_mat">
+   <property name="text">
+    <string>Materials</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionGML">
+   <property name="text">
+    <string>GML</string>
+   </property>
+  </action>
+  <action name="actionSOP">
+   <property name="text">
+    <string>SOP</string>
+   </property>
+  </action>
+  <action name="act_imp_gml">
+   <property name="text">
+    <string>GML</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="act_imp_sop">
+   <property name="text">
+    <string>SOP</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="act_exp_csv_con">
+   <property name="text">
+    <string>consolidation</string>
+   </property>
+  </action>
+  <action name="act_exp_csv_mat">
+   <property name="text">
+    <string>material</string>
    </property>
   </action>
  </widget>

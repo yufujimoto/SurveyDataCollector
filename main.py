@@ -522,9 +522,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.act_prj_open.triggered.connect(self.getTheRootDirectory)
         self.act_prj_open.setIcon(QIcon(QPixmap(os.path.join(ICN_DIR, 'ic_folder_open_black_24dp_1x.png'))))
         
-        
+        self.act_imp_csv_con.triggered.connect(self.importConsolidationCSV)
+        self.act_imp_csv_mat.triggered.connect(self.importMaterialCSV)
         self.act_export_html.triggered.connect(self.exportAsHtml)
-        
+        self.act_exp_csv_con.triggered.connect(self.exportConsolidationCSV)
         
         # Handle current selection of consolidations and materials.
         self.tre_prj_item.itemSelectionChanged.connect(self.toggleSelectedItem)
@@ -733,7 +734,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # General operation
     # ==========================
     def importExternalData(self):
-        print("main::tetheredShooting(self)")
+        print("main::importExternalData(self)")
         
         global CON_DIR
         
@@ -796,21 +797,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Create empty lists for storeing file names.
             img_files = list()
+            raw_files = list()
             snd_files = list()
             txt_files = list()
             mov_files = list()
+            err_files = list()
             
             # Define directories for storing files.
             in_dir = QFileDialog.getOpenFileNames(self, "ファイルの選択")
-            for in_fl in in_dir:
+            
+            for in_fl in in_dir[0]:
                 name, ext = os.path.splitext(in_fl)
                 
-                if ext.lower() == ".jpg" or ext.lower() == ".jpeg": img_path_main.append(in_fl)
-                if ext.lower() == ".wav" or ext.lower() == ".wave": snd_path.append(in_fl)
+                if (ext.lower() == ".jpg" or ext.lower() == ".jpeg"): img_files.append(in_fl)
+                if (ext.lower() == ".wav" or ext.lower() == ".wave"): snd_files.append(in_fl)
             
             # Move main images from the temporal directory to the object's directory.
-            if len(img_path_main) > 0:
-                for img_file in img_path_main:
+            
+            if len(img_files) > 0:
+                for img_file in img_files:
                     # Generate the GUID for the consolidation
                     img_uuid = str(uuid.uuid4())
                     
@@ -818,42 +823,304 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     now = datetime.datetime.utcnow().isoformat()
                     
                     # Define the destination file path.
-                    main_dest = os.path.join(img_main, img_uuid)
+                    main_dest = os.path.join(img_path_main, img_uuid+".jpg")
                     
                     # Copy the original file.
                     shutil.copy(img_file, main_dest)
                     
                     # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=None, dbfile=None)
-                    img_file.material = mat_uuid
-                    img_file.consolidation = con_uuid
-                    img_file.filename = general.getRelativePath(main_dest, "Consolidation")
-                    img_file.created_date = now
-                    img_file.modified_date = now
-                    img_file.file_type = "image"
-                    img_file.alias = "Imported"
-                    img_file.status = "Original"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = "Nothing"
-                    img_file.operation = "Imported Shooting"
-                    img_file.operating_application = "This system"
-                    img_file.caption = "Imported image"
-                    img_file.description = ""
+                    sop_img_file = features.File(is_new=True, uuid=None, dbfile=None)
+                    sop_img_file.material = mat_uuid
+                    sop_img_file.consolidation = con_uuid
+                    sop_img_file.filename = general.getRelativePath(main_dest, "Consolidation")
+                    sop_img_file.created_date = now
+                    sop_img_file.modified_date = now
+                    sop_img_file.file_type = "image"
+                    sop_img_file.alias = "Imported"
+                    sop_img_file.status = "Original"
+                    sop_img_file.lock = False
+                    sop_img_file.public = False
+                    sop_img_file.source = "Nothing"
+                    sop_img_file.operation = "Importing"
+                    sop_img_file.operating_application = "Survey Data Collector"
+                    sop_img_file.caption = "Imported image"
+                    sop_img_file.description = ""
                     
                     # Execute the SQL script.
-                    img_file.dbInsert(DATABASE)
+                    sop_img_file.dbInsert(DATABASE)
                     
                     # Add the image to the boject.
-                    sop_object.images.insert(0, img_file)
+                    sop_object.images.insert(0, sop_img_file)
             
-            # Remove tethered path from the temporal directory.
-            shutil.rmtree(tethered_path)
+            if len(raw_files) > 0:
+                for raw_file in raw_files:
+                    # Get original file name and its extention.
+                    name, ext = os.path.splitext(raw_file)
+                    
+                    # Generate the GUID for the consolidation
+                    raw_uuid = str(uuid.uuid4())
+                    
+                    # Get current time.
+                    now = datetime.datetime.utcnow().isoformat()
+                    
+                    # Define the destination file path.
+                    raw_dest = os.path.join(img_path_raw, raw_uuid + ext)
+                    
+                    # Copy the original file.
+                    shutil.copy(raw_file, raw_dest)
+                    
+                    # Instantiate the File class.
+                    sop_raw_file = features.File(is_new=True, uuid=None, dbfile=None)
+                    sop_raw_file.material = mat_uuid
+                    sop_raw_file.consolidation = con_uuid
+                    sop_raw_file.filename = general.getRelativePath(main_dest, "Consolidation")
+                    sop_raw_file.created_date = now
+                    sop_raw_file.modified_date = now
+                    sop_raw_file.file_type = "image"
+                    sop_raw_file.alias = "Imported"
+                    sop_raw_file.status = "Original"
+                    sop_raw_file.lock = False
+                    sop_raw_file.public = False
+                    sop_raw_file.source = "Nothing"
+                    sop_raw_file.operation = "Importing"
+                    sop_raw_file.operating_application = "Survey Data Collector"
+                    sop_raw_file.caption = "Imported image"
+                    sop_raw_file.description = ""
+                    
+                    # Execute the SQL script.
+                    sop_raw_file.dbInsert(DATABASE)
+                    
+                    # Add the image to the boject.
+                    sop_object.images.insert(0, sop_raw_file)
+                    
+            if len(snd_files) > 0:
+                for snd_file in snd_files:
+                    # Generate the GUID for the consolidation
+                    snd_uuid = str(uuid.uuid4())
+                    
+                    # Get current time.
+                    now = datetime.datetime.utcnow().isoformat()
+                    
+                    # Define the destination file path.
+                    snd_dest = os.path.join(snd_path, snd_uuid+".wav")
+                    
+                    # Copy the original file.
+                    shutil.copy(snd_file, snd_dest)
+                    
+                    # Instantiate the File class.
+                    sop_snd_file = features.File(is_new=True, uuid=None, dbfile=None)
+                    sop_snd_file.material = mat_uuid
+                    sop_snd_file.consolidation = con_uuid
+                    sop_snd_file.filename = general.getRelativePath(snd_dest, "Consolidation")
+                    sop_snd_file.created_date = now
+                    sop_snd_file.modified_date = now
+                    sop_snd_file.file_type = "audio"
+                    sop_snd_file.alias = "Imported"
+                    sop_snd_file.status = "Original"
+                    sop_snd_file.lock = True
+                    sop_snd_file.public = False
+                    sop_snd_file.source = "Nothing"
+                    sop_snd_file.operation = "Importing"
+                    sop_snd_file.operating_application = "Survey Data Collector"
+                    sop_snd_file.caption = "Original audio"
+                    sop_snd_file.description = ""
+                    
+                    # Insert the new entry into the database.
+                    sop_snd_file.dbInsert(DATABASE)
+                    
+                    # Add the image to the boject.
+                    sop_object.sounds.insert(0, sop_snd_file)
             
             # Refresh the file list.
             self.refreshFileList(sop_object)
         except Error as e:
             self.errorUnknown("main::tetheredShooting(self)")
+            return(None)
+    
+    def importMaterialCSV(self):
+        print("main::importMaterialCSV(self)")
+        
+        try:    
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Define directories for storing files.
+            in_file = QFileDialog.getOpenFileName(self, "資料のファイルの選択")
+            
+            # Open and read the imported csv file.
+            with open(in_file[0]) as table:
+                # Initialyze the counter for reading line.
+                cnt_line = 0
+                
+                # Initialyze the variables.
+                feat_type = dict()
+                mat_head = dict()
+                
+                for line in table:
+                    line = line.strip()
+                    
+                    # Parsing each line.
+                    if cnt_line == 0:
+                        # The case of header line.
+                        cnt_haeder = 0
+                        
+                        # Read the header line with comma.
+                        headers = line.split(",")
+                        
+                        for header in headers:
+                            # Separate the class name and the attribute name with a period.
+                            cls, item = header.split(".")
+                            
+                            if cls == "material":
+                                feat_type[cnt_haeder] = "material"
+                                
+                                if item == "consolidation": mat_head[cnt_haeder] = "consolidation"
+                                elif item == "name": mat_head[cnt_haeder] = "name"
+                                elif item == "material_number": mat_head[cnt_haeder] = "material_number"
+                                elif item == "estimated_period_beginning": mat_head[cnt_haeder] = "estimated_period_beginning"
+                                elif item == "estimated_period_peak": mat_head[cnt_haeder] = "estimated_period_peak"
+                                elif item == "estimated_period_ending": mat_head[cnt_haeder] = "estimated_period_ending"
+                                elif item == "latitude": mat_head[cnt_haeder] = "latitude"
+                                elif item == "longitude": mat_head[cnt_haeder] = "longitude"
+                                elif item == "altitude": mat_head[cnt_haeder] = "altitude"
+                                elif item == "description": mat_head[cnt_haeder] = "description"
+                                elif item == "main": mat_head[cnt_haeder] = "main"
+                                elif item == "raw": mat_head[cnt_haeder] = "raw"
+                                elif item == "sound": mat_head[cnt_haeder] = "sound"
+                                elif item == "text": mat_head[cnt_haeder] = "text"
+                                elif item == "movie": mat_head[cnt_haeder] = "movie"
+                                else: mat_head[cnt_haeder] = item
+                                
+                                cnt_haeder += 1
+                    else:
+                        entries = line.split(",")
+                        
+                        sop_material = features.Material(is_new=True, uuid=None, dbfile=None)
+                        sop_material.uuid = str(uuid.uuid4())
+                        
+                        for i in range(len(entries)):
+                            # Give a NULL value if the entry is empty.
+                            if entries[i] == "" : entries[i] = "NULL"
+                            
+                            # Convert the string to the unicode.
+                            if isinstance(entries[i], str): entries[i] = entries[i].decode('utf-8')
+                                                    
+                            # Check the class of the current entry.
+                            if feat_type[i] == "material":
+                                if mat_head[i] == "consolidation": sop_material.consolidation = entries[i]
+                                elif mat_head[i] == "name": sop_material.name = entries[i]
+                                elif mat_head[i] == "material_number": sop_material.material_number = entries[i]
+                                elif mat_head[i] == "estimated_period_beginning": sop_material.estimated_period_beginning = entries[i]
+                                elif mat_head[i] == "estimated_period_peak": sop_material.estimated_period_peak = entries[i]
+                                elif mat_head[i] == "estimated_period_ending": sop_material.estimated_period_ending = entries[i]
+                                elif mat_head[i] == "latitude": sop_material.latitude = entries[i]
+                                elif mat_head[i] == "longitude": sop_material.longitude = entries[i]
+                                elif mat_head[i] == "altitude": sop_material.altitude = entries[i]
+                                elif mat_head[i] == "description": sop_material.description = entries[i]
+                                else:
+                                    sop_additional_attribute = features.AdditionalAttribute(is_new=True, uuid=None, dbfile=None)
+                                    sop_additional_attribute.key = mat_head[i]
+                                    sop_additional_attribute.value = entries[i]
+                                    sop_additional_attribute.datatype = "CharacterString"
+                                    sop_additional_attribute.description = ""
+                                    sop_material.additionalAttributes.append(sop_additional_attribute)
+                        # Insert the consolidation.
+                        print("hoge")
+                        sop_material.dbInsert(DATABASE)
+                        
+                        # Create a directory to store consolidation.
+                        con_dir = os.path.join(CON_DIR, sop_material.consolidation)
+                        mat_dir = os.path.join(con_dir, "Materials")
+                        
+                        general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
+                    cnt_line += 1
+            # Refresh the tree view.
+            self.retriveProjectItems()
+        except Error as e:
+                self.errorUnknown("main::importConsolidationCSV(self)")
+                return(None)
+    
+    def retriveProjectItems(self):
+        print("main::retriveProjectItems(self)")
+        
+        # Initialyze the tree view.
+        self.tre_prj_item.clear()
+        
+        # Reflesh the last selection.
+        self.refreshItemInfo()
+        
+        # Create a sqLite file if not exists. 
+        try:
+            # Establish the connection to the DataBase file.
+            conn = sqlite.connect(DATABASE)
+            
+            if conn is not None:
+                # Create the SQL query for selecting consolidation.
+                sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
+                
+                # Create the SQL query for selecting the consolidation.
+                sql_mat_sel = """SELECT uuid, name, description FROM material WHERE con_id=?"""
+                
+                # Instantiate the cursor for query.
+                cur_con = conn.cursor()
+                rows_con = cur_con.execute(sql_con_sel)
+                
+                # Execute the query and get consolidation recursively
+                for row_con in rows_con:
+                    # Get attributes from the row.
+                    con_uuid = row_con[0]
+                    con_name = row_con[1]
+                    con_description = row_con[2]
+                    
+                    # Convert the NULL value to the empty entry.
+                    if con_uuid == None or con_uuid == "NULL": con_uuid = ""
+                    if con_name == None or con_name == "NULL": con_name = ""
+                    if con_description == None or con_description == "NULL": con_description = ""
+                    
+                    # Update the tree view.
+                    tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
+                    
+                    tre_prj_con_items.setText(0, con_uuid)
+                    tre_prj_con_items.setText(1, con_name)
+                    
+                    # Instantiate the cursor for query.
+                    cur_mat = conn.cursor()
+                    rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
+                    
+                    for row_mat in rows_mat:
+                        # Get attributes from the row.
+                        mat_uuid = row_mat[0]
+                        mat_name = row_mat[1]
+                        mat_description = row_mat[2]
+                        
+                        # Convert the NULL value to the empty entry.
+                        if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
+                        if mat_name == None or mat_name == "NULL": mat_name = ""
+                        if mat_description == None or mat_description == "NULL": mat_description = ""
+                        
+                        # Update the tree view.
+                        tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
+                        
+                        tre_prj_mat_items.setText(0, mat_uuid)
+                        tre_prj_mat_items.setText(1, mat_name)
+                        
+                    # Refresh the tree view.
+                    self.tre_prj_item.show()
+                    
+                    self.tre_prj_item.resizeColumnToContents(0)
+                    self.tre_prj_item.resizeColumnToContents(1)
+        except Error as e:
+            # Connection error.
+            error_title = "エラーが発生しました"
+            error_msg = "データベースの情報を取得できません。"
+            error_info = "エラーの詳細を確認してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = e.args[0]
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
             return(None)
     
     def getTheRootDirectory(self):
@@ -933,64 +1200,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     if not general.checkTableExist(DATABASE, "consolidation"): general.createTableConsolidation(DATABASE)
                     if not general.checkTableExist(DATABASE, "material"): general.createTableMaterial(DATABASE)
                     if not general.checkTableExist(DATABASE, "file"): general.createTableFile(DATABASE)
+                    if not general.checkTableExist(DATABASE, "additional_attribute"): general.createTableAdditionalAttribute(DATABASE)
                     
                     # Check wether columns exists or not.
                     general.checkConsolidationTableFields(DATABASE)
                     general.checkMaterialTableFields(DATABASE)
                     general.checkFileTableFields(DATABASE)
+                    general.checkFileTableFields(DATABASE)
                     
-                    # Create the SQL query for selecting consolidation.
-                    sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
+                    # Reconstruct the tree view for project items. 
+                    self.retriveProjectItems()
                     
-                    # Create the SQL query for selecting the consolidation.
-                    sql_mat_sel = """SELECT uuid, name, description FROM material WHERE con_id=?"""
-                    
-                    # Instantiate the cursor for query.
-                    cur_con = conn.cursor()
-                    rows_con = cur_con.execute(sql_con_sel)
-                    
-                    # Execute the query and get consolidation recursively
-                    for row_con in rows_con:
-                        # Get attributes from the row.
-                        con_uuid = row_con[0]
-                        con_name = row_con[1]
-                        con_description = row_con[2]
-                        
-                        if con_uuid == None or con_uuid == "NULL": con_uuid = ""
-                        if con_name == None or con_name == "NULL": con_name = ""
-                        if con_description == None or con_description == "NULL": con_description = ""
-                        
-                        # Update the tree view.
-                        tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
-                        
-                        tre_prj_con_items.setText(0, con_uuid)
-                        tre_prj_con_items.setText(1, con_name)
-                        
-                        # Instantiate the cursor for query.
-                        cur_mat = conn.cursor()
-                        rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
-                            
-                        for row_mat in rows_mat:
-                            # Get attributes from the row.
-                            mat_uuid = row_mat[0]
-                            mat_name = row_mat[1]
-                            mat_description = row_mat[2]
-                            
-                            if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
-                            if mat_name == None or mat_name == "NULL": mat_name = ""
-                            if mat_description == None or mat_description == "NULL": mat_description = ""
-                            
-                            # Update the tree view.
-                            tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
-                            
-                            tre_prj_mat_items.setText(0, mat_uuid)
-                            tre_prj_mat_items.setText(1, mat_name)
-                            
-                        # Refresh the tree view.
-                        self.tre_prj_item.show()
-                        
-                        self.tre_prj_item.resizeColumnToContents(0)
-                        self.tre_prj_item.resizeColumnToContents(1)
             except Error as e:
                 # Connection error.
                 error_title = "エラーが発生しました"
@@ -1349,6 +1569,245 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Consolidation
     # ==========================
+    def importConsolidationCSV(self):
+        print("main::importConsolidationCSV(self)")
+        
+        try:    
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Define directories for storing files.
+            in_file = QFileDialog.getOpenFileName(self, "統合体ファイルの選択")
+            
+            # Open and read the imported csv file.
+            with open(in_file[0]) as table:
+                # Initialyze the counter for reading line.
+                cnt_line = 0
+                
+                # Initialyze the variables.
+                feat_type = dict()
+                con_head = dict()
+                mat_head = dict()
+                
+                for line in table:
+                    line = line.strip()
+                    
+                    # Parsing each line.
+                    if cnt_line == 0:
+                        # The case of header line.
+                        cnt_haeder = 0
+                        
+                        # Read the header line with comma.
+                        headers = line.split(",")
+                        
+                        for header in headers:
+                            # Separate the class name and the attribute name with a period.
+                            cls, item = header.split(".")
+                            
+                            # If the class is consolidation.
+                            if cls == "consolidation":
+                                # Create a dictionary for parsing each entry. 
+                                feat_type[cnt_haeder] = "consolidation"
+                                
+                                if item == "uuid": con_head[cnt_haeder] = "uuid"
+                                elif item == "name": con_head[cnt_haeder] = "name"
+                                elif item == "geographic_annotation": con_head[cnt_haeder] = "geographic_annotation"
+                                elif item == "temporal_annotation": con_head[cnt_haeder] = "temporal_annotation"
+                                elif item == "description": con_head[cnt_haeder] = "description"
+                                elif item == "main": con_head[cnt_haeder] = "main"
+                                elif item == "raw": con_head[cnt_haeder] = "raw"
+                                elif item == "sound": con_head[cnt_haeder] = "sound"
+                                elif item == "text": con_head[cnt_haeder] = "text"
+                                elif item == "movie": con_head[cnt_haeder] = "movie"
+                                else: con_head[cnt_haeder] = item
+                                
+                                cnt_haeder += 1
+                    else:
+                        # The case of entry lines.
+                        entries = line.split(",")
+                                                
+                        # Create a new SOP object of consolidation.
+                        sop_consolidation = features.Consolidation(is_new=True, uuid=None, dbfile=None)
+                        
+                        for i in range(len(entries)):
+                            # Give a NULL value if the entry is empty.
+                            if entries[i] == "" : entries[i] = "NULL"
+                            
+                            # Convert the string to the unicode.
+                            if isinstance(entries[i], str): entries[i] = entries[i].decode('utf-8')
+                            
+                            # Check the class of the current entry.
+                            if feat_type[i] == "consolidation":
+                                if con_head[i] == "uuid":
+                                    if entries[i] != None:
+                                        sop_consolidation.uuid = entries[i]
+                                    else:
+                                        sop_consolidation.uuid = str(uuid.uuid4())
+                                elif con_head[i] == "name": sop_consolidation.name = entries[i]
+                                elif con_head[i] == "geographic_annotation": sop_consolidation.geographic_annotation = entries[i]
+                                elif con_head[i] == "temporal_annotation": sop_consolidation.temporal_annotation = entries[i]
+                                elif con_head[i] == "description": sop_consolidation.description = entries[i]
+                                else:
+                                    sop_additional_attribute = features.AdditionalAttribute(is_new=True, uuid=None, dbfile=None)
+                                    sop_additional_attribute.key = con_head[i]
+                                    sop_additional_attribute.value = entries[i]
+                                    sop_additional_attribute.datatype = "CharacterString"
+                                    sop_additional_attribute.description = ""
+                                    sop_consolidation.additionalAttributes.append(sop_additional_attribute)
+                        # Insert the consolidation.
+                        sop_consolidation.dbInsert(DATABASE)
+                        
+                        # Create a directory to store consolidation.
+                        general.createDirectories(os.path.join(CON_DIR,sop_consolidation.uuid), True)
+                    cnt_line += 1
+            # Refresh the tree view.
+            self.retriveProjectItems()
+        except Error as e:
+                self.errorUnknown("main::importConsolidationCSV(self)")
+                return(None)
+    
+    def exportConsolidationCSV(self):
+        print("main::exportConsolidationCSV(self)")
+        
+         # Create a sqLite file if not exists. 
+        try:
+            # Exit if the root directory is not loaded.
+            if ROOT_DIR == None: self.errorProjectNotOpened(); return(None)
+            
+            # Get the output file name by using file save dialog.
+            output, output_type = QFileDialog.getSaveFileName(self, "Export to", "output.csv","Images (*.csv)")
+            
+            if not output: return(None)
+            
+            # Open the file stream
+            output_csv = open(output,"w")
+            
+            # Establish the connection to the DataBase file.
+            conn = sqlite.connect(DATABASE)
+            
+            if conn is not None:
+                header_line = ""
+                
+                # Create a header.
+                headers = [
+                    "consolidation.uuid",
+                    "consolidation.name",
+                    "consolidation.geographic_annotation",
+                    "consolidation.temporal_annotation",
+                    "consolidation.description",
+                ]
+                # Write the header
+                for header in headers:
+                    header_line = header_line + header + ","
+                
+                # Write the hader line.
+                output_csv.writelines(header_line.rstrip(",") + "\n")
+                
+                # Create the SQL query for selecting consolidation.
+                sql_con_sel = """SELECT uuid FROM consolidation"""
+                
+                # Instantiate the cursor for query.
+                cur_con = conn.cursor()
+                rows_con = cur_con.execute(sql_con_sel)
+                
+                # Execute the query and get consolidation recursively
+                for row_con in rows_con:
+                    # Get attributes from the row.
+                    con_uuid = row_con[0]
+                    
+                    # Instantiate the consolidation.
+                    sop_consolidation = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+                    
+                    con_values = [
+                        sop_consolidation.uuid,
+                        sop_consolidation.name,
+                        sop_consolidation.geographic_annotation,
+                        sop_consolidation.temporal_annotation,
+                        sop_consolidation.description
+                    ]
+                    
+                    con_generic_values = ""
+                    con_additional_values = ","
+                    
+                    for con_value in con_values:
+                        if isinstance(con_value, unicode) : con_value = con_value.encode('utf-8')
+                        
+                        con_generic_values = con_generic_values + "," + str(con_value).encode('utf-8')
+                        
+                    if not (sop_consolidation.additionalAttributes == None or len(sop_consolidation.additionalAttributes) <= 0):
+                        con_additional_values = "{"
+                        
+                        for additionalAttribute in sop_consolidation.additionalAttributes:
+                            con_add_key = additionalAttribute.key
+                            con_add_val = additionalAttribute.value
+                            
+                            if isinstance(con_add_key, unicode) : con_add_key = con_add_key.encode('utf-8')
+                            if isinstance(con_add_val, unicode) : con_add_val = con_add_val.encode('utf-8')
+                            
+                            con_additional_values = "(" + con_add_key + ":" + con_add_val + ")"
+                        
+                        # Close the bracket.
+                        con_additional_values = con_additional_values + "}"
+                    
+                    # Writet the attribute lines.
+                    output_csv.writelines(con_generic_values.lstrip(",") + con_additional_values + "\n")
+                    
+                    '''
+                    # Create the SQL query for selecting the consolidation.
+                    sql_mat_sel = """SELECT uuid FROM material"""
+                    
+                    # Instantiate the cursor for query.
+                    cur_mat = conn.cursor()
+                    rows_mat = cur_mat.execute(sql_mat_sel)
+                    
+                    for row_mat in rows_mat:
+                        # Get attributes from the row.
+                        mat_uuid = row_mat[0]
+                        
+                        sop_material = features.Material(is_new=False, uuid=con_uuid, dbfile=DATABASE)
+                        
+                        mat_values = [
+                            sop_material.uuid,
+                            sop_material.name,
+                            sop_material.material_number,
+                            sop_material.estimated_period_beginning,
+                            sop_material.estimated_period_peak,
+                            sop_material.estimated_period_ending,
+                            sop_material.latitude,
+                            sop_material.longitude,
+                            sop_material.altitude,
+                            sop_material.description
+                        ]
+                        
+                        mat_generic_values = ""
+                        mat_additional_values = "{"
+                        
+                        for mat_value in mat_values:
+                            mat_generic_values = mat_generic_values + "," + str(mat_value)
+                        
+                        for additionalAttribute in sop_material.additionalAttributes:
+                            mat_add_key = str(additionalAttribute.key)
+                            mat_add_val = str(additionalAttribute.value)
+                            
+                            mat_additional_values = "(" + str(mat_add_key) + ":" + str(mat_add_val) + ")"
+                        
+                        # Close the bracket.
+                        mat_additional_values = mat_additional_values + "}"
+                    '''
+        except Error as e:
+            # Connection error.
+            error_title = "エラーが発生しました"
+            error_msg = "データベースの情報を取得できません。"
+            error_info = "エラーの詳細を確認してください。"
+            error_icon = QMessageBox.Critical
+            error_detailed = e.args[0]
+            
+            # Handle error.
+            general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+            
+            # Returns nothing.
+            return(None)
+    
     def addConsolidation(self):
         print("main::addConsolidation(self)")
         
@@ -1931,9 +2390,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_mat_tmp_bgn.setText(material.estimated_period_beginning)
             self.tbx_mat_tmp_mid.setText(material.estimated_period_peak)
             self.tbx_mat_tmp_end.setText(material.estimated_period_ending)
-            self.tbx_mat_geo_lat.setText(material.latitude)
-            self.tbx_mat_geo_lon.setText(material.longitude)
-            self.tbx_mat_geo_alt.setText(material.altitude)
+            self.tbx_mat_geo_lat.setText(str(material.latitude))
+            self.tbx_mat_geo_lon.setText(str(material.longitude))
+            self.tbx_mat_geo_alt.setText(str(material.altitude))
             self.tbx_mat_description.setText(material.description)
             
             self.toggleEditModeForMaterial()
@@ -2342,6 +2801,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         # Get the image path.
                         return(sop_file)
                     else:
+                        print(sop_file.file_type)
                         # Create error messages.
                         error_title = "画像編集エラー"
                         error_msg = "選択中のファイルは画像ファイルではありません。"
@@ -2389,7 +2849,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     ext = os.path.splitext(img_path)[1].lower()
                     print(ext)
                     # Cancel if the file extension is not JPEG.
-                    if not ext == ".jpg" or ext == ".jpeg":
+                    if not (ext == ".jpg" or ext == ".jpeg"):
                         # Create error messages.
                         self.errorImageFileHandling()
                         
@@ -2508,7 +2968,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     # Create error messages.
                     self.errorImageFileHandling()
                     
@@ -2548,7 +3008,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.public = False
                 img_file.source = sop_file.uuid
                 img_file.operation = "Rotating " + str(angle) + " degree"
-                img_file.operating_application = "This System"
+                img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Rotated(" + str(angle) + " degree)"
                 img_file.description = "Rotated(" + str(angle) + " degree) by this system."
                 
@@ -2595,7 +3055,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     # Create error messages.
                     self.errorImageFileHandling()
                     
@@ -2635,7 +3095,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.public = False
                 img_file.source = sop_file.uuid
                 img_file.operation = "Grayscaling"
-                img_file.operating_application = "This System"
+                img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Grayscale version"
                 img_file.description = "Make grayscale by this system."
                 
@@ -2685,7 +3145,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     # Create error messages.
                     self.errorImageFileHandling()
                     
@@ -2725,7 +3185,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.public = False
                 img_file.source = sop_file.uuid
                 img_file.operation = "Normalizing"
-                img_file.operating_application = "This System"
+                img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Normalized version"
                 img_file.description = "Make normalized by this system."
                 
@@ -2775,7 +3235,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     self.errorImageFileHandling()
                     
                     # Returns nothing.
@@ -2814,7 +3274,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.public = False
                 img_file.source = sop_file.uuid
                 img_file.operation = "Cropping"
-                img_file.operating_application = "This System"
+                img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Cropped version"
                 img_file.description = "Make cropped by this system."
                 
@@ -2863,8 +3323,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     # Create error messages.
+                    print(ext)
                     self.errorImageFileHandling()
                     
                     # Returns nothing.
@@ -2904,7 +3365,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.public = False
                 img_file.source = sop_file.uuid
                 img_file.operation = "Cropping"
-                img_file.operating_application = "This System"
+                img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Cropped version"
                 img_file.description = "Make cropped by this system."
                 
@@ -2953,7 +3414,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 ext = os.path.splitext(img_path)[1].lower()
                 
                 # Cancel if the file extension is not JPEG.
-                if not ext == ".jpg" or ext == ".jpeg":
+                if not (ext == ".jpg" or ext == ".jpeg"):
                     self.errorImageFileHandling()
                     
                     # Returns nothing.
@@ -3025,7 +3486,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             sop_file.lock = True
             sop_file.public = False
             sop_file.operation = "Removing"
-            sop_file.operating_application = "This System"
+            sop_file.operating_application = "Survey Data Collector"
             sop_file.caption = "Removed"
             
             # Get the image path.
@@ -3272,7 +3733,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         snd_file.public = False
                         snd_file.source = "Nothing"
                         snd_file.operation = "Audio Recording"
-                        snd_file.operating_application = "This system"
+                        snd_file.operating_application = "Survey Data Collector"
                         snd_file.caption = "Original audio"
                         snd_file.description = ""
                         
@@ -3419,7 +3880,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             img_file.public = False
                             img_file.source = "Nothing"
                             img_file.operation = "Tethered Shooting"
-                            img_file.operating_application = "This system"
+                            img_file.operating_application = "Survey Data Collector"
                             img_file.caption = "Original image"
                             img_file.description = ""
                             
@@ -3454,7 +3915,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             raw_file.public = False
                             raw_file.source = "Nothing"
                             raw_file.operation = "Tethered Shooting"
-                            raw_file.operating_application = "This system"
+                            raw_file.operating_application = "Survey Data Collector"
                             raw_file.caption = "Original image"
                             raw_file.description = ""
                             

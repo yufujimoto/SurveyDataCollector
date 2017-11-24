@@ -136,6 +136,7 @@ class Consolidation(SimpleObject):
             self._temporal_annotation = None
             self._images = list()
             self._sounds = list()
+            self._additionalAttributes = list()
             self._description = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
@@ -155,6 +156,8 @@ class Consolidation(SimpleObject):
     @property
     def sounds(self): return self._sounds
     @property
+    def additionalAttributes(self): return self._additionalAttributes
+    @property
     def description(self): return self._description
     
     @name.setter
@@ -167,11 +170,15 @@ class Consolidation(SimpleObject):
     def images(self, value): self._images = value
     @sounds.setter
     def sounds(self, value): self._sounds = value
+    @additionalAttributes.setter
+    def additionalAttributes(self, value): self._additionalAttributes = value
     @description.setter
     def description(self, value): self._description = value
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
+        print("Consolidation::_initInstanceByUuid(self, uuid, dbfile)")
+        
         # Make the SQL statement.
         sql_select = """SELECT  id,
                                 name,
@@ -192,11 +199,14 @@ class Consolidation(SimpleObject):
             self._temporal_annotation = entry[3]
             self._images = self._getFileList(dbfile, "image")
             self._sounds = self._getFileList(dbfile, "audio")
+            self._additionalAttributes = self._getAdditionalAttributes(dbfile)
             self._description = entry[4]
         else:
             return(None)
     
     def dbInsert(self, dbfile):
+        print("consolidation::dbInsert(self, dbfile)")
+        
         # Insert a new record into the database
         values = [
             self._uuid,
@@ -217,8 +227,20 @@ class Consolidation(SimpleObject):
         
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_insert, values)
+        
+        # Insert images of the Consolidation.
+        for image in self._images: image.dbInsert(dbfile)
+        
+        # Insert sounds of the Consolidation.
+        for sound in self._sounds: sound.dbInsert(dbfile)
+        
+        # Insert additional attributes.
+        for additionalAttribute in self._additionalAttributes:
+            print("hoge")
+            additionalAttribute.dbInsert(dbfile, "consolidation", self._uuid)
     
     def dbUpdate(self, dbfile):
+        print("consolidation::dbUpdate(self, dbfile)")
         # Insert a new record into the database
         values = [
             self._name,
@@ -239,8 +261,19 @@ class Consolidation(SimpleObject):
         
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_update, values)
+        
+        # Insert images of the Consolidation.
+        for image in self._images: image.dbUpdate(dbfile)
+        
+        # Insert sounds of the Consolidation.
+        for sound in self._sounds: sound.dbUpdate(dbfile)
+        
+        # Insert additional attributes.
+        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbUpdate(dbfile)
     
     def dbDrop(self, dbfile):
+        print("Consolidation::dbDrop(self, dbfile)")
+        
         # Dropt the exsiting entry from the DB.
         values = [self._uuid]
         
@@ -263,6 +296,9 @@ class Consolidation(SimpleObject):
             # Execute the query.
             sop_files = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
             
+            # Exit if there are no entries.
+            if sop_files == None or len(sop_files) == 0: return(None)
+            
             # Create sop image ojects from the DB table.
             for sop_file in sop_files:
                 sop_file_list.append(File(is_new=False, uuid=sop_file[0], dbfile=dbfile))
@@ -271,6 +307,30 @@ class Consolidation(SimpleObject):
         except Exception as e:
             print(str(e))
     
+    def _getAdditionalAttributes(self, dbfile):
+        print("Consolidation::_getAdditionalAttributes(self, dbfile)")
+        
+        # Initialyze the return value.
+        sop_attr_list = list()
+        
+        try:
+            # Get image files related to the consolidation.
+            sql_select = """SELECT uuid FROM additional_attribute WHERE ref_table = 'consolidation' AND ref_uuid=?;"""
+            
+            # Execute the query.
+            sop_attrs = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid])
+            
+            # Exit if there are no entries.
+            if (sop_attrs == None or len(sop_attrs) <= 0): return(sop_attr_list)
+            
+            # Create sop image ojects from the DB table.
+            for sop_attr in sop_attrs:
+                sop_attr_list.append(AdditionalAttribute(is_new=False, uuid=sop_attr[0], dbfile=dbfile, ref_table="consolidation", ref_uuid=self._uuid))
+            
+            return(sop_attr_list)
+        except Exception as e:
+            print(str(e))
+        
 class Material(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
         # Initialize the super class.
@@ -287,9 +347,10 @@ class Material(SimpleObject):
             self._longitude = None
             self._altitude = None
             self._material_number = None
-            self._description = None
             self._images = list()
             self._sounds = list()
+            self._additionalAttributes = list()
+            self._description = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
             self._initInstanceByUuid(uuid, dbfile)
@@ -320,7 +381,9 @@ class Material(SimpleObject):
     @property
     def sounds(self): return self._sounds
     @property
-    def description(self): return self._description    
+    def additionalAttributes(self): return self._additionalAttributes
+    @property
+    def description(self): return self._description
     
     @consolidation.setter
     def consolidation(self, value): self._consolidation = value
@@ -344,11 +407,15 @@ class Material(SimpleObject):
     def images(self, value): self._images = value
     @sounds.setter
     def sounds(self, value): self._sounds = value
+    @additionalAttributes.setter
+    def additionalAttributes(self, value): self._additionalAttributes = value
     @description.setter
     def description(self, value): self._description = value
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
+        print("Material::_initInstanceByUuid(self, uuid, dbfile)")
+        
         # Make the SQL statement.
         sql_select = """SELECT  id,
                                 con_id,
@@ -383,11 +450,14 @@ class Material(SimpleObject):
             self._material_number = entry[10]
             self._images = self._getFileList(dbfile, "image")
             self._sounds = self._getFileList(dbfile, "audio")
+            self._additionalAttributes = self._getAdditionalAttributes(dbfile)
             self._description = entry[11]
         else:
             return(None)
     
     def dbInsert(self, dbfile):
+        print("Material::dbInsert(self, dbfile)")
+        
         # Insert a new record into the database
         values = [
             self._uuid,
@@ -420,8 +490,19 @@ class Material(SimpleObject):
         
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_insert, values)
+        
+        # Insert images of the Consolidation.
+        for image in self._images: image.dbInsert(dbfile)
+        
+        # Insert sounds of the Consolidation.
+        for sound in self._sounds: sound.dbInsert(dbfile)
+        
+        # Insert additional attributes.
+        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbInsert(dbfile, "material", self._uuid)
     
     def dbUpdate(self, dbfile):
+        print("Material::dbUpdate(self, dbfile)")
+        
         # Insert a new record into the database
         values = [
             self._name,
@@ -452,8 +533,19 @@ class Material(SimpleObject):
         
         # Execute the query.
         super(Material, self).excuteSQL(dbfile, sql_update, values)
+        
+        # Insert images of the Consolidation.
+        for image in self._images: image.dbUpdate(dbfile)
+        
+        # Insert sounds of the Consolidation.
+        for sound in self._sounds: sound.dbUpdate(dbfile)
+        
+        # Insert additional attributes.
+        for additionalAttribute in self._additionalAttributes: additionalAttribute.dbUpdate(dbfile)
     
     def dbDrop(self, dbfile):
+        print("Material::dbDrop(self, dbfile)")
+        
         # Dropt the exsiting entry from the DB.
         values = [self._uuid]
         
@@ -482,6 +574,27 @@ class Material(SimpleObject):
             return(sop_file_list)
         except:
             print("Error in instantiating the File object.")
+    
+    def _getAdditionalAttributes(self, dbfile):
+        print("Material::_getAdditionalAttributes(self, dbfile)")
+        
+        # Initialyze the return value.
+        sop_attr_list = list()
+        
+        try:
+            # Get image files related to the consolidation.
+            sql_select = """SELECT uuid FROM additional_attribute WHERE ref_table = 'material' AND ref_uuid=? ORDER BY id;"""
+            
+            # Execute the query.
+            sop_attrs = super(Material, self).fetchAllSQL(dbfile, sql_select, [self._uuid])
+            
+            # Create sop image ojects from the DB table.
+            for sop_attr in sop_attrs:
+                sop_attr_list.append(AdditionalAttribute(is_new=False, uuid=sop_attr[0], dbfile=dbfile, ref_table="material", ref_uuid=self._uuid))
+                
+            return(sop_attr_list)
+        except Exception as e:
+            print(str(e))
 
 class File(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
@@ -745,6 +858,133 @@ class File(SimpleObject):
             print("Error occurs in XML output.")
             return(None)
 
+class AdditionalAttribute(SimpleObject):
+    def __init__(self, is_new = True, uuid=None, dbfile=None, ref_table=None, ref_uuid=None):
+        # Initialize the super class.
+        SimpleObject.__init__(self, is_new, uuid, dbfile)
+        
+        if is_new == True and dbfile == None:
+            # Initialize as the new instance.
+            self._key = None
+            self._value = None
+            self._datatype = None
+            self._description = None
+        elif is_new == False and uuid != None and dbfile != None and ref_table != None and ref_uuid != None:
+            # Initialize by the DB instance.
+            self._initInstanceByUuid(ref_table, ref_uuid, dbfile)
+        else:
+            # Other unexpected case.
+            print("Not Instantiated!!")
+            return(None)
+    
+    @property
+    def key(self): return self._key
+    @property
+    def value(self): return self._value
+    @property
+    def datatype(self): return self._datatype
+    @property
+    def description(self): return self._description    
+    
+    @key.setter
+    def key(self, value): self._key = value
+    @value.setter
+    def value(self, value): self._value = value
+    @datatype.setter
+    def datatype(self, value): self._datatype = value
+    @description.setter
+    def description(self, value): self._description = value
+    
+    # operation
+    def _initInstanceByUuid(self, ref_table, ref_uuid, dbfile):
+        print("AdditionalAttribute::_initInstanceByUuid(self, table, uuid, dbfile)")
+        
+        # Make the SQL statement.
+        sql_select = """SELECT  uuid,
+                                id,
+                                key,
+                                value,
+                                datatype,
+                                description
+                            FROM additional_attribute WHERE ref_table=? AND ref_uuid=?"""
+        
+        # Fech one from DB.
+        entry = super(AdditionalAttribute, self).fetchOneSQL(dbfile, sql_select, [ref_table, ref_uuid])
+        
+        if not entry == None:
+            # Get attributes from the row.
+            self._uuid = entry[0]
+            self._id = entry[1]
+            self._key = entry[2]
+            self._value = entry[3]
+            self._datatype = entry[4]
+            self._description = entry[5]
+        else:
+            return(None)
+    
+    def dbInsert(self, dbfile, ref_table, ref_uuid):
+        print("AdditionalAttribute::dbInsert(self, dbfile, ref_table, ref_uuid)")
+        
+        # Insert a new record into the database
+        values = [
+            self._uuid,
+            self._key,
+            self._value,
+            self._datatype,
+            self._description,
+            ref_table,
+            ref_uuid
+        ]
+        
+        # Create the SQL query for inserting the new consolidation.
+        sql_insert = """INSERT INTO additional_attribute (
+                    uuid,
+                    key, 
+                    value,
+                    datatype,
+                    description,
+                    ref_table,
+                    ref_uuid
+                ) VALUES (?,?,?,?,?,?,?)"""
+        
+        # Execute the query.
+        super(AdditionalAttribute, self).excuteSQL(dbfile, sql_insert, values)
+    
+    def dbUpdate(self, dbfile):
+        print("AdditionalAttribute::dbUpdate(self, dbfile)")
+        
+        # Insert a new record into the database
+        values = [
+            self._key,
+            self._value,
+            self._datatype,
+            self._description,
+            self._uuid
+        ]
+        
+        # Create the SQL query for updating the new consolidation.
+        sql_update = """UPDATE additional_attribute
+                    SET
+                        key = ?,
+                        value = ?,
+                        datatype = ?,
+                        description = ?
+                    WHERE uuid = ?"""
+        
+        # Execute the query.
+        super(AdditionalAttribute, self).excuteSQL(dbfile, sql_update, values)
+    
+    def dbDrop(self, dbfile):
+        print("AdditionalAttribute::dbDrop(self, dbfile)")
+        
+        # Dropt the exsiting entry from the DB.
+        values = [self._uuid]
+        
+        # Create the SQL query for deleting the existing consolidation.
+        sql_delete = """DELETE FROM additional_attribute WHERE uuid = ?"""
+        
+        # Execute the query.
+        super(AdditionalAttribute, self).excuteSQL(dbfile, sql_delete, values)
 
 def exportAsHtml(dbfile, output, title="Archive"):
     try:
