@@ -16,6 +16,33 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
 
+def pyDateTimeToQDateTime(value):
+    print("general::pyDateTimeToqDateTime(value)")
+    try:
+        qDateTime = QDateTime(
+            value.year,
+            value.month,
+            value.day,
+            value.hour,
+            value.minute,
+            value.second
+        )
+        return (qDateTime)
+    except Exception as e:
+        print(e)
+        
+def pyDateToQDate(value):
+    print("general::pyDateTimeToqDateTime(value)")
+    try:
+        qDate = QDate(
+            value.year,
+            value.month,
+            value.day,
+        )
+        return (qDate)
+    except Exception as e:
+        print(e)
+
 def alert(title, message, icon, info, detailed):
     # Create a message box object.
     msg = QMessageBox()
@@ -388,7 +415,7 @@ def checkFieldsExists(dbfile, table_name, fields):
                 
                 for row in rows:
                     if field[0] == row[1]: isExist = True
-                
+                    
                 if isExist == False:
                     print("Add a column of " + field[0])
                     sql_alt = "ALTER TABLE '" + table_name + "' ADD '" +  field[0] + "' " + field[1]

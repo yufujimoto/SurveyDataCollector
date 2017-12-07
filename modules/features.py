@@ -179,70 +179,78 @@ class Consolidation(SimpleObject):
     def _initInstanceByUuid(self, uuid, dbfile):
         print("Consolidation::_initInstanceByUuid(self, uuid, dbfile)")
         
-        # Make the SQL statement.
-        sql_select = """SELECT  id,
-                                name,
-                                geographic_annotation,
-                                temporal_annotation,
-                                description
-                        FROM consolidation WHERE uuid=?"""
-        
-        # Fech one from DB.
-        entry = super(Consolidation, self).fetchOneSQL(dbfile, sql_select, [uuid])
-        
-        if not entry == None:
-            # Get attributes from the row.
-            self._id = entry[0]
-            self._uuid = uuid
-            self._name = entry[1]
-            self._geographic_annotation = entry[2]
-            self._temporal_annotation = entry[3]
-            self._images = self._getFileList(dbfile, "image")
-            self._sounds = self._getFileList(dbfile, "audio")
-            self._additionalAttributes = self._getAdditionalAttributes(dbfile)
-            self._description = entry[4]
-        else:
+        try:
+            # Make the SQL statement.
+            sql_select = """SELECT  id,
+                                    name,
+                                    geographic_annotation,
+                                    temporal_annotation,
+                                    description
+                            FROM consolidation WHERE uuid=?"""
+            
+            # Fech one from DB.
+            entry = super(Consolidation, self).fetchOneSQL(dbfile, sql_select, [uuid])
+            
+            if not entry == None:
+                # Get attributes from the row.
+                self._id = entry[0]
+                self._uuid = uuid
+                self._name = entry[1]
+                self._geographic_annotation = entry[2]
+                self._temporal_annotation = entry[3]
+                self._images = self._getFileList(dbfile, "image")
+                self._sounds = self._getFileList(dbfile, "audio")
+                self._additionalAttributes = self._getAdditionalAttributes(dbfile)
+                self._description = entry[4]
+            else:
+                return(None)
+        except Exception as e:
+            print(e)
             return(None)
     
     def dbInsert(self, dbfile):
         print("consolidation::dbInsert(self, dbfile)")
         
-        # Insert a new record into the database
-        values = [
-            self._uuid,
-            self._name,
-            self._geographic_annotation,
-            self._temporal_annotation,
-            self._description
-        ]
-        
-        # Create the SQL query for inserting the new consolidation.
-        sql_insert = """INSERT INTO consolidation (
-                    uuid, 
-                    name, 
-                    geographic_annotation, 
-                    temporal_annotation, 
-                    description
-                ) VALUES (?,?,?,?,?)"""
-        
-        # Execute the query.
-        super(Consolidation, self).excuteSQL(dbfile, sql_insert, values)
-        
-        # Insert images of the Consolidation.
-        if not self._images == None:
-            if len(self._images) <= 0:
-                for image in self._images: image.dbInsert(dbfile)
-        
-        # Insert sounds of the Consolidation.
-        if not self._sounds == None:
-            if not len(self._sounds) <= 0:
-                for sound in self._sounds: sound.dbInsert(dbfile)
-        
-        # Insert additional attributes.
-        if not self._additionalAttributes == None:
-            if not len(self._additionalAttributes) <= 0:
-                for additionalAttribute in self._additionalAttributes:
-                    additionalAttribute.dbInsert(dbfile, "consolidation", self._uuid)
+        try:
+            # Insert a new record into the database
+            values = [
+                self._uuid,
+                self._name,
+                self._geographic_annotation,
+                self._temporal_annotation,
+                self._description
+            ]
+            
+            # Create the SQL query for inserting the new consolidation.
+            sql_insert = """INSERT INTO consolidation (
+                        uuid, 
+                        name, 
+                        geographic_annotation, 
+                        temporal_annotation, 
+                        description
+                    ) VALUES (?,?,?,?,?)"""
+            
+            # Execute the query.
+            super(Consolidation, self).excuteSQL(dbfile, sql_insert, values)
+            
+            # Insert images of the Consolidation.
+            if not self._images == None:
+                if len(self._images) <= 0:
+                    for image in self._images: image.dbInsert(dbfile)
+            
+            # Insert sounds of the Consolidation.
+            if not self._sounds == None:
+                if not len(self._sounds) <= 0:
+                    for sound in self._sounds: sound.dbInsert(dbfile)
+            
+            # Insert additional attributes.
+            if not self._additionalAttributes == None:
+                if not len(self._additionalAttributes) <= 0:
+                    for additionalAttribute in self._additionalAttributes:
+                        additionalAttribute.dbInsert(dbfile, "consolidation", self._uuid)
+        except Exception as e:
+            print(e)
+            return(None)
     
     def dbUpdate(self, dbfile):
         print("consolidation::dbUpdate(self, dbfile)")

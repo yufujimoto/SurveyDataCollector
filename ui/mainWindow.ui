@@ -27,7 +27,16 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -66,7 +75,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -110,6 +128,12 @@
           <property name="lineWidth">
            <number>0</number>
           </property>
+          <property name="dragEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::NoDragDrop</enum>
+          </property>
           <attribute name="headerDefaultSectionSize">
            <number>150</number>
           </attribute>
@@ -135,7 +159,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -216,7 +249,16 @@
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <property name="spacing">
@@ -230,10 +272,18 @@
             </widget>
            </item>
            <item row="9" column="1">
-            <widget class="QComboBox" name="cbx_cam_epg"/>
+            <widget class="QComboBox" name="cbx_cam_epg">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QComboBox" name="cbx_cam_size"/>
+            <widget class="QComboBox" name="cbx_cam_size">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="8" column="0">
             <widget class="QLabel" name="lbl_cam_fmod">
@@ -269,7 +319,11 @@
             </widget>
            </item>
            <item row="8" column="1">
-            <widget class="QComboBox" name="cbx_cam_fmod"/>
+            <widget class="QComboBox" name="cbx_cam_fmod">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="lbl_cam_iso">
@@ -285,7 +339,11 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QComboBox" name="cbx_cam_iso"/>
+            <widget class="QComboBox" name="cbx_cam_iso">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="10" column="0">
             <widget class="QLabel" name="lbl_cam_cpt">
@@ -315,10 +373,18 @@
             </widget>
            </item>
            <item row="10" column="1">
-            <widget class="QComboBox" name="cbx_cam_cpt"/>
+            <widget class="QComboBox" name="cbx_cam_cpt">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="4" column="1">
-            <widget class="QComboBox" name="cbx_cam_wht"/>
+            <widget class="QComboBox" name="cbx_cam_wht">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="5" column="0">
             <widget class="QLabel" name="lbl_cam_exp">
@@ -334,7 +400,11 @@
             </widget>
            </item>
            <item row="5" column="1">
-            <widget class="QComboBox" name="cbx_cam_exp"/>
+            <widget class="QComboBox" name="cbx_cam_exp">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="11" column="0">
             <widget class="QLabel" name="lbl_cam_met">
@@ -344,13 +414,25 @@
             </widget>
            </item>
            <item row="11" column="1">
-            <widget class="QComboBox" name="cbx_cam_met"/>
+            <widget class="QComboBox" name="cbx_cam_met">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="6" column="1">
-            <widget class="QComboBox" name="cbx_cam_fval"/>
+            <widget class="QComboBox" name="cbx_cam_fval">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
            <item row="7" column="1">
-            <widget class="QComboBox" name="cbx_cam_qoi"/>
+            <widget class="QComboBox" name="cbx_cam_qoi">
+             <property name="frame">
+              <bool>false</bool>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -374,7 +456,16 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <property name="spacing">
@@ -409,7 +500,7 @@
           <bool>false</bool>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="iconSize">
           <size>
@@ -425,7 +516,16 @@
            <string>統合体情報</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_2">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <property name="spacing">
@@ -475,7 +575,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>0</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="baseSize">
@@ -538,61 +638,97 @@
              </property>
              <item>
               <widget class="QPushButton" name="btn_con_add">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>統合体の追加</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_con_update">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>統合体の更新</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_con_take">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>撮影する</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_con_imp">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string> インポートする</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_con_rec">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>録音する</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_con_del">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>統合体の削除</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -638,6 +774,12 @@
               <widget class="QLineEdit" name="tbx_con_temporal">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -687,6 +829,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -734,6 +882,12 @@
               <widget class="QLineEdit" name="tbx_con_name">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -783,6 +937,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -800,7 +960,16 @@
            <property name="spacing">
             <number>0</number>
            </property>
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -837,6 +1006,12 @@
               <widget class="QLineEdit" name="tbx_mat_uuid">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -912,6 +1087,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -943,6 +1124,12 @@
               <widget class="QLineEdit" name="tbx_mat_name">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -992,6 +1179,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -1030,6 +1223,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -1067,6 +1266,12 @@
               <widget class="QLineEdit" name="tbx_mat_geo_alt">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -1116,6 +1321,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -1142,6 +1353,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -1161,6 +1378,12 @@
               <widget class="QLineEdit" name="tbx_mat_tmp_end">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
                </property>
                <property name="frame">
                 <bool>false</bool>
@@ -1210,6 +1433,12 @@
                <property name="enabled">
                 <bool>false</bool>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="frame">
                 <bool>false</bool>
                </property>
@@ -1227,61 +1456,105 @@
              </property>
              <item>
               <widget class="QPushButton" name="btn_mat_add">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
                <property name="text">
                 <string>資料の追加</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_mat_update">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>資料の更新</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_mat_take">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>撮影する</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_mat_imp">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string> インポートする</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_mat_rec">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>録音する</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_mat_del">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="text">
                 <string>資料の削除</string>
                </property>
                <property name="flat">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1314,7 +1587,16 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -1436,7 +1718,16 @@
               <property name="spacing">
                <number>0</number>
               </property>
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -1493,6 +1784,16 @@
                     </property>
                     <property name="text">
                      <string>削除可能</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_fil_edit">
+                    <property name="text">
+                     <string>ファイル情報の編集</string>
+                    </property>
+                    <property name="flat">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -1661,6 +1962,44 @@
                      </widget>
                     </item>
                     <item>
+                     <widget class="QPushButton" name="btn_img_awb">
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="flat">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="btn_img_col">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>40</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="flat">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QPushButton" name="btn_img_sav">
                       <property name="maximumSize">
                        <size>
@@ -1821,41 +2160,6 @@
                   <property name="bottomMargin">
                    <number>4</number>
                   </property>
-                  <item>
-                   <widget class="QLabel" name="lbl_fil_eope">
-                    <property name="minimumSize">
-                     <size>
-                      <width>110</width>
-                      <height>25</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>100</width>
-                      <height>25</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>追加処理 : </string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                    </property>
-                    <property name="margin">
-                     <number>5</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="tbx_fil_eope">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
-                    <property name="frame">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
                  </layout>
                 </item>
                 <item>
@@ -1890,7 +2194,7 @@
                   <property name="tabsClosable">
                    <bool>false</bool>
                   </property>
-                  <property name="tabBarAutoHide" stdset="0">
+                  <property name="tabBarAutoHide">
                    <bool>false</bool>
                   </property>
                   <widget class="QWidget" name="tab_src_img">
@@ -1901,7 +2205,16 @@
                     <property name="spacing">
                      <number>0</number>
                     </property>
-                    <property name="margin">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>0</number>
                     </property>
                     <item>
@@ -1909,7 +2222,7 @@
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>25</height>
+                        <height>20</height>
                        </size>
                       </property>
                       <property name="maximumSize">
@@ -1920,6 +2233,9 @@
                       </property>
                       <property name="text">
                        <string>GIMP</string>
+                      </property>
+                      <property name="flat">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
@@ -1933,7 +2249,16 @@
                     <property name="spacing">
                      <number>0</number>
                     </property>
-                    <property name="margin">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>0</number>
                     </property>
                     <item>
@@ -1967,6 +2292,21 @@
               <string>プロパティ</string>
              </attribute>
              <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
               <item>
                <widget class="QTreeWidget" name="tre_img_prop">
                 <attribute name="headerDefaultSectionSize">
@@ -2012,7 +2352,7 @@
      <x>0</x>
      <y>0</y>
      <width>1002</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -2070,6 +2410,7 @@
       </property>
       <addaction name="act_imp_csv_con"/>
       <addaction name="act_imp_csv_mat"/>
+      <addaction name="act_imp_csv_fil"/>
      </widget>
      <widget class="QMenu" name="men_imp_xml">
       <property name="title">
@@ -2206,6 +2547,16 @@
     <string>material</string>
    </property>
   </action>
+  <action name="act_imp_csv_fil">
+   <property name="text">
+    <string>File</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>tab_control</tabstop>
@@ -2267,7 +2618,6 @@
   <tabstop>cbx_fil_edit</tabstop>
   <tabstop>tbx_fil_capt</tabstop>
   <tabstop>tbx_fil_stts</tabstop>
-  <tabstop>tbx_fil_eope</tabstop>
   <tabstop>tab_src</tabstop>
   <tabstop>btn_snd_play</tabstop>
   <tabstop>btn_snd_stop</tabstop>

@@ -3,7 +3,7 @@
 
 # import the necessary packages
 import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
-import os, sys, subprocess, tempfile, pipes, getopt
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, autocolorize
 
 from sys import argv
 from optparse import OptionParser
@@ -12,238 +12,175 @@ from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 from colorcorrect.util import from_pil, to_pil
 
-def setCamera(name, addr):
-    print(name)
+def colorize(dir_source, img_input, img_output):
+    print("imageProcessing::colorize(dir_source, img_input, img_output)")
+    
     try:
-        cmd_setting = ["gphoto2"]
+        # Get the full path to the bash script command.
+        script_siggraph = [os.path.join(dir_source, "siggraph_run.sh")]
         
         # Define the parameters for the command.
-        cmd_setting.append("--camera")
-        cmd_setting.append(name)
+        script_siggraph.append(str(dir_source))     # Source directory for siggraph.
+        script_siggraph.append(str(img_input))      # Input grey scaled image file.
+        script_siggraph.append(str(img_output))     # Output colorized image.
         
-        # Execute the command.
-        subprocess.check_output(cmd_setting)
+        # Execute the colorize function.
+        subprocess.check_output(script_siggraph)
+    except Exception as e:
+        print("Error occurs in imageProcessing::colorize(src_dir, imgfile, output)")
+        print(str(e))
         
-        return(True)
-    except:
         return(None)
 
-def detectCamera():
-    cams = list()
-    
-    # Get the context of the camera.
-    context = gp.Context()
-    
-    if hasattr(gp, 'gp_camera_autodetect'):
-        # gphoto2 version 2.5+
-        cameras = context.camera_autodetect()
-    else:
-        port_info_list = gp.PortInfoList()
-        port_info_list.load()
-        abilities_list = gp.CameraAbilitiesList()
-        abilities_list.load(context)
-        cameras = abilities_list.detect(port_info_list, context)
-    
-    for name, port in cameras:
-        cams.append({"name" : name, "port" : port})
-        
-    return(cams)
-
-def getConfig(parameter, name, addr):
-    result = dict()
+def openWithGimp(img_input):
+    print("imageProcessing::openWithGimp(img_input)")
     
     try:
-        # Define the subprocess for detecting connected camera.
-        cmd_setting = ["gphoto2"]
+        # Define the subprocess for tethered shooting by using gphoto2
+        cmd_gimp = ["gimp"]
+        cmd_gimp.append(img_input)
+        
+        # Execute the subprocess. 
+        subprocess.check_output(cmd_gimp)
+    except Exception as e:
+        print("Error occurs in imageProcessing::openWithGimp(img_input)")
+        print(str(e))
+        
+        return(None)
+
+def getMetaInfo(img_input):
+    print("imageProcessing::getMetaInfo(img_input)")
+    
+    try:
+        # Define the subprocess for getting the camera configuration by using gphoto2.
+        cmd_getMetaInfo = ["dcraw"]
         
         # Define the parameters for the command.
-        cmd_setting.append("--get-config")
-        cmd_setting.append(parameter)
+        cmd_getMetaInfo.append("-i")
+        cmd_getMetaInfo.append("-v")
+        cmd_getMetaInfo.append("'" + img_input + "'")
         
-        # Execute the subprocess.
-        stdout_data = subprocess.check_output(cmd_setting)
+        # Execute the command.
+        proc = subprocess.Popen(" ".join(cmd_getMetaInfo), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         
-        if stdout_data == None or stdout_data == "":
-            return(None)
-        else:
-            # Execute the command.
-            params = stdout_data.split("\n")
+        buf = []
+        
+        while True:
+            line = proc.stdout.readline()
+            buf.append(line)
+            sys.stdout.write(line)
             
-            # Define variables for storing entries.
-            label = ""
-            current = ""
-            choice = list()
-            
-            for param in params:
-                item = param.split(":")
-                label = item[0]
-                
-                if label == "Label":
-                    entry = item[1].strip()
-                    result["label"] = entry
-                elif label == "Current":
-                    entry = item[1].strip()
-                    result["current"] = entry
-                elif label == "Choice":
-                    # Split the text with white space.
-                    entry = item[1].strip().split(" ")
-                    
-                    # Get the first item as the value.
-                    entry_val = entry[0]
-                    
-                    # Remove the first item from the entry.
-                    entry_txt = str(entry.pop(0))
-                    
-                    # Append the entry to the choice list.
-                    choice.append({str(entry.pop(0)):entry_val})
-            
-            result["choice"] = choice
-            
-            # Returns configuration list.
-            if len(result) == None or len(result) == 0:
-                return(None)
-            else:
-                return(result)
-    except:
+            if not line and proc.poll() is not None: break
+        
+        # Returns configuration list.
+        return ''.join(buf)
+    except Exception as e:
+        print("Error occurs in imageProcessing::getMetaInfo(img_input)")
+        print(str(e))
+        
         return(None)
 
-def openWithGimp(in_file):
-    # Define the subprocess for tethered shooting by using gphoto2
-    cmd_gimp = ["gimp"]
-    cmd_gimp.append(in_file)
-    
-    # Execute the subprocess. 
-    subprocess.check_output(cmd_gimp)
-    
-def takePhoto(output):
-    # Define the subprocess for tethered shooting by using gphoto2
-    cmd_taking = ["gphoto2"]
-    
-    # Define the parameters for the command.
-    cmd_taking.append("--quiet")
-    cmd_taking.append("--capture-image-and-download")
-    cmd_taking.append("--filename="+output+".%C")
+def getThumbnail(img_input):
+    print("imageProcessing::getThumbnail(img_input)")
     
     try:
-        # Execute the command.
-        result = subprocess.check_output(cmd_taking)
+        # Define the subprocess for getting the camera configuration by using gphoto2.
+        cmd_getThumb = ["dcraw"]
         
+        # Define the parameters for the command.
+        cmd_getThumb.append("-e")
+        cmd_getThumb.append(img_input)
+        
+        # Execute the command.
+        result = subprocess.check_output(cmd_getThumb)
+        
+        # Returns configuration list.
         return(result)
-    except:
+    except Exception as e:
+        print("Error occurs in imageProcessing::getThumbnail(img_input)")
+        print(str(e))
+
+def enhance(img_input, img_output):
+    print("imageProcessing::enhance(img_input, img_output)")
+    
+    try:
+        # Load input image, and create the output file name.
+        org_cv2_img = cv2.imread(img_input)
+        
+        # Split RGB channels into single channels.
+        b,g,r = cv2.split(org_cv2_img)
+        
+        # Define the histogram normalization algorithm.
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        
+        # Apply the histogram normalization algorithm to each channel.
+        norm_b = clahe.apply(b)
+        norm_r = clahe.apply(r)
+        norm_g = clahe.apply(g)
+        
+        # Merge single channels into one image.
+        cnv_cv2_img = cv2.merge((norm_b,norm_g,norm_r))
+        
+        # Save the result.
+        cv2.imwrite(img_output, cnv_cv2_img)
+        
+        # Return the output file name.
+        return(img_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::enhance(img_input)")
+        print(str(e))
+        
         return(None)
     
-def getConfigurations():
-    # Define the subprocess for getting the camera configuration by using gphoto2.
-    cmd_getConfig = ["gphoto2"]
+def makeMono(img_input, img_output):
+    print("imageProcessing::makeMono(img_input, img_output)")
     
-    # Define the parameters for the command.
-    cmd_getConfig.append("--quiet")
-    cmd_getConfig.append("--list-config")
-    
-    # Execute the command.
-    result = subprocess.check_output(cmd_getConfig)
-    
-    # Returns configuration list.
-    return(result)
-
-def getMetaInfo(imgFile):
-    # Define the subprocess for getting the camera configuration by using gphoto2.
-    cmd_getMetaInfo = ["dcraw"]
-    
-    # Define the parameters for the command.
-    cmd_getMetaInfo.append("-i")
-    cmd_getMetaInfo.append("-v")
-    cmd_getMetaInfo.append("'" + imgFile + "'")
-    
-    # Execute the command.
-    proc = subprocess.Popen(" ".join(cmd_getMetaInfo), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    
-    buf = []
-
-    while True:
-        line = proc.stdout.readline()
-        buf.append(line)
-        sys.stdout.write(line)
+    try:
+        # Load input image, and create the output file name.
+        org_cv2_img = cv2.imread(img_input)
         
-        if not line and proc.poll() is not None:
-            break
-    
-    # Returns configuration list.
-    return ''.join(buf)
+        # Convert color image to gray scale image.
+        gry_cv2_img = cv2.cvtColor(org_cv2_img, cv2.COLOR_BGR2GRAY)
+        
+        # Save the result.
+        cv2.imwrite(img_output, gry_cv2_img)
+        
+        # Return the output file name.
+        return(img_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::makeMono(img_input, img_output)")
+        print(str(e))
+        
+        return(None)
 
-def getThumbnail(raw_image):
-    # Define the subprocess for getting the camera configuration by using gphoto2.
-    cmd_getThumb = ["dcraw"]
+def negaToPosi(img_input, img_output):
+    print("imageProcessing::negaToPosi(img_input, img_output)")
     
-    # Define the parameters for the command.
-    cmd_getThumb.append("-e")
-    cmd_getThumb.append(raw_image)
-    
-    # Execute the command.
-    result = subprocess.check_output(cmd_getThumb)
-    
-    # Returns configuration list.
-    return(result)
-
-def enhance(in_file, dst_img):
-    print("imageProcessing::enhance(in_file, dst_img)")
-    
-    # Load input image, and create the output file name.
-    org_img = cv2.imread(in_file)
-    
-    # Split RGB channels into single channels.
-    b,g,r = cv2.split(org_img)
-    
-    # Define the histogram normalization algorithm.
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    
-    # Apply the histogram normalization algorithm to each channel.
-    norm_b = clahe.apply(b)
-    norm_r = clahe.apply(r)
-    norm_g = clahe.apply(g)
-    
-    # Merge single channels into one image.
-    cnv_img = cv2.merge((norm_b,norm_g,norm_r))
-    
-    # Save the result.
-    cv2.imwrite(dst_img, cnv_img)
-    
-    # Return the output file name.
-    return(dst_img)
-    
-def makeMono(in_file, dst_img):
-    # Load input image, and create the output file name.
-    org_img = cv2.imread(in_file)
-    
-    # Convert color image to gray scale image.
-    gry_img = cv2.cvtColor(org_img, cv2.COLOR_BGR2GRAY)
-    
-    # Save the result.
-    cv2.imwrite(dst_img, gry_img)
-    
-    # Return the output file name.
-    return(dst_img)
-
-def negaToPosi(in_file, dst_img):
-    # Load input image, and create the output file name.
-    org_img = cv2.imread(in_file)
-    
-    # Split RGB channels into single channels.
-    b,g,r = cv2.split(org_img)
-    
-    # Invert color in each channel.
-    conv_b = 255 - b
-    conv_g = 255 - g
-    conv_r = 255 - r
-    
-    # Merge single channels into one image.
-    cnv_img = cv2.merge((conv_b,conv_g,conv_r))
-    
-    # Save the result.
-    cv2.imwrite(dst_img, cnv_img)
-    
-    # Return the output file name.
-    return(dst_img)
+    try:
+        # Load input image, and create the output file name.
+        org_cv2_img = cv2.imread(img_input)
+        
+        # Split RGB channels into single channels.
+        b,g,r = cv2.split(org_cv2_img)
+        
+        # Invert color in each channel.
+        conv_b = 255 - b
+        conv_g = 255 - g
+        conv_r = 255 - r
+        
+        # Merge single channels into one image.
+        cnv_cv2_img = cv2.merge((conv_b, conv_g, conv_r))
+        
+        # Save the result.
+        cv2.imwrite(img_output, cnv_cv2_img)
+        
+        # Return the output file name.
+        return(img_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::negaToPosi(img_input, img_output)")
+        print(str(e))
+        
+        return(None)
 
 def extractInnerFrame(in_file, dst_img, ratio):
     # Load input image, and create the output file name.
@@ -339,28 +276,7 @@ def makeThumbnail(imgfile, output, basewidth):
         hsize = basewidth
     
     new = img.resize((int(wsize), int(hsize)), Image.ANTIALIAS)
-    new.save(output, "JPEG")
-
-def pansharpen(thumbnail, original, output, method="ihs"):
-    # Open the colorized image and the original image.
-    thm = Image.open(thumbnail)
-    org = Image.open(original)
-    
-    # Rescale the colorized image to original image size.
-    col = thm.resize(org.size, Image.ANTIALIAS)
-    
-    if method == "ihs":
-        # IHS conversion.
-        img = IHSConvert(img=col, high=org)
-        img.save(output)
-    elif method =="sm":
-        # Simple Mean conversion.
-        img = SimpleMeanConvert(img=col, high=org)
-        img.save(output)
-    elif method == "br":
-        #BroveyConvert
-        img = BroveyConvert(img=col, high=org)
-        img.save(output)
+    new.save(output)
 
 def autoWhiteBalance(imgfile, output, method = "automatic"):
     img = Image.open(imgfile)
@@ -378,6 +294,27 @@ def autoWhiteBalance(imgfile, output, method = "automatic"):
     elif method == "automatic": adj_img = to_pil(cca.automatic_color_equalization(from_pil(img)))
     
     adj_img.save(output)
+    
+def pansharpen(thumbnail, original, output, method="ihs"):
+    # Open the colorized image and the original image.
+    thm = Image.open(thumbnail)
+    org = Image.open(original)
+    
+    # Rescale the colorized image to original image size.
+    col = thm.resize(org.size, Image.ANTIALIAS)
+    
+    if method == "ihs":
+        # IHS conversion.
+        img = ihsConvert(img=col, high=org)
+        img.save(output)
+    elif method =="sm":
+        # Simple Mean conversion.
+        img = simpleMeanConvert(img=col, high=org)
+        img.save(output)
+    elif method == "br":
+        #BroveyConvert
+        img = broveyConvert(img=col, high=org)
+        img.save(output)
 
 def normalize(arr):
     arr = arr.astype('float')
