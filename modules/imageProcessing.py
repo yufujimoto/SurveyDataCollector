@@ -3,11 +3,12 @@
 
 # import the necessary packages
 import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
-import os, sys, subprocess, tempfile, pipes, getopt, colorsys, autocolorize
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, autocolorize, exifread
 
 from sys import argv
 from optparse import OptionParser
 from imutils import perspective, contours
+from io import BytesIO
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 from colorcorrect.util import from_pil, to_pil
@@ -52,28 +53,10 @@ def getMetaInfo(img_input):
     print("imageProcessing::getMetaInfo(img_input)")
     
     try:
-        # Define the subprocess for getting the camera configuration by using gphoto2.
-        cmd_getMetaInfo = ["dcraw"]
+        img_object = open(img_input, 'rb')
+        meta_tags = exifread.process_file(img_object)
         
-        # Define the parameters for the command.
-        cmd_getMetaInfo.append("-i")
-        cmd_getMetaInfo.append("-v")
-        cmd_getMetaInfo.append("'" + img_input + "'")
-        
-        # Execute the command.
-        proc = subprocess.Popen(" ".join(cmd_getMetaInfo), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        
-        buf = []
-        
-        while True:
-            line = proc.stdout.readline()
-            buf.append(line)
-            sys.stdout.write(line)
-            
-            if not line and proc.poll() is not None: break
-        
-        # Returns configuration list.
-        return ''.join(buf)
+        return(meta_tags)
     except Exception as e:
         print("Error occurs in imageProcessing::getMetaInfo(img_input)")
         print(str(e))

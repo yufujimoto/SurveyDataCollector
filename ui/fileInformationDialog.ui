@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>849</width>
-    <height>836</height>
+    <height>845</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -150,7 +150,17 @@
         </widget>
        </item>
        <item>
-        <widget class="QDateTimeEdit" name="dte_fil_dt_cre"/>
+        <widget class="QDateTimeEdit" name="dte_fil_dt_cre">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="displayFormat">
+          <string>yyyy-MM-dd HH:mm:zz</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_fil_dt_cre_exif">
@@ -182,7 +192,17 @@
         </widget>
        </item>
        <item>
-        <widget class="QDateTimeEdit" name="dte_fil_dt_mod"/>
+        <widget class="QDateTimeEdit" name="dte_fil_dt_mod">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="displayFormat">
+          <string>yyyy-MM-dd HH:mm:zz</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_fil_dt_mod_exif">
@@ -319,6 +339,20 @@
        </item>
        <item>
         <widget class="QLineEdit" name="tbx_fil_dsc"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="btn_fil_update">
+         <property name="text">
+          <string>更新する</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

@@ -14,10 +14,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
 
-import modules.features as features
-
 # Import general operations.
 import modules.general as general
+import modules.imageProcessing as imageProcessing
+import modules.features as features
+import modules.error as error
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
@@ -32,6 +33,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         self._root_directory = parent.root_directory
         self._source_directory = parent.source_directory
         self._icon_directory = parent.icon_directory
+        self._database = parent.database
         self._qt_image = parent.qt_image
         self._image_extensions = parent.image_extensions
         self._raw_image_extensions = parent.raw_image_extensions
@@ -42,6 +44,10 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         
         # Initialize the window.
         self.setWindowTitle(self.tr("File Information Dialog"))
+        
+        self.btn_fil_update.clicked.connect(self.updateFile)
+        self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'ic_add_box_black_24dp_1x.png'))))
+        self.btn_fil_update.setIconSize(QSize(24,24))
         
         # Define the return values.
         self.box_fil_ope.accepted.connect(self.accept)
@@ -67,20 +73,29 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         # Set the alias name of the file object.
         self.tbx_fil_ali.setText(sop_file.alias)
         
-        # Set the date of creation and modification.
+        # Get the date of creation and modification.
+        cdate = sop_file.created_date
+        mdate = sop_file.modified_date
         
-        #set an arbitrary date and time
-        fil_dt_create = general.pyDateTimeToQDateTime(parse(sop_file.created_date))
-        fil_dt_modify = general.pyDateTimeToQDateTime(parse(sop_file.modified_date))
+        # Set the maximum date if the given date is invalid.
+        if (cdate == None or cdate == ""): cdate = "7999-12-31T23:59:59"
+        if (mdate == None or mdate == ""): mdate = "7999-12-31T23:59:59"
         
+        # Convert string date format to the PyQt date type.
+        fil_dt_create = general.pyDateTimeToQDateTime(parse(cdate))
+        fil_dt_modify = general.pyDateTimeToQDateTime(parse(mdate))
+        
+        # Set dates of creation and modification.
         self.dte_fil_dt_cre.setDateTime(fil_dt_create)
         self.dte_fil_dt_mod.setDateTime(fil_dt_modify)
-
+        
         # Set the operating application software.
         self.tbx_fil_ope_app.setText(sop_file.operating_application)
         
         # Set the caption of the file object.
         self.tbx_fil_capt.setText(sop_file.caption)
+        
+        self.tbx_fil_dsc.setText(sop_file.description)
         
         # Set the status of the file object and optional values.
         self.cmb_fil_stts.addItem(sop_file.status)
@@ -132,14 +147,10 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     def consolidation_directory(self): return self._consolidation_directory
     @property
     def database(self): return self._database
-    
-    # Properties for default labels.
     @property
     def label_consolidation(self): return self._label_consolidation
     @property
     def label_material(self): return self._label_material
-    
-    # Properties for default extensions.
     @property
     def qt_image(self): return self._qt_image
     @property
@@ -152,8 +163,6 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     # Property for selected SOP object
     @property
     def sop_file(self): return self._sop_file
-    
-    # Setter for default paths.
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
     @siggraph_directory.setter
@@ -170,14 +179,10 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     def consolidation_directory(self, value): self._consolidation_directory = value
     @database.setter
     def database(self, value): self._database = value
-    
-    # Setter for default labels.
     @label_consolidation.setter
     def label_consolidation(self, value): self._label_consolidation = value
     @label_material.setter
     def label_material(self, value): self._label_material = value
-    
-    # Setter for default extensions.
     @qt_image.setter
     def qt_image(self, value): self._qt_image = value
     @image_extensions.setter
@@ -186,11 +191,30 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     def raw_image_extensions(self, value): self._raw_image_extensions = value
     @sound_extensions.setter
     def sound_extensions(self, value): self._sound_extensions = value
-    
-    # Setter for selected object.
     @sop_file.setter
     def sop_file(self, value): self._sop_file = value
     
+    def updateFile(self):
+        try:
+            # Get attributes from text boxes.
+            self._sop_file.status = str(self.cmb_fil_stts.currentText())
+            self._sop_file.operation = str(self.cmb_fil_eope.currentText())
+            self._sop_file.alias = str(self.tbx_fil_ali.text())                             # Alias
+            self._sop_file.operating_application = str(self.tbx_fil_ope_app.text())         # Operating application
+            self._sop_file.caption = str(self.tbx_fil_capt.text())                          # Caption
+            self._sop_file.description = str(self.tbx_fil_dsc.text())                       # Description
+            self._sop_file.created_date = str(self.dte_fil_dt_cre.text())
+            self._sop_file.modified_date = str(self.dte_fil_dt_mod.text())
+            self._sop_file.public = int(self.cbx_fil_pub.isChecked())
+            self._sop_file.lock = int(self.cbx_fil_edit.isChecked())
+            
+            # Update the file information.
+            self._sop_file.dbUpdate(self._database)
+            
+            print("Update OK!")
+        except Exception as e:
+            print(str(e))
+        
     def showImage(self, img_file_path):
         print("fileInformationDialog::showImage(self)")
         
@@ -200,8 +224,8 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             img_valid = False
             
             # Get container size.
-            panel_w = self.lbl_img_preview.width()
-            panel_h = self.lbl_img_preview.height()
+            panel_w = self.image_panel.width()
+            panel_h = self.image_panel.height()
             
             for qt_ext in self._qt_image:
                 # Exit loop if extension is matched with Qt supported image.
@@ -223,10 +247,10 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
                 scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
                 
                 # Set the image file to the image view container.
-                self.lbl_img_preview.setPixmap(scl_pixmap)
+                self.image_panel.setPixmap(scl_pixmap)
                             
                 # Show the selected image.
-                self.lbl_img_preview.show()
+                self.image_panel.show()
             else:
                 # Create error messages.
                 error_title = "エラーが発生しました"
@@ -244,7 +268,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             print("Error occurs in fileInformationDialog::showImage(self)")
             
             # Show the error message.
-            self.errorUnknown("fileInformationDialog::showImage(self)", str(e))
+            error.ErrorMessageUnknown(details=str(e))
             
             # Return nothing.
             return(None)
@@ -263,6 +287,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
                     img_file_path = os.path.join(self._root_directory, sop_image.filename)
             
             # Show preview.
+            print(img_file_path)
             self.showImage(img_file_path)
             
         except Exception as e:

@@ -138,6 +138,7 @@ class Consolidation(SimpleObject):
             self._sounds = list()
             self._additionalAttributes = list()
             self._description = None
+            self._objectPath = None
         elif is_new == False and uuid != None and dbfile != None:
             # Initialize by the DB instance.
             self._initInstanceByUuid(uuid, dbfile)
@@ -809,7 +810,7 @@ class File(SimpleObject):
         super(File, self).excuteSQL(dbfile, sql_insert, values)
     
     def dbUpdate(self, dbfile):
-        print("features::File.dbUpdate()")
+        print("File::dbUpdate()")
         # Insert a new record into the database
         values = [
             self._consolidation,

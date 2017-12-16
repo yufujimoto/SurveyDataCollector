@@ -29,7 +29,7 @@ def pyDateTimeToQDateTime(value):
         )
         return (qDateTime)
     except Exception as e:
-        print(e)
+        print(str(e) + ":" + str(value))
         
 def pyDateToQDate(value):
     print("general::pyDateTimeToqDateTime(value)")
@@ -41,7 +41,7 @@ def pyDateToQDate(value):
         )
         return (qDate)
     except Exception as e:
-        print(e)
+        print(str(e) + ":" + str(value))
 
 def alert(title, message, icon, info, detailed):
     # Create a message box object.

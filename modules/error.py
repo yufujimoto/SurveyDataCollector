@@ -84,7 +84,7 @@ class ErrorMessageProjectNotCreated(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
+        if not show == False: super(ErrorMessageProjectNotCreated, self).showMessageBox()
 
 class ErrorMessageFileExport(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -97,8 +97,8 @@ class ErrorMessageFileExport(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
+        super(ErrorMessageFileExport, self).printErrorMessage()
+        if not show == False: super(ErrorMessageFileExport, self).showMessageBox()
 
 class ErrorMessageEditImageFile(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -111,8 +111,8 @@ class ErrorMessageEditImageFile(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
+        super(ErrorMessageEditImageFile, self).printErrorMessage()
+        if not show == False: super(ErrorMessageEditImageFile, self).showMessageBox()
 
 class ErrorMessageFileLocked(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -125,8 +125,8 @@ class ErrorMessageFileLocked(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
+        super(ErrorMessageFileLocked, self).printErrorMessage()
+        if not show == False: super(ErrorMessageFileLocked, self).showMessageBox()
 
 class ErrorMessageFileNotExist(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -139,8 +139,8 @@ class ErrorMessageFileNotExist(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()        
+        super(ErrorMessageFileNotExist, self).printErrorMessage()
+        if not show == False: super(ErrorMessageFileNotExist, self).showMessageBox()        
 
 class ErrorMessageUnknown(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -153,8 +153,8 @@ class ErrorMessageUnknown(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()        
+        super(ErrorMessageUnknown, self).printErrorMessage()
+        if not show == False: super(ErrorMessageUnknown, self).showMessageBox()        
     
 class ErrorMessageDbConnection(ErrorMessage):
     def __init__(self, details=None, show=True):
@@ -167,5 +167,33 @@ class ErrorMessageDbConnection(ErrorMessage):
         self._details = details
         
         # Execute the query.
-        super(ErrorMessageProjectOpen, self).printErrorMessage()
-        if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()       
+        super(ErrorMessageDbConnection, self).printErrorMessage()
+        if not show == False: super(ErrorMessageDbConnection, self).showMessageBox()       
+
+class ErrorMessageCameraDetection(ErrorMessage):
+    def __init__(self, details=None, show=True):
+        # Initialize the super class.
+        ErrorMessage.__init__(self)
+        
+        self._message = "カメラを認識できません。"
+        self._information = "カメラの接続状況を確認してください。"
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorMessageCameraDetection, self).printErrorMessage()
+        if not show == False: super(ErrorMessageCameraDetection, self).showMessageBox()
+
+class ErrorMessageCurrentObject(ErrorMessage):
+    def __init__(self, details=None, show=True):
+        # Initialize the super class.
+        ErrorMessage.__init__(self)
+        
+        self._message = "オブジェクトを取得できませんでした。"
+        self._information = "ツリー・メニューからオブジェクトを選択してください。"
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorMessageCurrentObject, self).printErrorMessage()
+        if not show == False: super(ErrorMessageCurrentObject, self).showMessageBox()

@@ -173,38 +173,12 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 tre_fl.clear()
                 
                 # Get file information by using "dcraw" library.
-                img_stat = imageProcessing.getMetaInfo(img_file_path).strip().split("\n")
+                tags = imageProcessing.getMetaInfo(img_file_path)
                 
-                # Get each metadata entry.
-                for entry in img_stat:
-                    # Split metadata entry by ":".
-                    entry_line = entry.split(":")
-                    
-                    # Get the metadata key.
-                    entry_key = entry_line[0]
-                    
-                    # Get the metadata value.
-                    entry_val = entry_line[1]
-                    
-                    # Add file information to the tree list.
-                    tre_fl.addTopLevelItem(QTreeWidgetItem([entry_key, entry_val]))
-                
-                # Get file information by using python "stat" library.
-                fl_stat = os.stat(img_file_path)
-                
-                # Get file size.
-                fl_size = str(round(float(fl_stat[ST_SIZE]/1000),3))+"KB"
-                
-                # Get time for last access, modified and creat.
-                fl_time_last = time.asctime(time.localtime(fl_stat[ST_ATIME]))
-                fl_time_mod = time.asctime(time.localtime(fl_stat[ST_MTIME]))
-                fl_time_cre = time.asctime(time.localtime(fl_stat[ST_CTIME]))
-                
-                # Add file information to the tree list.
-                tre_fl.addTopLevelItem(QTreeWidgetItem(["Created", fl_time_cre]))
-                tre_fl.addTopLevelItem(QTreeWidgetItem(["Last Modified", fl_time_mod]))
-                tre_fl.addTopLevelItem(QTreeWidgetItem(["Last Access", fl_time_last]))
-                tre_fl.addTopLevelItem(QTreeWidgetItem(["File Size", fl_size]))
+                for tag in tags.keys():
+                    if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+                        # Add file information to the tree list.
+                        self.tre_fl.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
                 
                 # Refresh the tree view.
                 tre_fl.show()

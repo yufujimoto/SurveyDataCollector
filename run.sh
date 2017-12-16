@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python2 /home/yufujimoto/GitHub/tetheredShooting/main.py
+python2 /home/yufujimoto/GitHub/SurveyDataCollector/main.py
 

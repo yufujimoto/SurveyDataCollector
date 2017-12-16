@@ -42,8 +42,9 @@ apt install sqlitebrowser
 
 # Upgrade pip.
 pip2 install --upgrade pip 
-
 pip2 install pillow
+pip2 install rawKit
+pip2 install exifread
 pip2 install sounddevice
 pip2 install soundfile
 pip2 install imutils
