@@ -3,7 +3,7 @@
 
 # import the necessary packages
 import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
-import os, sys, subprocess, tempfile, pipes, getopt, colorsys, autocolorize, exifread
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread
 
 from sys import argv
 from optparse import OptionParser

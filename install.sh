@@ -35,6 +35,7 @@ apt install libx264-dev
 apt install opencv-data 
 apt install libopencv-dev 
 apt install python-opencv
+apt install python-dateutil
 
 # Install SqLite & Browser.
 apt install sqlite
@@ -56,10 +57,12 @@ pip2 install gphoto2
 pip2 install colorcorrect
 pip2 install pipes
 pip2 install lxml
+pip2 install parse
 
 # Install torch into home directory.
-git clone https://github.com/torch/distro.git ~/torch --recursive
-(cd ~/torch; bash install-deps; ./install.sh)
+#git clone https://github.com/torch/distro.git ~/torch --recursive
+#(cd ~/torch; bash install-deps; ./install.sh)
 
-
+#git clone https://github.com/satoshiiizuka/siggraph2016_colorization.git ~/siggraph --recursive
+#(cd ~/siggraph; ./download_model.sh)
 
