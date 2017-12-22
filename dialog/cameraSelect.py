@@ -1,20 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-# Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
-
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtCore import QThread, pyqtSignal
-
-# Import general operations.
-import modules.general as general
 
 # Import camera and image processing library.
-import modules.imageProcessing as imageProcessing
 import dialog.cameraSelectDialog as cameraSelectDialog
 
 class SelectCameraDialog(QDialog, cameraSelectDialog.Ui_CameraSelectDialog):
@@ -38,5 +30,6 @@ class SelectCameraDialog(QDialog, cameraSelectDialog.Ui_CameraSelectDialog):
         if len(cameras) > 0 :
             self.lst_camera.setCurrentRow(0)
             self._selected = 0
+    
     def _getSelectedNumber(self):
         self._selected = self.lst_camera.currentRow()

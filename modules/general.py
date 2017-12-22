@@ -2,19 +2,24 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2
-
-# Import DB libraries
+import sys, os, time, pyexiv2
 import sqlite3 as sqlite
-from sqlite3 import Error
 
 from mimetypes import MimeTypes
+
+import modules.error as error
 
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
+
+# Labels for Consolidation and Material
+LAB_CON_JA = u"統合体"
+LAB_MAT_JA = u"資料"
+LAB_CON_EN = u"Consolidation"
+LAB_MAT_EN = u"Material"
 
 def pyDateTimeToQDateTime(value):
     print("general::pyDateTimeToqDateTime(value)")
@@ -42,6 +47,109 @@ def pyDateToQDate(value):
         return (qDate)
     except Exception as e:
         print(str(e) + ":" + str(value))
+
+def askNewProject(parent):
+    try:
+        if parent.language == "ja":
+            title = "データベース・ファイルが見つかりません。"
+            message = "新規プロジェクトを作成しますか？"
+        elif parent.language == "en":
+            title = "Database file is not found."
+            message = "Would you like to create the new Database file？"
+        
+        # Confirm whether create a directory for consolidations.
+        reply = QMessageBox.question(
+                parent, 
+                title, 
+                message, 
+                QMessageBox.Yes, 
+                QMessageBox.No
+            )
+        
+        # Create the directory of consolidation
+        if not reply == QMessageBox.Yes:
+            # Initialyze  global vaiables.
+            parent._root_directory = prev_root_directory
+            parent._table_directory = prev_table_directory
+            parent._consolidation_directory = prev_consolidation_directory
+            parent._database = prev_database
+            parent._current_consolidation = prev_consolidation
+            parent._current_material  = prev_material
+            
+            return(None)
+        elif reply == QMessageBox.Yes:
+            # Create the consolidation directory and the table directory.
+            os.mkdir(parent._consolidation_directory)
+            os.mkdir(parent._table_directory)
+            
+            # Create new tables which defined by Simple Object Profile(SOP).
+            createTables(parent._database)
+        else:
+            raise
+    except Exception as e:
+        error.ErrorMessageProjectNotCreated(details=str(e), language=parent.language)
+        return(None)
+
+def askDeleteConsolidation(parent):
+    con_uuid = parent.current_consolidation.uuid
+    if parent.language == "ja":
+        title = LAB_CON_JA + u"の削除"
+        message = LAB_CON_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
+    elif parent.language == "en":
+        title = u"Delete the " + LAB_CON_EN + "."
+        message = u"Every kinds of datasets included in the " + LAB_CON_EN + u" will be removed. Would you like to delete the " + LAB_CON_EN + u" ?"
+        
+    reply = QMessageBox.question(
+        self, 
+        title, 
+        message, 
+        QMessageBox.Yes, 
+        QMessageBox.No
+    )
+    
+    return(reply)
+
+def askNewMaterial(parent):
+    try:
+        con_uuid = parent.current_consolidation.uuid
+        
+        if parent.language == "ja":
+            title = LAB_MAT_JA + u"を内包する" + LAB_CON_JA + u"が指定されていません。"
+            message = u"現在の" + LAB_CON_JA + u"（" + con_uuid.decode("utf-8") + u"）に新規の" + LAB_MAT_JA + u"を追加しますか？"
+        elif parent.language == "en":
+            title = LAB_CON_EN + u" including the " + LAB_MAT_EN + u" is not selected."
+            message = u"Would you like to add a " + LAB_MAT_JA + u" to the current " + LAB_CON_EN + u" （" + con_uuid.decode("utf-8") + u"?"
+            
+        reply = QMessageBox.question(
+            parent, 
+            title, 
+            message, 
+            QMessageBox.Yes, 
+            QMessageBox.No
+        )
+        
+        return(reply)
+    except Exception as e:
+        print(str(e))
+
+def askDeleteMaterial(parent):
+    con_uuid = parent.current_consolidation.uuid
+    if parent.language == "ja":
+        title = LAB_MAT_JA + u"の削除"
+        message = LAB_MAT_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
+    elif parent.language == "en":
+        title = u"Delete the " + LAB_MAT_EN + "."
+        message = u"Every kinds of datasets included in the " + LAB_MAT_EN + u" will be removed. Would you like to delete the " + LAB_MAT_JA + u" ?"
+        
+    reply = QMessageBox.question(
+        self, 
+        title, 
+        message, 
+        QMessageBox.Yes, 
+        QMessageBox.No
+    )
+    
+    return(reply)
 
 def alert(title, message, icon, info, detailed):
     # Create a message box object.
@@ -93,6 +201,8 @@ def executeSql(dbfile, sql):
         conn.close()
 
 def getFilesWithExtensionList(dir_search, ext_list_search, result=None):
+    print("general::getFilesWithExtensionList(dir_search, ext_list_search, result=None)")
+    
     if result == None:
         result = list()
     
@@ -425,15 +535,7 @@ def checkFieldsExists(dbfile, table_name, fields):
             conn.commit()
     except Error as e:
         print("Error occurs in general::checkFieldsExists(dbfile, table_name, fields)")
-        # Create error messages.
-        error_title = "エラーが発生しました"
-        error_msg = "テーブルは更新されませんでした!!"
-        error_info = "SQLiteのデータベース・ファイルあるいはデータベースの設定を確認してください。"
-        error_icon = QMessageBox.Critical
-        error_detailed = e.args[0]
-        
-        # Handle error.
-        alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+        print(str(e))
         
         # Returns nothing.
         return(None)
@@ -441,10 +543,12 @@ def checkFieldsExists(dbfile, table_name, fields):
         # Finally close the connection.
         conn.close()
 
-def createDirectories(item_dir, isConsolidation):
+def createDirectories(item_path, isConsolidation):
+    print("general::createDirectories(item_path, isConsolidation)")
+    
     try:
         # Define the root path and create the root directory.
-        sop_dir_root = item_dir
+        sop_dir_root = item_path
         os.mkdir(sop_dir_root)
         
         # Define path of directories for each medium.
@@ -469,20 +573,15 @@ def createDirectories(item_dir, isConsolidation):
         # In case consolidation, create a directory for materials.
         if isConsolidation:
             os.mkdir(os.path.join(sop_dir_root, "Materials"))
-    except:
-        # Create error messages.
-        error_title = "エラーが発生しました"
-        error_msg = "ディレクトリの作成に失敗しました。"
-        error_info = "不明のエラーです。"
-        error_icon = QMessageBox.Critical
-        error_detailed = None
-        
-        # Handle error.
-        alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+    except Exception as e:
+        print("Error occurs in general::checkAdditionalAttributeTableFields(dbfile)")
+        print(str(e))
         
         return(None)
 
 def getRelativePath(path, root):
+    print("general::getRelativePath(path, root)")
+    
     try:
         # Initialyze the variable for storing relative path.
         relative_path = ""
@@ -500,18 +599,24 @@ def getRelativePath(path, root):
             relative_path = os.path.join(str(relative_path), str(dirs[i]))
         
         return(relative_path)
-    except:
+    except Exception as e:
         print("Erro!! Cannot get relative path.")
+        print(str(e))
+        
         return(None)
 
 def getMimeType(path):
+    print("general::getMimeType(path)")
+    
     try:
         mime = MimeTypes()
         mime_type = mime.guess_type(path)
         
         return(mime_type)
-    except:
-        print("Erro!! Cannot get MIME type.")
+    except Exception as e:
+        print("Error occurs in general::getMimeType(path)")
+        print(str(e))
+        
         return(None)
 
 def copyExif(org_file, dst_file):
@@ -530,6 +635,8 @@ def copyExif(org_file, dst_file):
         # Copy the original exif information to the cropped image.
         meta_org.copy(meta_dst)
         meta_dst.write()
-    except:
-        print("Erro!! Cannot copy exif information.")
+    except Exception as e:
+        print("Error occurs in general::copyExif(org_file, dst_file)")
+        print(str(e))
+        
         return(None)

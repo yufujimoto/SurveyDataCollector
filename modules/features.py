@@ -125,27 +125,6 @@ class SimpleObject(object):
             return(None)
 
 class Consolidation(SimpleObject):
-    def __init__(self, is_new=True, uuid=None, dbfile=None):
-        # Initialize the super class.
-        SimpleObject.__init__(self, is_new, uuid, dbfile)
-        
-        if is_new == True and dbfile == None:
-            # Initialize as the new instance.
-            self._name = None
-            self._geographic_annotation = None
-            self._temporal_annotation = None
-            self._images = list()
-            self._sounds = list()
-            self._additionalAttributes = list()
-            self._description = None
-            self._objectPath = None
-        elif is_new == False and uuid != None and dbfile != None:
-            # Initialize by the DB instance.
-            self._initInstanceByUuid(uuid, dbfile)
-        else:
-            # Other unexpected case.
-            return(None)
-    
     @property
     def name(self): return self._name
     @property
@@ -175,6 +154,27 @@ class Consolidation(SimpleObject):
     def additionalAttributes(self, value): self._additionalAttributes = value
     @description.setter
     def description(self, value): self._description = value
+    
+    def __init__(self, is_new=True, uuid=None, dbfile=None):
+        # Initialize the super class.
+        SimpleObject.__init__(self, is_new, uuid, dbfile)
+        
+        if is_new == True and dbfile == None:
+            # Initialize as the new instance.
+            self._name = None
+            self._geographic_annotation = None
+            self._temporal_annotation = None
+            self._images = list()
+            self._sounds = list()
+            self._additionalAttributes = list()
+            self._description = None
+            self._objectPath = None
+        elif is_new == False and uuid != None and dbfile != None:
+            # Initialize by the DB instance.
+            self._initInstanceByUuid(uuid, dbfile)
+        else:
+            # Other unexpected case.
+            return(None)
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
@@ -303,6 +303,8 @@ class Consolidation(SimpleObject):
         
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_delete, values)
+    
+    
     
     def _getFileList(self, dbfile, file_type):
         print("Consolidation::_getFileList(self, dbfile, file_type)")

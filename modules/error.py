@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+# self._language = "en"
+
 # Import general libraries.
 import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
 
@@ -24,6 +26,8 @@ class ErrorMessage(object):
     def icon(self): return self._icon
     @property
     def details(self): return self._details
+    @property
+    def language(self): return self._language
     
     @title.setter
     def title(self, value): self._title = value
@@ -35,9 +39,15 @@ class ErrorMessage(object):
     def icon(self, value): self._icon = value
     @details.setter
     def details(self, value): self._details = value
+    @language.setter
+    def language(self, value): self._language = value
     
-    def __init__(self):
-        self._title = "エラーが発生しました"
+    def __init__(self, language):
+        self._language = language
+        
+        if self._language == "ja": self._title = "エラーが発生しました"
+        elif self._language == "en": self._title = "Error!!"
+        
         self._message = None
         self._information = None
         self._icon = None
@@ -61,12 +71,16 @@ class ErrorMessage(object):
         msg.exec_()
 
 class ErrorMessageProjectOpen(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, language, details=None, show=True):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "プロジェクトが開かれていません。"
-        self._information = "プロジェクトのディレクトリを参照し、指定ください。"
+        if self._language == "ja":                
+            self._message = "プロジェクトが開かれていません。"
+            self._information = "プロジェクトのディレクトリを参照し、指定ください。"
+        elif self._language == "en":
+            self._message = "Project is not opened."
+            self._information = "Please open the project directory."
         self._icon = QMessageBox.Information
         self._details = details
         
@@ -74,12 +88,17 @@ class ErrorMessageProjectOpen(ErrorMessage):
         if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
 
 class ErrorMessageProjectNotCreated(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "新規プロジェクトを作成できませんでした。"
-        self._information = "エラーの詳細を確認してください。"
+        if self._language == "ja":                
+            self._message = "新規プロジェクトを作成できませんでした。"
+            self._information = "エラーの詳細を確認してください。"
+        elif self._language == "en":
+            self._message = "New project has not created."
+            self._information = "Please check details about the error."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -87,12 +106,17 @@ class ErrorMessageProjectNotCreated(ErrorMessage):
         if not show == False: super(ErrorMessageProjectNotCreated, self).showMessageBox()
 
 class ErrorMessageFileExport(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "エクスポートに失敗しました。"
-        self._information = "対象オブジェクトあるいは保存場所を確認してください。"
+        if self._language == "ja":                
+            self._message = "エクスポートに失敗しました。"
+            self._information = "対象オブジェクトあるいは保存場所を確認してください。"
+        elif self._language == "en":
+            self._message = "The object has not exported."
+            self._information = "Please check the permission of the saving path."
+            
         self._icon = QMessageBox.Information
         self._details = details
         
@@ -101,12 +125,17 @@ class ErrorMessageFileExport(ErrorMessage):
         if not show == False: super(ErrorMessageFileExport, self).showMessageBox()
 
 class ErrorMessageEditImageFile(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "このファイルは対応した形式ではありません。"
-        self._information = "編集可能なファイルを選択してください。"
+        if self._language == "ja":                
+            self._message = "このファイルは対応した形式ではありません。"
+            self._information = "編集可能なファイルを選択してください。"
+        elif self._language == "en":
+            self._message = "This file is not supported format."
+            self._information = "Please select supported file."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -115,12 +144,17 @@ class ErrorMessageEditImageFile(ErrorMessage):
         if not show == False: super(ErrorMessageEditImageFile, self).showMessageBox()
 
 class ErrorMessageFileLocked(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "ファイルの削除に失敗しました。"
-        self._information = "このファイルはロックされているか、すでに削除済みのため削除できません。"
+        if self._language == "ja":                
+            self._message = "ファイルの削除に失敗しました。"
+            self._information = "このファイルはロックされているか、すでに削除済みのため削除できません。"
+        elif self._language == "en":
+            self._message = "Cannot delete."
+            self._information = "Selected file is locked or already removed."
+        
         self._icon = QMessageBox.Information
         self._details = details
         
@@ -129,12 +163,17 @@ class ErrorMessageFileLocked(ErrorMessage):
         if not show == False: super(ErrorMessageFileLocked, self).showMessageBox()
 
 class ErrorMessageFileNotExist(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "選択されたファイルは存在しません。"
-        self._information = "すでに削除された可能性あります。選択したファイルを確認してください。"
+        if self._language == "ja":                
+            self._message = "選択されたファイルは存在しません。"
+            self._information = "すでに削除された可能性あります。選択したファイルを確認してください。"
+        elif self._language == "en":
+            self._message = "Selected file does not exist."
+            self._information = "Selected file might have been already removed."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -147,8 +186,13 @@ class ErrorMessageUnknown(ErrorMessage):
         # Initialize the super class.
         ErrorMessage.__init__(self)
         
-        self._message = "不明なエラーです。"
-        self._information = "想定外のエラーが発生しました。エラーの詳細を確認してください。"
+        if self._language == "ja":                
+            self._message = "不明なエラーです。"
+            self._information = "想定外のエラーが発生しました。エラーの詳細を確認してください。"
+        elif self._language == "en":
+            self._message = "Unknown error."
+            self._information = "Unexpected error has occured. Please check the detail."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -157,12 +201,17 @@ class ErrorMessageUnknown(ErrorMessage):
         if not show == False: super(ErrorMessageUnknown, self).showMessageBox()        
     
 class ErrorMessageDbConnection(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "データベースの情報を取得できません。"
-        self._information = "エラーの詳細を確認してください。"
+        if self._language == "ja":                
+            self._message = "データベースの情報を取得できません。"
+            self._information = "エラーの詳細を確認してください。"
+        elif self._language == "en":
+            self._message = "Cannot retrive the Database information."
+            self._information = "Please check the detail."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -171,12 +220,17 @@ class ErrorMessageDbConnection(ErrorMessage):
         if not show == False: super(ErrorMessageDbConnection, self).showMessageBox()       
 
 class ErrorMessageCameraDetection(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "カメラを認識できません。"
-        self._information = "カメラの接続状況を確認してください。"
+        if self._language == "ja":                
+            self._message = "カメラを認識できません。"
+            self._information = "カメラの接続状況を確認してください。"
+        elif self._language == "en":
+            self._message = "Cannot detect the connected cameras."
+            self._information = "Please check connected devices."
+        
         self._icon = QMessageBox.Critical
         self._details = details
         
@@ -185,15 +239,58 @@ class ErrorMessageCameraDetection(ErrorMessage):
         if not show == False: super(ErrorMessageCameraDetection, self).showMessageBox()
 
 class ErrorMessageCurrentObject(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
-        self._message = "オブジェクトを取得できませんでした。"
-        self._information = "ツリー・メニューからオブジェクトを選択してください。"
+        if self._language == "ja":                
+            self._message = "オブジェクトを取得できませんでした。"
+            self._information = "ツリー・メニューからオブジェクトを選択してください。"
+        elif self._language == "en":
+            self._message = "Cannot retrive the selected object."
+            self._information = "Please reselect the object from the tree."
+            
         self._icon = QMessageBox.Critical
         self._details = details
         
         # Execute the query.
         super(ErrorMessageCurrentObject, self).printErrorMessage()
         if not show == False: super(ErrorMessageCurrentObject, self).showMessageBox()
+        
+class ErrorMessageImagePreview(ErrorMessage):
+    def __init__(self, details=None, show=True, language="en"):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":                
+            self._message = "このファイルはプレビューに対応していません。"
+            self._information = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
+        elif self._language == "en":
+            self._message = "Selected file is not supported for preview."
+            self._information = "Curently, only JPEG (and some RAW) files are supported."
+            
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorMessageImagePreview, self).printErrorMessage()
+        if not show == False: super(ErrorMessageImagePreview, self).showMessageBox()
+        
+class ErrorMessagePlaySound(ErrorMessage):
+    def __init__(self, details=None, show=True, language="en"):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":                
+            self._message = "選択中のファイルは音声ファイルではありません。"
+            self._information = "再生可能な音声ファイルを選択してください。"
+        elif self._language == "en":
+            self._message = "Selected file is not supported. Please select a supported file format."
+            self._information = "Curently, only WAV file is supported."
+            
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorMessagePlaySound, self).printErrorMessage()
+        if not show == False: super(ErrorMessagePlaySound, self).showMessageBox()

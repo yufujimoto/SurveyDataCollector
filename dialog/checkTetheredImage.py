@@ -2,25 +2,82 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
-
-# Import the library for acquiring file information.
-from stat import *
+import sys, os, uuid, shutil
 
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import general operations.
 import modules.general as general
-
-# Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
+import modules.skin as skin
+import modules.error as error
+
 import dialog.checkTetheredImageDialog as checkTetheredImageDialog
 
 class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
+    # Properties for default paths.
+    @property
+    def source_directory(self): return self._source_directory
+    @property
+    def siggraph_directory(self): return self._siggraph_directory
+    @property
+    def icon_directory(self): return self._icon_directory
+    @property
+    def temporal_directory(self): return self._temporal_directory
+    @property
+    def root_directory(self): return self._root_directory
+    @property
+    def table_directory(self): return self._table_directory
+    @property
+    def consolidation_directory(self): return self._consolidation_directory
+    @property
+    def database(self): return self._database
+    @property
+    def label_consolidation(self): return self._label_consolidation
+    @property
+    def label_material(self): return self._label_material
+    @property
+    def qt_image(self): return self._qt_image
+    @property
+    def image_extensions(self): return self._image_extensions
+    @property
+    def raw_image_extensions(self): return self._raw_image_extensions
+    @property
+    def sound_extensions(self): return self._sound_extensions
+    
+    # Setter for default paths.
+    @source_directory.setter
+    def source_directory(self, value): self._source_directory = value
+    @siggraph_directory.setter
+    def siggraph_directory(self, value): self._siggraph_directory = value
+    @icon_directory.setter
+    def icon_directory(self, value): self._icon_directory = value
+    @temporal_directory.setter
+    def temporal_directory(self, value): self._temporal_directory = value
+    @root_directory.setter
+    def root_directory(self, value): self._root_directory = value
+    @table_directory.setter
+    def table_directory(self, value): self._table_directory = value
+    @consolidation_directory.setter
+    def consolidation_directory(self, value): self._consolidation_directory = value
+    @database.setter
+    def database(self, value): self._database = value
+    @label_consolidation.setter
+    def label_consolidation(self, value): self._label_consolidation = value
+    @label_material.setter
+    def label_material(self, value): self._label_material = value
+    @qt_image.setter
+    def qt_image(self, value): self._qt_image = value
+    @image_extensions.setter
+    def image_extensions(self, value): self._image_extensions = value
+    @raw_image_extensions.setter
+    def raw_image_extensions(self, value): self._raw_image_extensions = value
+    @sound_extensions.setter
+    def sound_extensions(self, value): self._sound_extensions = value
+    
     def __init__(self, parent=None, path=None):
         # Set the source directory which this program located.
         self._source_directory = parent.source_directory
@@ -57,74 +114,6 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
         
         # Get tethered image files.
         self.getImageFiles()
-        
-    # Properties for default paths.
-    @property
-    def source_directory(self): return self._source_directory
-    @property
-    def siggraph_directory(self): return self._siggraph_directory
-    @property
-    def icon_directory(self): return self._icon_directory
-    @property
-    def temporal_directory(self): return self._temporal_directory
-    @property
-    def root_directory(self): return self._root_directory
-    @property
-    def table_directory(self): return self._table_directory
-    @property
-    def consolidation_directory(self): return self._consolidation_directory
-    @property
-    def database(self): return self._database
-    
-    # Properties for default labels.
-    @property
-    def label_consolidation(self): return self._label_consolidation
-    @property
-    def label_material(self): return self._label_material
-    
-    # Properties for default extensions.
-    @property
-    def qt_image(self): return self._qt_image
-    @property
-    def image_extensions(self): return self._image_extensions
-    @property
-    def raw_image_extensions(self): return self._raw_image_extensions
-    @property
-    def sound_extensions(self): return self._sound_extensions
-    
-    # Setter for default paths.
-    @source_directory.setter
-    def source_directory(self, value): self._source_directory = value
-    @siggraph_directory.setter
-    def siggraph_directory(self, value): self._siggraph_directory = value
-    @icon_directory.setter
-    def icon_directory(self, value): self._icon_directory = value
-    @temporal_directory.setter
-    def temporal_directory(self, value): self._temporal_directory = value
-    @root_directory.setter
-    def root_directory(self, value): self._root_directory = value
-    @table_directory.setter
-    def table_directory(self, value): self._table_directory = value
-    @consolidation_directory.setter
-    def consolidation_directory(self, value): self._consolidation_directory = value
-    @database.setter
-    def database(self, value): self._database = value
-    
-    # Setter for default labels.
-    @label_consolidation.setter
-    def label_consolidation(self, value): self._label_consolidation = value
-    @label_material.setter
-    def label_material(self, value): self._label_material = value
-    
-    # Setter for default extensions.
-    @qt_image.setter
-    def qt_image(self, value): self._qt_image = value
-    @image_extensions.setter
-    def image_extensions(self, value): self._image_extensions = value
-    @raw_image_extensions.setter
-    def raw_image_extensions(self, value): self._raw_image_extensions = value
-    @sound_extensions.setter
-    def sound_extensions(self, value): self._sound_extensions = value
     
     def getImageFiles(self):
         print("CheckImageDialog::getImageFiles(self)")
@@ -156,9 +145,6 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
             # Get the path to the image directory of the tethered imagesw
             img_path = self.tethered
             
-            # Get the tree view for the metadata of consolidation.
-            tre_fl = self.tre_img_info
-            
             # Get the selected image file.
             lst_fls = self.lst_fls.currentItem().text()
             
@@ -170,7 +156,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
             
             if os.path.exists(img_file_path):
                 # Clear the image file information.
-                tre_fl.clear()
+                self.tre_img_info.clear()
                 
                 # Get file information by using "dcraw" library.
                 tags = imageProcessing.getMetaInfo(img_file_path)
@@ -178,15 +164,15 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 for tag in tags.keys():
                     if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                         # Add file information to the tree list.
-                        self.tre_fl.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                        self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
                 
                 # Refresh the tree view.
-                tre_fl.show()
+                self.tre_img_info.show()
                 self.showImage()
             else:
                 # Deselect the item.
-                tre_fl.clearSelection()
-                tre_fl.clear()
+                self.tre_img_info.clearSelection()
+                self.tre_img_info.clear()
         except Exception as e:
             print("Error occurs in CheckImageDialog::getImageFileInfo(self)")
             print(str(e))

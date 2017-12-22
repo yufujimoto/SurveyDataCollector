@@ -2,28 +2,29 @@
 # -*- coding: UTF-8 -*-
 
 # import the necessary packages
-import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
+import cv2, imutils, argparse, uuid, numpy, gphoto2 as gp, colorcorrect.algorithm as cca
 import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread
 
 from sys import argv
 from optparse import OptionParser
 from imutils import perspective, contours
-from io import BytesIO
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
+from rawkit.raw import Raw
 from colorcorrect.util import from_pil, to_pil
 
-def colorize(dir_source, img_input, img_output):
+def colorize(dir_source, img_input, img_output, col_model="colornet.t7"):
     print("imageProcessing::colorize(dir_source, img_input, img_output)")
     
-    try:
+    try:        
         # Get the full path to the bash script command.
-        script_siggraph = [os.path.join(dir_source, "siggraph_run.sh")]
+        script_siggraph = ["th"]
         
         # Define the parameters for the command.
-        script_siggraph.append(str(dir_source))     # Source directory for siggraph.
+        script_siggraph.append(str(os.path.join(dir_source, "colorize.lua")))
         script_siggraph.append(str(img_input))      # Input grey scaled image file.
         script_siggraph.append(str(img_output))     # Output colorized image.
+        script_siggraph.append(str(os.path.join(dir_source, col_model)))
         
         # Execute the colorize function.
         subprocess.check_output(script_siggraph)
@@ -67,18 +68,13 @@ def getThumbnail(img_input):
     print("imageProcessing::getThumbnail(img_input)")
     
     try:
-        # Define the subprocess for getting the camera configuration by using gphoto2.
-        cmd_getThumb = ["dcraw"]
+        img_output = os.path.splitext(img_input)[0] + ".thumb" + ".jpg"
         
-        # Define the parameters for the command.
-        cmd_getThumb.append("-e")
-        cmd_getThumb.append(img_input)
+        with Raw(filename=img_input) as raw:
+            raw.save_thumb(filename=img_output)
         
-        # Execute the command.
-        result = subprocess.check_output(cmd_getThumb)
+        return(img_output)
         
-        # Returns configuration list.
-        return(result)
     except Exception as e:
         print("Error occurs in imageProcessing::getThumbnail(img_input)")
         print(str(e))
