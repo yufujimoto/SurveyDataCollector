@@ -18,27 +18,35 @@ def getFontSize():
     screen_size = getScreenSize()
     font_size = 10
     
-    if screen_size[0] >= 1200:
+    if int(screen_size[0]) >= 1200:
         font_size = 10
-    elif screen_size[0] <= 800:
-        font_size = 8
+    elif int(screen_size[0]) < 1200:
+        font_size = 7
     return(font_size)
 
 def getIconSize():
     # Get the screen size and setting up font size.
     screen_size = getScreenSize()
-    font_size = 24
+    icon_size = 24
     
-    if screen_size[0] >= 1200:
-        font_size = 24
-    elif screen_size[0] <= 800:
-        font_size = 16
-    return(font_size)
+    if int(screen_size[0]) >= 1200:
+        icon_size = 24
+    elif int(screen_size[0]) < 1200:
+        icon_size = 14
 
+    return(icon_size)
 
 def getScreenSize():
     screen = subprocess.Popen('xrandr | grep "\*"',shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0].split("x")
     return(screen)
+
+def getImagePreviewSize():
+    screen_size = getScreenSize()
+
+    if int(screen_size[0]) >= 1200:
+        return(300, 400)
+    elif int(screen_size[0]) < 1200:
+        return(200,150)
 
 def setPlayingIcon(icon_path, btn_stop, skin):
     icon_size = getIconSize()
@@ -474,6 +482,9 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
     parent.btn_mat_update.setFont(font)
     parent.btn_open_gimp.setFont(font)
     
+    # Set preview window size.
+    img_width, img_height = getImagePreviewSize()
+    parent.lbl_img_preview.setMinimumSize(img_width, img_height)
     if skin == "grey":
         # Set the icon path.
         icon_path = os.path.join(icon_path, "white")
