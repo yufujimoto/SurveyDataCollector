@@ -98,8 +98,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def wheelEvent(self, event):
-        print("ImageViewScene::wheelEvent(self, event)")
-        
         # Exit if the image is not loaded.
         if not self.imageItem(): return(None)
         
@@ -123,8 +121,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
         
     def mouseMoveEvent(self, event):
-        print("ImageViewScene::mouseMoveEvent(self, event)")
-        
         # Exit if the current position is not acquired.
         if not self.__currentPos: return(None)
         
@@ -152,8 +148,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def mouseReleaseEvent(self, event):
-        print("ImageViewScene::mouseReleaseEvent(self, event)")
-        
         try:
             self.__currentPos    = None
             self.__pressedButton = None

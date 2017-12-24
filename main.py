@@ -1488,10 +1488,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             tree_item_new_material = QTreeWidgetItem([self._current_material.uuid,self._current_material.name])
             consolidation_tree_item.addChild(tree_item_new_material)
             
-            # Set font color as white.
-            #tre_prj_item_items.setForeground(0,QBrush(QColor("white")))
-            #tre_prj_item_items.setForeground(1,QBrush(QColor("white")))
-            
             # Show tree view.
             self.tre_prj_item.show()
             
@@ -2117,15 +2113,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Get file information by using "dcraw" library.
                     tags = imageProcessing.getMetaInfo(img_file_path)
                     
+                    for tag in sorted(tags.iterkeys()):
+                        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+                            # Add file information to the tree list.
+                            self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                    '''
                     for tag in tags.keys():
                         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                             # Add file information to the tree list.
                             self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                    '''
             # Refresh the tree view.
             self.tre_img_prop.show()
             
             # Show preview.
             self.showImage(img_file_path)
+            
+            # Adjust columns width.
+            self.tre_img_prop.resizeColumnToContents(0)
+            self.tre_img_prop.resizeColumnToContents(1)
             
         except Exception as e:
             print("Error occurs in main::getImageFileInfo(self)")

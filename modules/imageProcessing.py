@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # import the necessary packages
-import cv2, imutils, argparse, uuid, numpy, gphoto2 as gp, colorcorrect.algorithm as cca
+import cv2, imutils, argparse, uuid, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
 import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread
 
 from sys import argv
@@ -56,7 +56,6 @@ def getMetaInfo(img_input):
     try:
         img_object = open(img_input, 'rb')
         meta_tags = exifread.process_file(img_object)
-        
         return(meta_tags)
     except Exception as e:
         print("Error occurs in imageProcessing::getMetaInfo(img_input)")

@@ -27,7 +27,16 @@
     <property name="spacing">
      <number>0</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -66,7 +75,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -141,7 +159,16 @@
         <property name="spacing">
          <number>0</number>
         </property>
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item>
@@ -222,7 +249,16 @@
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <property name="spacing">
@@ -420,7 +456,16 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <property name="spacing">
@@ -466,7 +511,16 @@
            <string>統合体情報</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_2">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <property name="spacing">
@@ -475,7 +529,7 @@
            <item row="0" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_ope">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -525,16 +579,8 @@
                  <height>0</height>
                 </size>
                </property>
-               <property name="font">
-                <font>
-                 <pointsize>9</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -572,7 +618,7 @@
            <item row="5" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_ctrl">
              <property name="spacing">
-              <number>0</number>
+              <number>2</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -678,7 +724,7 @@
            <item row="3" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_tmp">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -723,7 +769,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -732,7 +778,7 @@
            <item row="4" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_dsc">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -777,7 +823,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -786,7 +832,7 @@
            <item row="1" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_nam">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -831,7 +877,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -840,7 +886,7 @@
            <item row="2" column="0">
             <layout class="QHBoxLayout" name="lay_h_con_geo">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -885,7 +931,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -901,15 +947,27 @@
            <property name="spacing">
             <number>0</number>
            </property>
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
               <number>0</number>
              </property>
              <item>
@@ -946,7 +1004,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -987,7 +1045,7 @@
            <item>
             <layout class="QHBoxLayout" name="lay_h_con_nam_3">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -1026,7 +1084,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1064,7 +1122,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1073,7 +1131,7 @@
            <item>
             <layout class="QHBoxLayout" name="lay_h_mat_geo">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -1118,7 +1176,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1162,7 +1220,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1206,7 +1264,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1215,7 +1273,7 @@
            <item>
             <layout class="QHBoxLayout" name="lay_h_mat_tmp">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -1260,7 +1318,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1292,7 +1350,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1318,7 +1376,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1327,7 +1385,7 @@
            <item>
             <layout class="QHBoxLayout" name="lay_h_mat_dsc">
              <property name="spacing">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -1372,7 +1430,7 @@
                 </size>
                </property>
                <property name="frame">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1381,7 +1439,7 @@
            <item>
             <layout class="QHBoxLayout" name="lay_h_mat_ctrl">
              <property name="spacing">
-              <number>0</number>
+              <number>2</number>
              </property>
              <property name="topMargin">
               <number>0</number>
@@ -1519,7 +1577,16 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -1680,7 +1747,16 @@
               <property name="spacing">
                <number>0</number>
               </property>
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -1994,7 +2070,7 @@
                   <property name="tabsClosable">
                    <bool>false</bool>
                   </property>
-                  <property name="tabBarAutoHide" stdset="0">
+                  <property name="tabBarAutoHide">
                    <bool>false</bool>
                   </property>
                   <widget class="QWidget" name="tab_src_img">
@@ -2005,7 +2081,16 @@
                     <property name="spacing">
                      <number>0</number>
                     </property>
-                    <property name="margin">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>0</number>
                     </property>
                    </layout>
@@ -2018,7 +2103,16 @@
                     <property name="spacing">
                      <number>0</number>
                     </property>
-                    <property name="margin">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
                      <number>0</number>
                     </property>
                     <item>
@@ -2055,7 +2149,16 @@
               <property name="spacing">
                <number>0</number>
               </property>
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -2103,7 +2206,7 @@
      <x>0</x>
      <y>0</y>
      <width>1084</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
