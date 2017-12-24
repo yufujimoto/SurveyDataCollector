@@ -15,7 +15,7 @@ class ImageViewScene(QGraphicsScene):
         self.__image_item    = None
         self.__currentPos    = None
         self.__pressedButton = None
-    
+ 
     def setFile(self, img_path):
         print("ImageViewScene::setFile(self, img_path)")
         
@@ -41,8 +41,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def imageItem(self):
-        print("ImageViewScene::imageItem(self)")
-        
         try:
             return self.__image_item
         except Exception as e:
@@ -85,8 +83,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def mousePressEvent(self, event):
-        print("ImageViewScene::mousePressEvent(self, event)")
-        
         try:
             # Get current position and pressed button.
             self.__currentPos = event.scenePos()
@@ -169,18 +165,20 @@ class ImageViewScene(QGraphicsScene):
 
 class ImageViewer(QGraphicsView):
     def __init__( self ):
-        super( ImageViewer, self ).__init__( )
+        super(ImageViewer, self).__init__()
   
         # Set up the graphic viewer.
-        self.setCacheMode( QGraphicsView.CacheBackground )
-        self.setRenderHints( QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.TextAntialiasing)
+        self.setCacheMode(QGraphicsView.CacheBackground)
+        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.TextAntialiasing)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         
         # Create the custom scene object.
         scene = ImageViewScene(self)
         scene.setSceneRect(QRectF(self.rect()))
         
         self.setScene(scene)
-  
+        
     def setFile(self, img_path):
         print("ImageViewer::setFile(self, img_path):")
         
@@ -202,3 +200,15 @@ class ImageViewer(QGraphicsView):
         except Exception as e:
             print("Error in ImageViewer::setFile(self, img_path)")
             print(str(e))
+    
+    def resizeSceneRect( self, scaleFactor=4 ):
+        itemRect   = self.scene().itemsBoundingRect()
+        scaleRatio = self.transform().m11()
+         
+        itemRect.adjust(
+            -itemRect.width()  / scaleRatio * scaleFactor,
+            -itemRect.height() / scaleRatio * scaleFactor,
+            itemRect.width()   / scaleRatio * scaleFactor,
+            itemRect.height()  / scaleRatio * scaleFactor
+        )
+        self.setSceneRect( itemRect )

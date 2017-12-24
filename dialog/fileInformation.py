@@ -56,6 +56,8 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     def raw_image_extensions(self): return self._raw_image_extensions
     @property
     def sound_extensions(self): return self._sound_extensions
+    @property
+    def language(self): return self._language
     
     # Property for selected SOP object
     @property
@@ -90,6 +92,8 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
     def sound_extensions(self, value): self._sound_extensions = value
     @sop_file.setter
     def sop_file(self, value): self._sop_file = value
+    @language.setter
+    def language(self, value): self._language = value
     
     def __init__(self, parent=None, sop_file=None):
         # Get the path of the tethered image.
@@ -104,6 +108,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         self._image_extensions = parent.image_extensions
         self._raw_image_extensions = parent.raw_image_extensions
         self._sound_extensions = parent.sound_extensions
+        self._language = parent.language
         
         super(fileInformationDialog, self).__init__(parent)
         self.setupUi(self)
@@ -211,9 +216,9 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             self.tab_src.addTab(self.tab_img_thumb, "")
             
             # Add the text label to the tab
-            if parent.language == "ja":
+            if self.language == "ja":
                 self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"サムネイル")
-            elif parent.language == "en":
+            elif self.language == "en":
                 self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"Thumbnail")
             
             img_file_path = os.path.join(self._root_directory, self._sop_file.filename)
@@ -237,16 +242,17 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
                 self.graphicsView = viewer.ImageViewer()
                 self.graphicsView.setObjectName("graphicsView")
                 self.lay_img_view.addWidget(self.graphicsView)
-            
+                
+                
                 # Add the text label to the tab
-                if parent.language == "ja":
+                if self._language == "ja":
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"画像ビューア")
-                elif parent.language == "en":
+                elif self.language == "en":
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"Image Viewer")
             
             # Get the image file.
             self.showImage()
-            self.getImageFileInfo()
+            # self.setViewer()
             
             # Set active control tab for thumbnail.
             self.tab_src.setCurrentIndex(0)
@@ -257,15 +263,16 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         
     def toggleTab(self):
         try:
+            # Get the currently selected tab name.
             current_tab = self.tab_src.tabText(self.tab_src.currentIndex())
             
-            if parent.language == "ja":
-                if current_tab == "画像ビューア":
-                    self.getImageFileInfo()
+            if self.language == "ja":
+                if current_tab == u"画像ビューア":
+                    self.setViewer()
                 
-            elif parent.language == "en":
-                if current_tab == "Image Viewer":
-                    self.getImageFileInfo()
+            elif self.language == "en":
+                if current_tab == u"Image Viewer":
+                    self.setViewer()
         except Exception as e:
             print(str(e))
     
@@ -285,16 +292,12 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             
             # Update the file information.
             self._sop_file.dbUpdate(self._database)
-            
-            print("Update OK!")
         except Exception as e:
             print(str(e))
         
     def showImage(self):
         print("fileInformationDialog::showImage(self)")
-        print("---")
-        print(self._sop_file.filename)
-        print("---")
+        
         try:
             # Get the full path of the image.
             if not os.path.exists(os.path.join(self._root_directory, self._sop_file.filename)):
@@ -314,17 +317,15 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
                 # Get the extracted thumbnail image.
                 img_file_path = os.path.splitext(img_file_path)[0] + ".thumb.jpg"
             
-            print(img_file_path)
-            print(self.imageIsValid(img_file_path),img_file_path)
             if os.path.exists(img_file_path):
-                print("A")
+                
                 # Create the container for displaying the image
                 org_pixmap = QPixmap(img_file_path)
                 scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
-                print("B")
+                
                 # Set the image file to the image view container.
                 self.lbl_img_thumb.setPixmap(scl_pixmap)
-                print("C")
+                
                 # Show the selected image.
                 self.lbl_img_thumb.show()
             else:
@@ -349,8 +350,8 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             # Return nothing.
             return(None)
     
-    def getImageFileInfo(self):
-        print("fileInformationDialog::getImageFileInfo(self)")
+    def setViewer(self):
+        print("fileInformationDialog::setViewer(self)")
         
         try:
             # Get the full path of the image.
@@ -366,7 +367,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             self.graphicsView.setFile(img_file_path)
             
         except Exception as e:
-            print("Error occurs in fileInformationDialog::getImageFileInfo(self)")
+            print("Error occurs in fileInformationDialog::setViewer(self)")
             print(str(e))
             
             return(None)

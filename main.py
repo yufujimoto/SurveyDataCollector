@@ -198,7 +198,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.tre_prj_item.itemSelectionChanged.connect(self.toggleCurrentTreeObject)
         
         # Activate the tab for grouping manupilating consolidations and materials.
-        #self.tab_target.currentChanged.connect(self.toggleCurrentObjectTab)
+        self.tab_target.currentChanged.connect(self.toggleCurrentObjectTab)
         self.tab_target.setCurrentIndex(0)
         
         # Activate the tab for grouping manupilating consolidations and materials.
@@ -440,7 +440,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             prev_consolidation = self._current_consolidation
             prev_material = self._current_material
             
-            
             # Define directories for storing files.
             self._root_directory = QFileDialog.getExistingDirectory(self, "Select the project directory")
             self._table_directory = os.path.join(self._root_directory, "Table")
@@ -532,6 +531,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             
             return(None)
+        
+    def toggleCurrentObjectTab(self):
+        if self.tab_target.currentIndex() == 0:
+            if not self._current_consolidation == None:
+                # Set file information of material images.
+                self.refreshFileList(self._current_consolidation)
+            else:
+                self.refreshConsolidationInfo()
+                self.refreshMaterialInfo()
+        elif self.tab_target.currentIndex() == 1:
+            if not self._current_consolidation == None:
+                if not self._current_material == None:
+                    # Set file information of material images.
+                    self.refreshFileList(self._current_material)
+                else:
+                    self.refreshMaterialInfo()
+            else:
+                self.refreshConsolidationInfo()
     
     def toggleCurrentTreeObject(self):
         print("=========")
@@ -1742,6 +1759,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(1)
                         self.getSoundFileInfo(self.current_file)
+                        
                 else:
                     print("main::getCurrentFile(self)")
         except Exception as e:
@@ -1749,14 +1767,47 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def editFileInformation(self):
+        print("main::editFileInformation(self)")
+        
         try:
-            # Check the result of the tethered image.
+            # Check and edit file information.
             self.dialogRecording = fileInformationDialog.fileInformationDialog(parent=self, sop_file=self.current_file)
-            isAccepted = self.dialogRecording.exec_()
-            self.getCurrentFile()
             
+            # Show the dialog.
+            self.dialogRecording.exec_()
+            
+            # Get the tree item index of currently selected.
+            cur_tree_index = self.tre_fls.currentIndex().row()
+            
+            # Refresh image file list.
+            self.refreshImageInfo()
+            
+            if self.tab_target.currentIndex() == 0:
+                if not self._current_consolidation == None:
+                    # Get the uuid of the current consolidation.
+                    con_uuid = self._current_consolidation.uuid
+                    
+                    # Reset the current consolidation.
+                    self._current_consolidation = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=self._database)
+                    
+                    # Set file information of consolidation images.
+                    self.refreshFileList(self._current_consolidation)
+            elif self.tab_target.currentIndex() == 1:
+                if not self._current_consolidation == None:
+                    if not self._current_material == None:
+                        # Get the uuid of the current material.
+                        mat_uuid = self.current_material.uuid
+                        
+                        # Reset the current consolidation.
+                        self._current_material = features.Material(is_new=False, uuid=mat_uuid, dbfile=self._database)
+                        
+                        # Set file information of material images.
+                        self.refreshFileList(self._current_material)
+            print(cur_tree_index)
+            #self.tre_fls.setCurrentIndex(cur_tree_index)
         except Exception as e:
-            print(e)
+            error.ErrorMessageUnknown(details=str(e), language=self._language)
+            print(str(e))
     
     def importFileCSV(self):
         print("main::importFileCSV(self)")

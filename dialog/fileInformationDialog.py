@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_fileInformationDialog(object):
     def setupUi(self, fileInformationDialog):
         fileInformationDialog.setObjectName("fileInformationDialog")
-        fileInformationDialog.resize(849, 768)
+        fileInformationDialog.resize(750, 650)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(fileInformationDialog)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setSpacing(0)
