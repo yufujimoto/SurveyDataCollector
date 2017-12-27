@@ -2117,12 +2117,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                             # Add file information to the tree list.
                             self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
-                    '''
-                    for tag in tags.keys():
-                        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-                            # Add file information to the tree list.
-                            self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
-                    '''
             # Refresh the tree view.
             self.tre_img_prop.show()
             

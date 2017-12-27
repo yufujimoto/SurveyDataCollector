@@ -161,14 +161,20 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 # Get file information by using "dcraw" library.
                 tags = imageProcessing.getMetaInfo(img_file_path)
                 
-                for tag in tags.keys():
-                    if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-                        # Add file information to the tree list.
-                        self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
-                
+                for tag in sorted(tags.iterkeys()):
+                        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+                            # Add file information to the tree list.
+                            self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
                 # Refresh the tree view.
                 self.tre_img_info.show()
+                
+                # Show the preview
                 self.showImage()
+                
+                # Adjust columns width.
+                self.tre_img_prop.resizeColumnToContents(0)
+                self.tre_img_prop.resizeColumnToContents(1)
+                
             else:
                 # Deselect the item.
                 self.tre_img_info.clearSelection()

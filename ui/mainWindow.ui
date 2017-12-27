@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1084</width>
+    <width>1234</width>
     <height>804</height>
    </rect>
   </property>
@@ -1608,7 +1608,7 @@
               <item>
                <widget class="QCheckBox" name="cbx_fil_deleted">
                 <property name="text">
-                 <string>削除済みを表示</string>
+                 <string>削除済み</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -1618,10 +1618,26 @@
               <item>
                <widget class="QCheckBox" name="cbx_fil_original">
                 <property name="text">
-                 <string>オリジナルを表示</string>
+                 <string>オリジナル</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbx_fil_pub">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>公開可能</string>
                 </property>
                </widget>
               </item>
@@ -1717,6 +1733,22 @@
                 </property>
                </widget>
               </item>
+              <item>
+               <widget class="QCheckBox" name="cbx_fil_edit">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>削除可能</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
             <item>
@@ -1770,54 +1802,6 @@
                 <property name="topMargin">
                  <number>0</number>
                 </property>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_10">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>2</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>2</number>
-                  </property>
-                  <item>
-                   <widget class="QCheckBox" name="cbx_fil_pub">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>25</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>公開設定</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QCheckBox" name="cbx_fil_edit">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>25</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>削除可能</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_10">
                   <property name="spacing">
@@ -2205,7 +2189,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1084</width>
+     <width>1234</width>
      <height>23</height>
     </rect>
    </property>
@@ -2420,8 +2404,6 @@
   <tabstop>tre_fls</tabstop>
   <tabstop>tab_img_info</tabstop>
   <tabstop>btn_img_inv</tabstop>
-  <tabstop>cbx_fil_pub</tabstop>
-  <tabstop>cbx_fil_edit</tabstop>
   <tabstop>tab_src</tabstop>
   <tabstop>btn_snd_play</tabstop>
   <tabstop>btn_snd_stop</tabstop>
