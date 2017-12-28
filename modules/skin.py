@@ -394,50 +394,59 @@ def setDefaultConsolidationText(parent, status, skin="grey"):
     font_style_color = ""
     
     if skin == "grey":
+        text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #FFFFFF;"
     elif skin == "white":
+        text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #1A1A1A;"
     
-    parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size)
+    parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border)
 
 def setDefaultMaterialText(parent, status, skin="grey"):
     font_style_size = "font: regular " + str(getFontSize()) + "px;"
     
     if skin == "grey":
+        text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
+
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #FFFFFF;"
     elif skin == "white":
+        text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #1A1A1A;"
-
-    parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size)
-    parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size)
+    
+    parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border)
     
 def setDefaultFileText(parent, status, skin="grey"):
     try:
-        font_style_size = "font: regular " + str(getFontSize()) + "px;"
+        font_style_size = 'font: regular ' + str(getFontSize()) + 'px;'
         
         if skin == "grey":
+            back_color_tree = 'QHeaderView::section {background-color: #2C2C2C;}'
+            parent.tre_fls.setStyleSheet(back_color_tree)
             if status == "original":
                 font_style_color = QBrush(QColor("#00FFFF"))
             elif status == "removed":
@@ -455,11 +464,17 @@ def setDefaultFileText(parent, status, skin="grey"):
         print(str(e))
 
 def applyMainWindowSkin(parent, icon_path, skin="grey"):
-    font_style_size = "font: regular " + str(getFontSize()) + "px;"
+    # Get the proper font size from the display size and set the font size.
+    font_size = getFontSize()
     
+    # Make the style sheet.
+    font_style_size = 'font: regular ' + str(getFontSize()) + 'px;'
+    
+    # Define the font object for Qt.
     font = QFont()
-    font.setPointSize(getFontSize())
+    font.setPointSize(font_size)
     
+    # Apply the font style.
     parent.setFont(font)
     parent.bar_menu.setFont(font)
     parent.tab_control.setFont(font)
@@ -485,26 +500,56 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
     # Set preview window size.
     img_width, img_height = getImagePreviewSize()
     parent.lbl_img_preview.setMinimumSize(img_width, img_height)
+    
     if skin == "grey":
         # Set the icon path.
         icon_path = os.path.join(icon_path, "white")
+        setMainWindowIcons(parent, icon_path)
         
         # Set the default background and front color.
-        front_color = "#FFFFFF"
-        back_color = "background-color: #2C2C2C;"
-        back_color_tab = 'QTabBar::tab {background-color: #2C2C2C;}'
-        
-        font_style_color = "color: " + front_color + ";"
+        back_color = 'background-color: #2C2C2C;'
+        font_style_color = 'color: #FFFFFF;'
         font_style = font_style_color + font_style_size
         
-        parent.setStyleSheet(back_color + font_style)
+        # Set the default skin for tree views.
+        back_color_header = 'QHeaderView::section {background-color: #3C3C3C;}'
+        parent.tre_prj_item.setStyleSheet(back_color_header)
+        parent.tre_fls.setStyleSheet(back_color_header)
+        parent.tre_img_prop.setStyleSheet(back_color_header)
+        
+        # Set the default skin for all components.
+        parent.frm_main.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+        
+        # Set the default skin for tabs.
+        back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
+        back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
+        parent.tab_control.setStyleSheet(back_color_tab + back_color_tab_act)
+        parent.tab_target.setStyleSheet(back_color_tab + back_color_tab_act)
+        parent.tab_img_info.setStyleSheet(back_color_tab + back_color_tab_act)
+        parent.tab_src.setStyleSheet(back_color_tab + back_color_tab_act)
+        parent.tab_target.setStyleSheet(back_color_tab + back_color_tab_act)
+        
+        # Set the default skin for text boxes.
+        text_border = 'border-style: outset; border-width: 0.5px; border-color: #4C4C4C;'
+        parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border)
+        parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border)
         
     elif skin == "white":
         icon_path = os.path.join(icon_path, "black")
-        parent.setStyleSheet(back_color + font_style)
-    
-    # Set icons.
-    setMainWindowIcons(parent, icon_path)
+        setMainWindowIcons(parent, icon_path)
 
     
     

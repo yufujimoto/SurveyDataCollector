@@ -22,18 +22,24 @@ import dialog.recordWithPhotoDialog as recordWithPhotoDialog
 import Queue as queue
 import sounddevice as sd
 import soundfile as sf
+import numpy as np
 
 import viewer.imageViewer as viewer
 
 class RecordThreading(QThread):
-    def __init__(self, path):
+    def __init__(self, parent, path):
         QThread.__init__(self)
+        
+        self.parent = parent
         self.path_snd = path
 
     def __del__(self):
         self.wait()
     
     def stop(self):
+        self.parent.pbr_r.setValue(0)
+        self.parent.pbr_l.setValue(0)
+        
         self.terminate()
 
     def run(self):
@@ -63,7 +69,16 @@ class RecordThreading(QThread):
             with sf.SoundFile(filename, mode='x', samplerate=samplerate, channels=channels, subtype=subtype) as file:
                 with sd.InputStream(samplerate=samplerate, device=None, channels=channels, callback=callback):
                     while True:
-                        file.write(q.get())
+                        value = q.get()
+                        
+                        l, r = np.nan_to_num(value.mean(axis=0))
+                        
+                        if int(l) >= 1:
+                            lv = math.fabs(math.log10(math.fabs(int(l))))
+                            self.parent.pbr_l.setValue(int(lv))
+                        if int(r) >= 1:
+                            lr = math.fabs(math.log10(math.fabs(int(r))))
+                            self.parent.pbr_r.setValue(int(lr))
         except Exception as e:
             print(type(e).__name__ + ': ' + str(e))
 
@@ -188,7 +203,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.lst_img_icon.selectionModel().selectionChanged.connect(self.showImage)
         
         # Create recording thread.
-        self.recThread = RecordThreading(self.path_snd)
+        self.recThread = RecordThreading(parent=self, path=self.path_snd)
         
         # Get tethered image files.
         self.getImageFiles()

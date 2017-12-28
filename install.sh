@@ -46,6 +46,7 @@ pip2 install rawKit
 pip2 install exifread
 
 # Install Sound processing libraries.
+apt install python-pyqt5.qtmultimedia
 pip2 install sounddevice
 pip2 install soundfile
 

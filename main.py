@@ -135,9 +135,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Initialyze the window.
         self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
         
-        # Define language.
-        self._language = "ja"
-        self._skin = "grey"
+        # Add a splitter handle between project item tree and selected object.
+        spl_main = QSplitter(Qt.Horizontal)
+        spl_main.addWidget(self.frm_left)
+        spl_main.addWidget(self.frm_right)
+        self.frm_main_lay.addWidget(spl_main)
+        self.setLayout(self.frm_main_lay)
+        
+        # Add a splitter handle between the file list tree and preview screen.
+        spl_fl = QSplitter(Qt.Horizontal)
+        spl_fl.addWidget(self.frm_fil_info_left)
+        spl_fl.addWidget(self.frm_fil_info_right)
+        self.frm_fil_info_lay.addWidget(spl_fl)
+        self.setLayout(self.frm_fil_info_lay)
         
         # Define paths
         self._root_directory = None
@@ -148,16 +158,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._siggraph_directory = os.path.join(expanduser("~"),"siggraph")
         self._temporal_directory = os.path.join(self._source_directory, "temp")
         self._icon_directory = os.path.join(self._source_directory, "icon")
-        
-        # Initialyze the current objects
-        self._current_consolidation = None
-        self._current_material = None
-        self._current_file = None
-        self._current_camera = None
-        
-        # Set skin.
-        skin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
-        skin.setMainWindowButtonText(self)
         
         # Initialyze the temporal directory.
         if not os.path.exists(self._temporal_directory):
@@ -180,33 +180,49 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._current_file = None
         self._current_camera = None
         
-        #========================================
-        # Initialyze objects for project
-        #========================================
+        # Define language and skin theme.
+        self._language = "ja"
+        self._skin = "grey"
+        
+        '''
+        self._language = "en"
+        self._skin = "white"
+        '''
+        
+        # Set the default skin.
+        self.setSkin(lang=self._language, theme=self._skin)
+        
+        # Activate modules.
+        self.activate()
+        
+        # Detect the camera automatically.
+        self.detectCamera()
+        
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
+    def activate(self):
         # Activate actions on the menu bar.
         self.bar_menu.setNativeMenuBar(False)
         self.act_prj_open.triggered.connect(self.getTheRootDirectory)
         self.act_imp_csv_con.triggered.connect(self.importConsolidationCSV)
         self.act_imp_csv_mat.triggered.connect(self.importMaterialCSV)
         self.act_imp_csv_fil.triggered.connect(self.importFileCSV)
-        
         self.act_export_html.triggered.connect(self.exportAsHtml)
         self.act_exp_csv_con.triggered.connect(self.exportConsolidationCSV)
         self.act_exp_csv_mat.triggered.connect(self.exportMaterialCSV)
+                
+        self.tre_prj_item.itemSelectionChanged.connect(self.toggleCurrentTreeObject)    # Handle current selection of consolidations and materials.
+        self.tre_fls.itemSelectionChanged.connect(self.toggleCurrentFile)               # Handle current selection of consolidations and materials.
         
-        # Handle current selection of consolidations and materials.
-        self.tre_prj_item.itemSelectionChanged.connect(self.toggleCurrentTreeObject)
+        self.tab_control.setCurrentIndex(0) # Initialyze the tab for source tree view and camera setting.
+        self.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.
+        self.tab_src.setCurrentIndex(0)     # Initialyze the tab icons for source media tabs.
         
-        # Activate the tab for grouping manupilating consolidations and materials.
         self.tab_target.currentChanged.connect(self.toggleCurrentObjectTab)
-        self.tab_target.setCurrentIndex(0)
         
-        # Activate the tab for grouping manupilating consolidations and materials.
-        self.tab_control.setCurrentIndex(0)
-        
-        #========================================
         # Initialyze objects for consolidation
-        #========================================
         self.btn_con_add.clicked.connect(self.addConsolidation)         # Activate the adding a consolidation button.
         self.btn_con_update.clicked.connect(self.updateConsolidation)   # Activate the updating the selected consolidation button.
         self.btn_con_del.clicked.connect(self.deleteConsolidation)      # Activate the deleting the selected consolidation button.
@@ -214,19 +230,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_con_imp.clicked.connect(self.importExternalData)       # Activate the importing files of the consolidation button.
         self.btn_con_rec.clicked.connect(self.recordWithPhoto)          # Activate the opening recording dialog button.
         
-        # Activate operation mode selecting button.
-        self.grp_con_ope = QButtonGroup()
-        self.grp_con_ope.addButton(self.rad_con_new, 0)
-        self.grp_con_ope.addButton(self.rad_con_mod, 1)
-        self.grp_con_ope.buttonClicked.connect(self.toggleEditModeForConsolidation)
-        
-        # Initialyze the edit consolidation mode as modifying.
-        self.rad_con_mod.setChecked(True)
-        self.toggleEditModeForConsolidation()
-        
-        #========================================
         # Initialyze objects for materials
-        #========================================
         self.btn_mat_add.clicked.connect(self.addMaterial)          # Activate the adding a material button.
         self.btn_mat_update.clicked.connect(self.updateMaterial)    # Activate the updating the selected material button.
         self.btn_mat_del.clicked.connect(self.deleteMaterial)       # Activate the consolidation delete button.
@@ -234,32 +238,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_mat_imp.clicked.connect(self.importExternalData)   # Activate the importing files of the consolidation button.
         self.btn_mat_rec.clicked.connect(self.recordWithPhoto)      # Activate the opening recording dialog button.
         
+        # Activate operation mode selecting button.
+        self.grp_con_ope = QButtonGroup()
+        self.grp_con_ope.addButton(self.rad_con_new, 0)
+        self.grp_con_ope.addButton(self.rad_con_mod, 1)
+        self.grp_con_ope.buttonClicked.connect(self.toggleEditModeForConsolidation)
+        
         # Activate selecting operation mode button.
         self.grp_mat_ope = QButtonGroup()
         self.grp_mat_ope.addButton(self.rad_mat_new, 0)
         self.grp_mat_ope.addButton(self.rad_mat_mod, 1)
         self.grp_mat_ope.buttonClicked.connect(self.toggleEditModeForMaterial)
         
-        # Initialyze the edit material mode as modifying.
+        # Initialyze the edit consolidation mode as modifying.
+        self.rad_con_mod.setChecked(True)
         self.rad_mat_mod.setChecked(True)
-        
-        #========================================
-        # Initialyze objects for file
-        #========================================
-        # Set the tool tips with the specific language.
-        skin.setMainWindowToolTips(self)
-        
-        # Handle current selection of consolidations and materials.
-        self.tre_fls.itemSelectionChanged.connect(self.toggleCurrentFile)
-        
-        # Initialyze the tab icons for source media tabs.
-        self.tab_src.setCurrentIndex(0)
         
         # Activate the check boxes for publishing mode.
         self.cbx_fil_pub.setChecked(False)
         self.cbx_fil_pub.clicked.connect(self.updateFile)
-        
-        # Activate the check boxes for locking mode.
         self.cbx_fil_original.clicked.connect(self.toggleShowFileMode)
         self.cbx_fil_deleted.clicked.connect(self.toggleShowFileMode)
         
@@ -277,30 +274,27 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_img_awb.clicked.connect(self.adjustWhiteBalance)   # Activating the image processing tool button for adjusting image white balance.
         self.btn_img_col.clicked.connect(self.colorlize)            # Activating the image processing tool button for adjusting image white balance.
         
-        # Activate the editing the file informatin button.
-        self.btn_fil_edit.clicked.connect(self.editFileInformation)
-        
-        #========================================
-        # Initialyze objects for camera & images
-        #========================================
-        # Activate detecting a connected camera button.
-        self.btn_cam_detect.clicked.connect(self.detectCamera)
-        
-        #========================================
-        # Initialyze objects for audio file
-        #========================================
-        # Activate the play button.
-        self.btn_snd_play.clicked.connect(self.soundPlay)
-        
-        # Detect the camera automatically.
-        self.detectCamera()
-        
-        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-        self.showImage(img_file_path)
+        # Activate the extra functions.
+        self.btn_fil_edit.clicked.connect(self.editFileInformation) # Activate the editing the file informatin button.
+        self.btn_cam_detect.clicked.connect(self.detectCamera)      # Activate detecting a connected camera button.
+        self.btn_snd_play.clicked.connect(self.soundPlay)           # Activate the play button.
     
     # ==========================
     # General operation
     # ==========================
+    def setSkin(self, lang, theme):
+        print("main::setSkin(self, lang, theme)")
+        
+        self._language = lang
+        self._skin = theme
+        
+        # Set skin.
+        skin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
+        skin.setMainWindowButtonText(self)
+        
+        # Set the tool tips with the specific language.
+        skin.setMainWindowToolTips(self)
+        
     def importExternalData(self):
         print("main::importExternalData(self)")
         

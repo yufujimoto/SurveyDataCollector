@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1234</width>
+    <width>1030</width>
     <height>804</height>
    </rect>
   </property>
@@ -22,427 +22,430 @@
    <iconset>
     <normaloff>icon/ic_add_a_photo_black_24dp_2x.png</normaloff>icon/ic_add_a_photo_black_24dp_2x.png</iconset>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+  <widget class="QWidget" name="frm_main">
+   <layout class="QHBoxLayout" name="frm_main_lay">
     <property name="spacing">
-     <number>0</number>
+     <number>5</number>
     </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
-     <widget class="QTabWidget" name="tab_control">
-      <property name="minimumSize">
-       <size>
-        <width>400</width>
-        <height>0</height>
-       </size>
-      </property>
+     <widget class="QFrame" name="frm_left">
       <property name="maximumSize">
        <size>
-        <width>500</width>
+        <width>600</width>
         <height>16777215</height>
        </size>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>9</pointsize>
-       </font>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
       </property>
-      <property name="currentIndex">
-       <number>0</number>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
-      <property name="iconSize">
-       <size>
-        <width>24</width>
-        <height>24</height>
-       </size>
-      </property>
-      <widget class="QWidget" name="tab_prj_item">
-       <attribute name="title">
-        <string>アイテム</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <layout class="QHBoxLayout" name="lay_h_dir_root">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="lbl_prjDir">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>プロジェクト : </string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="lbl_prj_path">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QTreeWidget" name="tre_prj_item">
-          <property name="lineWidth">
-           <number>0</number>
-          </property>
-          <property name="dragEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="dragDropMode">
-           <enum>QAbstractItemView::NoDragDrop</enum>
-          </property>
-          <attribute name="headerDefaultSectionSize">
-           <number>150</number>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QTabWidget" name="tab_control">
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <widget class="QWidget" name="tab_prj_item">
+          <attribute name="title">
+           <string>アイテム</string>
           </attribute>
-          <column>
-           <property name="text">
-            <string>UUID</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>名称</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_prj_cam">
-       <attribute name="title">
-        <string>カメラ</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <layout class="QHBoxLayout" name="lay_h_cam_detect">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="lbl_cam_detected">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>200</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>接続中のカメラ: No Camera detected</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_cam_detect">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>カメラの認識</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="grp_cam">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>400</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>400</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>撮影モード</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
            <property name="spacing">
             <number>0</number>
            </property>
-           <item row="7" column="0">
-            <widget class="QLabel" name="lbl_cam_qoi">
-             <property name="text">
-              <string>Image Quality</string>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QFrame" name="frm_tab_prj_item">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
              </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QComboBox" name="cbx_cam_epg">
-             <property name="frame">
-              <bool>false</bool>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
              </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="cbx_cam_size">
-             <property name="frame">
-              <bool>false</bool>
+             <property name="lineWidth">
+              <number>1</number>
              </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="lbl_cam_fmod">
-             <property name="text">
-              <string>Focus Mode</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="lbl_cam_epg">
-             <property name="text">
-              <string>Exposure Program</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="lbl_cam_size">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Image Size</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QComboBox" name="cbx_cam_fmod">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lbl_cam_iso">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>ISO Speed Rating</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QComboBox" name="cbx_cam_iso">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="lbl_cam_cpt">
-             <property name="text">
-              <string>Capture Mode</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="lbl_cam_fval">
-             <property name="text">
-              <string>F-Number</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="lbl_cam_wht">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>White Balance</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QComboBox" name="cbx_cam_cpt">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QComboBox" name="cbx_cam_wht">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="lbl_cam_exp">
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Exposure Compensation</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QComboBox" name="cbx_cam_exp">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="lbl_cam_met">
-             <property name="text">
-              <string>Metering Mode</string>
-             </property>
-            </widget>
-           </item>
-           <item row="11" column="1">
-            <widget class="QComboBox" name="cbx_cam_met">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QComboBox" name="cbx_cam_fval">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QComboBox" name="cbx_cam_qoi">
-             <property name="frame">
-              <bool>false</bool>
-             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QTreeWidget" name="tre_prj_item">
+                <property name="frameShape">
+                 <enum>QFrame::HLine</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <attribute name="headerDefaultSectionSize">
+                 <number>150</number>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>UUID</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>名称</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <layout class="QHBoxLayout" name="lay_h_dir_root">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="lbl_prjDir">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>プロジェクト : </string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="lbl_prj_path">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
          </widget>
-        </item>
-       </layout>
-      </widget>
+         <widget class="QWidget" name="tab_prj_cam">
+          <attribute name="title">
+           <string>カメラ</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="lay_h_cam_detect">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="lbl_cam_detected">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>200</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>200</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>接続中のカメラ: No Camera detected</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_cam_detect">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>カメラの認識</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="grp_cam">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>400</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>400</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>撮影モード</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="7" column="0">
+               <widget class="QLabel" name="lbl_cam_qoi">
+                <property name="text">
+                 <string>Image Quality</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="1">
+               <widget class="QComboBox" name="cbx_cam_epg">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="cbx_cam_size">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="lbl_cam_fmod">
+                <property name="text">
+                 <string>Focus Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QLabel" name="lbl_cam_epg">
+                <property name="text">
+                 <string>Exposure Program</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lbl_cam_size">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Image Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QComboBox" name="cbx_cam_fmod">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lbl_cam_iso">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>ISO Speed Rating</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="cbx_cam_iso">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="lbl_cam_cpt">
+                <property name="text">
+                 <string>Capture Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="lbl_cam_fval">
+                <property name="text">
+                 <string>F-Number</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="lbl_cam_wht">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>White Balance</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="1">
+               <widget class="QComboBox" name="cbx_cam_cpt">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="cbx_cam_wht">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="lbl_cam_exp">
+                <property name="maximumSize">
+                 <size>
+                  <width>200</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Exposure Compensation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="cbx_cam_exp">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="lbl_cam_met">
+                <property name="text">
+                 <string>Metering Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1">
+               <widget class="QComboBox" name="cbx_cam_met">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QComboBox" name="cbx_cam_fval">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="cbx_cam_qoi">
+                <property name="frame">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item>
-     <widget class="QFrame" name="frame_3">
+     <widget class="QFrame" name="frm_right">
       <property name="minimumSize">
        <size>
         <width>600</width>
@@ -450,14 +453,14 @@
        </size>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+       <enum>QFrame::Plain</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <property name="leftMargin">
-        <number>0</number>
+        <number>3</number>
        </property>
        <property name="topMargin">
         <number>0</number>
@@ -491,9 +494,6 @@
            <height>300</height>
           </size>
          </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
          <property name="currentIndex">
           <number>0</number>
          </property>
@@ -512,13 +512,13 @@
           </attribute>
           <layout class="QGridLayout" name="gridLayout_2">
            <property name="leftMargin">
-            <number>0</number>
+            <number>5</number>
            </property>
            <property name="topMargin">
             <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>0</number>
+            <number>5</number>
            </property>
            <property name="bottomMargin">
             <number>0</number>
@@ -527,7 +527,7 @@
             <number>0</number>
            </property>
            <item row="0" column="0">
-            <layout class="QHBoxLayout" name="lay_h_con_ope">
+            <layout class="QHBoxLayout" name="lay_h_con_uuid">
              <property name="spacing">
               <number>5</number>
              </property>
@@ -597,9 +597,6 @@
                  <width>200</width>
                  <height>16777215</height>
                 </size>
-               </property>
-               <property name="layoutDirection">
-                <enum>Qt::LeftToRight</enum>
                </property>
                <property name="text">
                 <string>新規作成</string>
@@ -948,19 +945,19 @@
             <number>0</number>
            </property>
            <property name="leftMargin">
-            <number>0</number>
+            <number>5</number>
            </property>
            <property name="topMargin">
             <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>0</number>
+            <number>5</number>
            </property>
            <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <layout class="QHBoxLayout" name="lay_h_mat_uuid">
              <property name="spacing">
               <number>5</number>
              </property>
@@ -1562,608 +1559,599 @@
            <height>450</height>
           </size>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-          </font>
-         </property>
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::NoFrame</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Plain</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="frm_fil_info_lay">
           <property name="spacing">
            <number>0</number>
           </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <property name="spacing">
-             <number>0</number>
+           <widget class="QFrame" name="frm_fil_info_left">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
             </property>
-            <property name="topMargin">
-             <number>0</number>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
             </property>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QCheckBox" name="cbx_fil_deleted">
-                <property name="text">
-                 <string>削除済み</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbx_fil_original">
-                <property name="text">
-                 <string>オリジナル</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbx_fil_pub">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>公開可能</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QTreeWidget" name="tre_fls">
-              <attribute name="headerCascadingSectionResizes">
-               <bool>true</bool>
-              </attribute>
-              <attribute name="headerShowSortIndicator" stdset="0">
-               <bool>true</bool>
-              </attribute>
-              <column>
-               <property name="text">
-                <string>画像ID</string>
+            <layout class="QGridLayout" name="frm_fil_info_left_lay">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item row="0" column="0">
+              <layout class="QVBoxLayout" name="lay_v_fil_list">
+               <property name="spacing">
+                <number>0</number>
                </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>名前</string>
+               <property name="topMargin">
+                <number>0</number>
                </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>データタイプ</string>
-               </property>
-              </column>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_8">
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="btn_fil_edit">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>ファイル情報の編集</string>
-                </property>
-                <property name="flat">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="btn_img_sav">
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checkable">
-                 <bool>false</bool>
-                </property>
-                <property name="flat">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="btn_img_del">
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>24</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="checkable">
-                 <bool>false</bool>
-                </property>
-                <property name="flat">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbx_fil_edit">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>25</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>削除可能</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-             </layout>
-            </item>
-           </layout>
+               <item>
+                <layout class="QHBoxLayout" name="lay_h_fil_opt">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="cbx_fil_deleted">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>削除済み</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="cbx_fil_original">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>オリジナル</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="cbx_fil_pub">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>公開可能</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTreeWidget" name="tre_fls">
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <attribute name="headerDefaultSectionSize">
+                  <number>100</number>
+                 </attribute>
+                 <column>
+                  <property name="text">
+                   <string>画像ID</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>名前</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>データタイプ</string>
+                  </property>
+                 </column>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="lay_h_fil_edit">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="btn_fil_edit">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>ファイル情報の編集</string>
+                   </property>
+                   <property name="flat">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_img_sav">
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="checkable">
+                    <bool>false</bool>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_img_del">
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>24</width>
+                     <height>24</height>
+                    </size>
+                   </property>
+                   <property name="checkable">
+                    <bool>false</bool>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="cbx_fil_edit">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>削除可能</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
           </item>
           <item>
-           <widget class="QTabWidget" name="tab_img_info">
-            <property name="tabShape">
-             <enum>QTabWidget::Rounded</enum>
+           <widget class="QFrame" name="frm_fil_info_right">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
             </property>
-            <property name="currentIndex">
-             <number>0</number>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
             </property>
-            <widget class="QWidget" name="tab_img_preview">
-             <attribute name="title">
-              <string>プレビュー</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_9">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_10">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_rot_l">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_rot_r">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_rot_u">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_cnt">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_enh">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_awb">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_inv">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_mno">
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="checkable">
-                       <bool>false</bool>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_img_col">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btn_open_gimp">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="flat">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="lbl_img_preview">
-                    <property name="text">
-                     <string>preview</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <widget class="QTabWidget" name="tab_src">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="tabPosition">
-                   <enum>QTabWidget::North</enum>
-                  </property>
-                  <property name="tabShape">
-                   <enum>QTabWidget::Rounded</enum>
-                  </property>
-                  <property name="currentIndex">
-                   <number>0</number>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>24</width>
-                    <height>24</height>
-                   </size>
-                  </property>
-                  <property name="elideMode">
-                   <enum>Qt::ElideNone</enum>
-                  </property>
-                  <property name="documentMode">
-                   <bool>false</bool>
-                  </property>
-                  <property name="tabsClosable">
-                   <bool>false</bool>
-                  </property>
-                  <property name="tabBarAutoHide">
-                   <bool>false</bool>
-                  </property>
-                  <widget class="QWidget" name="tab_src_img">
-                   <attribute name="title">
-                    <string>画像</string>
-                   </attribute>
-                   <layout class="QVBoxLayout" name="verticalLayout_4">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                   </layout>
-                  </widget>
-                  <widget class="QWidget" name="tab_src_snd">
-                   <attribute name="title">
-                    <string>音声</string>
-                   </attribute>
-                   <layout class="QVBoxLayout" name="verticalLayout_8">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>0</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_12">
-                      <item>
-                       <widget class="QPushButton" name="btn_snd_play">
-                        <property name="text">
-                         <string>Play</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="btn_snd_stop">
-                        <property name="text">
-                         <string>Stop</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
-                  </widget>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_img_prop">
-             <attribute name="title">
-              <string>プロパティ</string>
-             </attribute>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QTreeWidget" name="tre_img_prop">
-                <attribute name="headerDefaultSectionSize">
-                 <number>100</number>
+            <layout class="QGridLayout" name="frm_fil_info_right_lay">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QTabWidget" name="tab_src">
+               <property name="tabPosition">
+                <enum>QTabWidget::North</enum>
+               </property>
+               <property name="tabShape">
+                <enum>QTabWidget::Rounded</enum>
+               </property>
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="documentMode">
+                <bool>false</bool>
+               </property>
+               <property name="tabsClosable">
+                <bool>false</bool>
+               </property>
+               <property name="tabBarAutoHide" stdset="0">
+                <bool>false</bool>
+               </property>
+               <widget class="QWidget" name="tab_src_img">
+                <attribute name="title">
+                 <string>画像</string>
                 </attribute>
-                <column>
-                 <property name="text">
-                  <string>プロパティ</string>
+                <layout class="QVBoxLayout" name="verticalLayout_4">
+                 <property name="spacing">
+                  <number>0</number>
                  </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>値</string>
+                 <property name="margin">
+                  <number>0</number>
                  </property>
-                </column>
+                 <item>
+                  <widget class="QTabWidget" name="tab_img_info">
+                   <property name="tabPosition">
+                    <enum>QTabWidget::South</enum>
+                   </property>
+                   <property name="tabShape">
+                    <enum>QTabWidget::Rounded</enum>
+                   </property>
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <widget class="QWidget" name="tab_img_preview">
+                    <attribute name="title">
+                     <string>プレビュー</string>
+                    </attribute>
+                    <layout class="QVBoxLayout" name="verticalLayout_6">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="margin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="verticalLayout_9">
+                       <property name="spacing">
+                        <number>0</number>
+                       </property>
+                       <property name="leftMargin">
+                        <number>0</number>
+                       </property>
+                       <property name="topMargin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <layout class="QVBoxLayout" name="verticalLayout_10">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <layout class="QHBoxLayout" name="horizontalLayout_7">
+                           <property name="spacing">
+                            <number>0</number>
+                           </property>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_rot_l">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_rot_r">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_rot_u">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_cnt">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_enh">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_awb">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_inv">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_mno">
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="checkable">
+                              <bool>false</bool>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_img_col">
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>0</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="btn_open_gimp">
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>0</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>40</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="flat">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </item>
+                         <item>
+                          <widget class="QLabel" name="lbl_img_preview">
+                           <property name="text">
+                            <string>preview</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tab_img_prop">
+                    <attribute name="title">
+                     <string>プロパティ</string>
+                    </attribute>
+                    <layout class="QHBoxLayout" name="horizontalLayout_3">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <property name="margin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QTreeWidget" name="tre_img_prop">
+                       <property name="frameShape">
+                        <enum>QFrame::NoFrame</enum>
+                       </property>
+                       <attribute name="headerDefaultSectionSize">
+                        <number>100</number>
+                       </attribute>
+                       <column>
+                        <property name="text">
+                         <string>プロパティ</string>
+                        </property>
+                       </column>
+                       <column>
+                        <property name="text">
+                         <string>値</string>
+                        </property>
+                       </column>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
-              </item>
-             </layout>
-            </widget>
+               <widget class="QWidget" name="tab_src_snd">
+                <attribute name="title">
+                 <string>音声</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="margin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_12">
+                   <item>
+                    <widget class="QPushButton" name="btn_snd_play">
+                     <property name="text">
+                      <string>Play</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btn_snd_stop">
+                     <property name="text">
+                      <string>Stop</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
@@ -2172,16 +2160,6 @@
       </layout>
      </widget>
     </item>
-    <item>
-     <layout class="QVBoxLayout" name="lay_v_item_info">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-     </layout>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="bar_menu">
@@ -2189,8 +2167,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1234</width>
-     <height>23</height>
+     <width>1030</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -2355,9 +2333,28 @@
     <string>File</string>
    </property>
   </action>
+  <action name="act_ja">
+   <property name="text">
+    <string>日本語</string>
+   </property>
+  </action>
+  <action name="act_en">
+   <property name="text">
+    <string> English</string>
+   </property>
+  </action>
+  <action name="act_dark">
+   <property name="text">
+    <string>ダーク</string>
+   </property>
+  </action>
+  <action name="act_white">
+   <property name="text">
+    <string>ホワイト</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
-  <tabstop>tab_control</tabstop>
   <tabstop>btn_cam_detect</tabstop>
   <tabstop>cbx_cam_size</tabstop>
   <tabstop>cbx_cam_iso</tabstop>
@@ -2401,10 +2398,7 @@
   <tabstop>btn_mat_del</tabstop>
   <tabstop>cbx_fil_deleted</tabstop>
   <tabstop>cbx_fil_original</tabstop>
-  <tabstop>tre_fls</tabstop>
-  <tabstop>tab_img_info</tabstop>
   <tabstop>btn_img_inv</tabstop>
-  <tabstop>tab_src</tabstop>
   <tabstop>btn_snd_play</tabstop>
   <tabstop>btn_snd_stop</tabstop>
   <tabstop>tre_img_prop</tabstop>
