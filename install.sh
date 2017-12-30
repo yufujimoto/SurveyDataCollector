@@ -67,6 +67,12 @@ apt install python-opencv
 apt install sqlite
 apt install sqlitebrowser
 
+# Install gis tools.
+apt install libgeos-dev
+apt install libproj-dev
+pip2 install pyqtgraph
+pip2 install cartopy
+
 # Install torch into home directory.
 git clone https://github.com/torch/distro.git ~/torch --recursive
 (cd ~/torch; bash install-deps; ./install.sh)

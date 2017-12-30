@@ -395,50 +395,57 @@ def setDefaultConsolidationText(parent, status, skin="grey"):
     
     if skin == "grey":
         text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
+        text_background = "background-color: #6C6C6C;"
+        
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #FFFFFF;"
     elif skin == "white":
         text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
+        text_background = ""
+        
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #1A1A1A;"
     
-    parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
 
 def setDefaultMaterialText(parent, status, skin="grey"):
     font_style_size = "font: regular " + str(getFontSize()) + "px;"
     
     if skin == "grey":
         text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
-
+        text_background = "background-color: #6C6C6C;"
+        
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #FFFFFF;"
     elif skin == "white":
         text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
+        text_background = ""
+        
         if status == "new":
             font_style_color = "color: rgb(255, 0, 0);"
         elif status == "default":
             font_style_color = "color: #1A1A1A;"
     
-    parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border)
-    parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border)
+    parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+    parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
     
 def setDefaultFileText(parent, status, skin="grey"):
     try:
@@ -531,21 +538,22 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
         
         # Set the default skin for text boxes.
         text_border = 'border-style: outset; border-width: 0.5px; border-color: #4C4C4C;'
-        parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border)
-        parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border)
+        text_background = "background-color: #6C6C6C;"
+        parent.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
     elif skin == "white":
         icon_path = os.path.join(icon_path, "black")

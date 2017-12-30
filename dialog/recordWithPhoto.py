@@ -37,9 +37,6 @@ class RecordThreading(QThread):
         self.wait()
     
     def stop(self):
-        self.parent.pbr_r.setValue(0)
-        self.parent.pbr_l.setValue(0)
-        
         self.terminate()
 
     def run(self):
@@ -71,14 +68,18 @@ class RecordThreading(QThread):
                     while True:
                         value = q.get()
                         
-                        l, r = np.nan_to_num(value.mean(axis=0))
+                        file.write(value)
                         
-                        if int(l) >= 1:
-                            lv = math.fabs(math.log10(math.fabs(int(l))))
+                        l, r = np.nan_to_num(value.mean(axis=0) * 100000)
+                        
+                        if int(math.fabs(l)) >= 1:
+                            lv = math.fabs(10 * math.log10(math.fabs(int(l)**3)))
                             self.parent.pbr_l.setValue(int(lv))
-                        if int(r) >= 1:
-                            lr = math.fabs(math.log10(math.fabs(int(r))))
+                            
+                        if int(math.fabs(r)) >= 1:
+                            lr = math.fabs(10 *  math.log10(math.fabs(int(r)**3)))
                             self.parent.pbr_r.setValue(int(lr))
+                        
         except Exception as e:
             print(type(e).__name__ + ': ' + str(e))
 
@@ -87,19 +88,9 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
     @property
     def source_directory(self): return self._source_directory
     @property
-    def siggraph_directory(self): return self._siggraph_directory
-    @property
     def icon_directory(self): return self._icon_directory
     @property
-    def temporal_directory(self): return self._temporal_directory
-    @property
     def root_directory(self): return self._root_directory
-    @property
-    def table_directory(self): return self._table_directory
-    @property
-    def consolidation_directory(self): return self._consolidation_directory
-    @property
-    def database(self): return self._database
     @property
     def label_consolidation(self): return self._label_consolidation
     @property
@@ -109,26 +100,14 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
     @property
     def image_extensions(self): return self._image_extensions
     @property
-    def raw_image_extensions(self): return self._raw_image_extensions
-    @property
     def sound_extensions(self): return self._sound_extensions
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
-    @siggraph_directory.setter
-    def siggraph_directory(self, value): self._siggraph_directory = value
     @icon_directory.setter
     def icon_directory(self, value): self._icon_directory = value
-    @temporal_directory.setter
-    def temporal_directory(self, value): self._temporal_directory = value
     @root_directory.setter
     def root_directory(self, value): self._root_directory = value
-    @table_directory.setter
-    def table_directory(self, value): self._table_directory = value
-    @consolidation_directory.setter
-    def consolidation_directory(self, value): self._consolidation_directory = value
-    @database.setter
-    def database(self, value): self._database = value
     @label_consolidation.setter
     def label_consolidation(self, value): self._label_consolidation = value
     @label_material.setter
@@ -137,8 +116,6 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
     def qt_image(self, value): self._qt_image = value
     @image_extensions.setter
     def image_extensions(self, value): self._image_extensions = value
-    @raw_image_extensions.setter
-    def raw_image_extensions(self, value): self._raw_image_extensions = value
     @sound_extensions.setter
     def sound_extensions(self, value): self._sound_extensions = value
     
@@ -152,7 +129,6 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self._icon_directory = parent.icon_directory
         self._qt_image = parent.qt_image
         self._image_extensions = parent.image_extensions
-        self._raw_image_extensions = parent.raw_image_extensions
         self._sound_extensions = parent.sound_extensions
         
         # Initialize the window.
@@ -171,11 +147,6 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.lst_img_icon.setIconSize(QSize(200,200))
         self.lst_img_icon.setMovement(QListView.Static)
         self.lst_img_icon.setModel(QStandardItemModel())
-        
-        # Initialyze the play button.
-        self.btn_play.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'play.png'))))
-        self.btn_play.setIconSize(QSize(24,24))
-        self.btn_play.clicked.connect(self.startPlaying)
         
         # Initialyze the record button.
         self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'record.png'))))
@@ -226,28 +197,6 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             print("Error in RecordWithImage::recording(self)")
             print(str(e))
     
-    def startPlaying(self):
-        print("recordWithPhoto::startPlaying(self)")
-        
-        try:
-            # Get the path to the sound path.
-            if not self.lst_snd_fls.currentItem() == None:
-                snd_file_name = self.lst_snd_fls.currentItem().text()
-                snd_path = os.path.join(self.path_snd, snd_file_name)
-            
-            # Change the icon color black to green.
-            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'playing.png'))))
-            
-            # Start the playing thread.
-            data, fs = sf.read(snd_path, dtype='float32')
-            sd.play(data, fs)
-            
-            self.btn_rec_stop.clicked.connect(self.stopPlaying)
-        except Exception as e:
-            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'play.png'))))
-            print("Error in RecordWithImage::playing(self)")
-            print(str(e))
-            
     def stopRecording(self):
         print("RecordWithImage::stopRecording(self)")
         
@@ -258,23 +207,13 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             # Stop recording threading.
             self.recThread.stop()
             
+            self.pbr_r.setValue(0)
+            self.pbr_l.setValue(0)
+        
             # Refresh temporal sound data.
             self.getSoundFiles()
         except Exception as e:
             print("Error in RecordWithImage::stopRecording(self)")
-            print(str(e))
-    
-    def stopPlaying(self):
-        print("RecordWithImage::stopPlaying(self)")
-        
-        try:
-            # Change the icon color green to black.
-            self.btn_play.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'play.png'))))
-            
-            # Stop audio.
-            sd.stop()        
-        except Exception as e:
-            print("Error in RecordWithImage::stopping(self)")
             print(str(e))
     
     def getSoundFiles(self):

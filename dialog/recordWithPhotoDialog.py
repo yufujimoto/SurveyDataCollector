@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/recordWithPhotoDialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -76,9 +76,6 @@ class Ui_testDialog(object):
         self.btn_rec_stop = QtWidgets.QPushButton(self.frame)
         self.btn_rec_stop.setObjectName("btn_rec_stop")
         self.horizontalLayout_3.addWidget(self.btn_rec_stop)
-        self.btn_play = QtWidgets.QPushButton(self.frame)
-        self.btn_play.setObjectName("btn_play")
-        self.horizontalLayout_3.addWidget(self.btn_play)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
         self.lbl_img = QtWidgets.QLabel(self.frame)
         self.lbl_img.setObjectName("lbl_img")
@@ -127,6 +124,5 @@ class Ui_testDialog(object):
         self.label_2.setText(_translate("testDialog", "R"))
         self.btn_rec_start.setText(_translate("testDialog", "録音する"))
         self.btn_rec_stop.setText(_translate("testDialog", "停止する"))
-        self.btn_play.setText(_translate("testDialog", "再生する"))
         self.lbl_img.setText(_translate("testDialog", "画像一覧"))
 

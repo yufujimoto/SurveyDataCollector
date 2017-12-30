@@ -12,6 +12,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
 
+# Import GIS libraries for showing geographic data.
+import numpy as np
+import pyqtgraph as pg
+
 # Import DB libraries
 import sqlite3 as sqlite
 from sqlite3 import Error as dbError
@@ -29,7 +33,7 @@ import modules.imageProcessing as imageProcessing
 import dialog.mainWindow as mainWindow
 import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
-import dialog.fileInformation as fileInformationDialog
+import dialog.imageInformation as imageInformationDialog
 import dialog.cameraSelect as cameraSelectDialog
 
 # Import libraries for sound recording. 
@@ -149,6 +153,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.frm_fil_info_lay.addWidget(spl_fl)
         self.setLayout(self.frm_fil_info_lay)
         
+        # giving the plots names allows us to link their axes together
+        self.plt_geo = pg.PlotWidget(name='plt_geo') 
+        self.plt_geo.setAspectLocked(lock=True, ratio=1)
+        self.tab_src_geo_lay.addWidget(self.plt_geo)
+        
         # Define paths
         self._root_directory = None
         self._table_directory = None
@@ -197,6 +206,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Detect the camera automatically.
         self.detectCamera()
+        
+        self.addGeographiData()
         
         # Set the initial image to thumbnail viewer.
         img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
@@ -275,7 +286,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.btn_img_col.clicked.connect(self.colorlize)            # Activating the image processing tool button for adjusting image white balance.
         
         # Activate the extra functions.
-        self.btn_fil_edit.clicked.connect(self.editFileInformation) # Activate the editing the file informatin button.
+        self.btn_fil_edit.clicked.connect(self.editImageInformation) # Activate the editing the file informatin button.
         self.btn_cam_detect.clicked.connect(self.detectCamera)      # Activate detecting a connected camera button.
         self.btn_snd_play.clicked.connect(self.soundPlay)           # Activate the play button.
     
@@ -408,8 +419,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Refresh the tree view.
                 self.tre_prj_item.show()
                 
+                # Resize the column header by text length.
                 self.tre_prj_item.resizeColumnToContents(0)
                 self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Select the first entry as the default.
+                self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
         except dbError as e:
             error.ErrorMessageDbConnection(str(e.args[0]))
             return(None)
@@ -488,8 +503,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             img_valid = False
             
             # Get container size.
-            panel_w = self.lbl_img_preview.width()
-            panel_h = self.lbl_img_preview.height()
+            panel_w = int(self.lbl_img_preview.width() * 0.95)
+            panel_h = int(self.lbl_img_preview.height() * 0.95)
             
             for qt_ext in self._qt_image:
                 # Exit loop if extension is matched with Qt supported image.
@@ -1064,6 +1079,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_con_description.setDisabled(False)
             
             # Clear text boxes for attributes.
+            self.tbx_con_uuid.setText("")
             self.tbx_con_name.setText("")
             self.tbx_con_geoname.setText("")
             self.tbx_con_temporal.setText("")
@@ -1756,15 +1772,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             return(None)
     
-    def editFileInformation(self):
-        print("main::editFileInformation(self)")
+    def editImageInformation(self):
+        print("main::editImageInformation(self)")
+        
+        # Exit if the root directory is not loaded.
+        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
         
         try:
+            # Exit if the none of a file is selected.
+            if self.tre_fls.selectedItems() == None: return(None)
+            
+            # Exit if the selected file is not image.
+            if not self.current_file.file_type == "image": return(None)
+            
             # Check and edit file information.
-            self.dialogRecording = fileInformationDialog.fileInformationDialog(parent=self, sop_file=self.current_file)
+            dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self.current_file)
             
             # Show the dialog.
-            self.dialogRecording.exec_()
+            dlg_img_fil.exec_()
             
             # Get the tree item index of currently selected.
             cur_tree_index = self.tre_fls.currentIndex().row()
@@ -1793,8 +1818,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         
                         # Set file information of material images.
                         self.refreshFileList(self._current_material)
-            print(cur_tree_index)
-            #self.tre_fls.setCurrentIndex(cur_tree_index)
+            
+            self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(cur_tree_index))
         except Exception as e:
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             print(str(e))
@@ -2243,15 +2268,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Handle the selected SOP file object.
         selected = self.tre_fls.selectedItems()
-        
+        print("ok1")
         try:
             if len(selected) > 0:
+                
                 fil_uuid = selected[0].text(0)
                 
                 # Instantiate the SOP File object by selected uuid.
                 fil_object = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
                 
                 if fil_object.file_type == "audio":
+                    print(fil_object.file_type)
                     # Get the path to the sound path.
                     snd_path = os.path.join(self._root_directory, fil_object.filename)
                     
@@ -2265,8 +2292,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     skin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
                     self.btn_snd_stop.clicked.connect(self.soundStop)
                 else:
+                    
                     # Create error messages.
-                    self.ErrorMessagePlaySound(language=self._language)
+                    error.ErrorMessagePlaySound(language=self._language)
                     return(None)
         except Exception as e:
             print("Error occurs in main::soundPlay(self)")
@@ -3621,7 +3649,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Exception as e:
             error.ErrorMessageUnknown(details=str(e))
             return(None)
-
+    
+    def addGeographiData(self):
+        ## Create an empty plot curve to be filled later, set its pen
+        p1 = self.plt_geo.plot()
+        
+        ## Add in some extra graphics
+        rect = QGraphicsRectItem(QRectF(0, 0, 1, 5e-11))
+        rect.setPen(pg.mkPen(100, 200, 100))
+        self.plt_geo.addItem(rect)
+        
+        self.plt_geo.setLabel('left', 'Latitude', units='Degree')
+        self.plt_geo.setLabel('bottom', 'Longitude', units='Degree')
+        self.plt_geo.setXRange(0, 100)
+        self.plt_geo.setYRange(0, 100)
+    
     # ==========================
     # Exporting operation
     # ==========================

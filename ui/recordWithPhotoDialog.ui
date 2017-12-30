@@ -186,13 +186,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="btn_play">
-            <property name="text">
-             <string>再生する</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>

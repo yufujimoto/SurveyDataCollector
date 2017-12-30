@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>fileInformationDialog</class>
- <widget class="QDialog" name="fileInformationDialog">
+ <class>imageInformationDialog</class>
+ <widget class="QDialog" name="imageInformationDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -381,7 +381,7 @@
   <connection>
    <sender>box_fil_ope</sender>
    <signal>accepted()</signal>
-   <receiver>fileInformationDialog</receiver>
+   <receiver>imageInformationDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -397,7 +397,7 @@
   <connection>
    <sender>box_fil_ope</sender>
    <signal>rejected()</signal>
-   <receiver>fileInformationDialog</receiver>
+   <receiver>imageInformationDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

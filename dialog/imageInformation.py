@@ -22,11 +22,11 @@ import modules.error as error
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
-import dialog.fileInformationDialog as fileInformationDialog
+import dialog.imageInformationDialog as imageInformationDialog
 
 import viewer.imageViewer as viewer
 
-class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDialog):
+class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformationDialog):
     # Properties for default paths.
     @property
     def source_directory(self): return self._source_directory
@@ -110,7 +110,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
         self._sound_extensions = parent.sound_extensions
         self._language = parent.language
         
-        super(fileInformationDialog, self).__init__(parent)
+        super(imageInformationDialog, self).__init__(parent)
         self.setupUi(self)
         
         # Initialize the window.
@@ -256,10 +256,6 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             
             # Set active control tab for thumbnail.
             self.tab_src.setCurrentIndex(0)
-        if self._sop_file.file_type == "audio":
-            # Set active control tab for material.
-            self.tab_src.setCurrentIndex(1)
-            #self.getSoundFileInfo(sop_file)
         
     def toggleTab(self):
         try:
@@ -296,7 +292,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             print(str(e))
         
     def showImage(self):
-        print("fileInformationDialog::showImage(self)")
+        print("imageInformationDialog::showImage(self)")
         
         try:
             # Get the full path of the image.
@@ -342,7 +338,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
                 # Returns nothing.
                 return(None)
         except Exception as e:
-            print("Error occurs in fileInformationDialog::showImage(self)")
+            print("Error occurs in imageInformationDialog::showImage(self)")
             
             # Show the error message.
             error.ErrorMessageUnknown(details=str(e))
@@ -351,7 +347,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             return(None)
     
     def setViewer(self):
-        print("fileInformationDialog::setViewer(self)")
+        print("imageInformationDialog::setViewer(self)")
         
         try:
             # Get the full path of the image.
@@ -367,7 +363,7 @@ class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDia
             self.graphicsView.setFile(img_file_path)
             
         except Exception as e:
-            print("Error occurs in fileInformationDialog::setViewer(self)")
+            print("Error occurs in imageInformationDialog::setViewer(self)")
             print(str(e))
             
             return(None)

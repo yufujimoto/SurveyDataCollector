@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/mainWindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -706,7 +706,7 @@ class Ui_MainWindow(object):
         self.tab_src.setIconSize(QtCore.QSize(24, 24))
         self.tab_src.setDocumentMode(False)
         self.tab_src.setTabsClosable(False)
-        self.tab_src.setProperty("tabBarAutoHide", False)
+        self.tab_src.setTabBarAutoHide(False)
         self.tab_src.setObjectName("tab_src")
         self.tab_src_img = QtWidgets.QWidget()
         self.tab_src_img.setObjectName("tab_src_img")
@@ -842,13 +842,19 @@ class Ui_MainWindow(object):
         self.horizontalLayout_12.addWidget(self.btn_snd_stop)
         self.verticalLayout_8.addLayout(self.horizontalLayout_12)
         self.tab_src.addTab(self.tab_src_snd, "")
+        self.tab_src_geo = QtWidgets.QWidget()
+        self.tab_src_geo.setObjectName("tab_src_geo")
+        self.tab_src_geo_lay = QtWidgets.QVBoxLayout(self.tab_src_geo)
+        self.tab_src_geo_lay.setContentsMargins(0, 0, 0, 0)
+        self.tab_src_geo_lay.setObjectName("tab_src_geo_lay")
+        self.tab_src.addTab(self.tab_src_geo, "")
         self.frm_fil_info_right_lay.addWidget(self.tab_src, 0, 0, 1, 1)
         self.frm_fil_info_lay.addWidget(self.frm_fil_info_right)
         self.gridLayout_3.addWidget(self.frm_fil_info, 1, 0, 1, 1)
         self.frm_main_lay.addWidget(self.frm_right)
         MainWindow.setCentralWidget(self.frm_main)
         self.bar_menu = QtWidgets.QMenuBar(MainWindow)
-        self.bar_menu.setGeometry(QtCore.QRect(0, 0, 1030, 26))
+        self.bar_menu.setGeometry(QtCore.QRect(0, 0, 1030, 23))
         self.bar_menu.setObjectName("bar_menu")
         self.men_prj = QtWidgets.QMenu(self.bar_menu)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
@@ -936,7 +942,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tab_control.setCurrentIndex(0)
         self.tab_target.setCurrentIndex(0)
-        self.tab_src.setCurrentIndex(0)
+        self.tab_src.setCurrentIndex(2)
         self.tab_img_info.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.btn_cam_detect, self.cbx_cam_size)
@@ -1057,6 +1063,7 @@ class Ui_MainWindow(object):
         self.btn_snd_play.setText(_translate("MainWindow", "Play"))
         self.btn_snd_stop.setText(_translate("MainWindow", "Stop"))
         self.tab_src.setTabText(self.tab_src.indexOf(self.tab_src_snd), _translate("MainWindow", "音声"))
+        self.tab_src.setTabText(self.tab_src.indexOf(self.tab_src_geo), _translate("MainWindow", "空間データ"))
         self.men_prj.setTitle(_translate("MainWindow", "プロジェクト"))
         self.mem_prj_exp.setTitle(_translate("MainWindow", "Export"))
         self.men_dat.setTitle(_translate("MainWindow", "データ"))
