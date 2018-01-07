@@ -8,7 +8,6 @@ import sys, os, subprocess
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtCore import QThread, pyqtSignal
 
 def getIconFromPath(file_path):
     return(QIcon(QPixmap(file_path)))
@@ -390,6 +389,8 @@ def setMainWindowIcons(parent, icon_path):
     parent.btn_snd_stop.setIconSize(qicon_size)
 
 def setDefaultConsolidationText(parent, status, skin="grey"):
+    print("skin::setDefaultConsolidationText(parent, status, skin='grey')")
+    
     font_style_size = "font: regular " + str(getFontSize()) + "px;"
     font_style_color = ""
     

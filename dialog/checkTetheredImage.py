@@ -162,9 +162,8 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 tags = imageProcessing.getMetaInfo(img_file_path)
                 
                 for tag in sorted(tags.iterkeys()):
-                        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-                            # Add file information to the tree list.
-                            self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                        self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                
                 # Refresh the tree view.
                 self.tre_img_info.show()
                 
@@ -172,8 +171,8 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 self.showImage()
                 
                 # Adjust columns width.
-                self.tre_img_prop.resizeColumnToContents(0)
-                self.tre_img_prop.resizeColumnToContents(1)
+                self.tre_img_info.resizeColumnToContents(0)
+                self.tre_img_info.resizeColumnToContents(1)
                 
             else:
                 # Deselect the item.

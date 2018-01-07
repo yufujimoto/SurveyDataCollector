@@ -101,7 +101,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
             sop_raw_file.modified_date = now
             sop_raw_file.file_type = "image"
             sop_raw_file.alias = "Imported"
-            sop_raw_file.status = "Original"
+            sop_raw_file.status = "Original(RAW)"
             sop_raw_file.lock = False
             sop_raw_file.public = False
             sop_raw_file.source = "Nothing"

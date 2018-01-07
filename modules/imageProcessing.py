@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 # import the necessary packages
-import cv2, imutils, argparse, uuid, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
-import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread
+import cv2, imutils, argparse, uuid, math, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread, pexif
 
 from sys import argv
 from optparse import OptionParser
@@ -55,8 +55,40 @@ def getMetaInfo(img_input):
     
     try:
         img_object = open(img_input, 'rb')
-        meta_tags = exifread.process_file(img_object)
-        return(meta_tags)
+        
+        org_tags = exifread.process_file(img_object)
+        new_tags = dict()
+        
+        for org_tag in sorted(org_tags.iterkeys()):
+            if org_tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote', 'EXIF UserComment', 'Image PrintIM'):
+                key = str(org_tag)
+                
+                if str(org_tag) == "EXIF BrightnessValue":
+                    if not str(org_tags[org_tag]).find('/') == -1:
+                        entry = str(org_tags[org_tag]).split("/")
+                        value = float(entry[0]) / float(entry[1])
+                    else:
+                        value = float(entry)
+                elif str(org_tag) == "EXIF ExifVersion":
+                    entry = str(org_tags[org_tag])
+                    value = float(entry) / 100
+                elif str(org_tag) == "EXIF FNumber":
+                    if not str(org_tags[org_tag]).find('/') == -1:
+                        entry = str(org_tags[org_tag]).split("/")
+                        value = round(float(entry[0]) / float(entry[1]),2)    
+                    else:
+                        value = round(float(entry),2)
+                elif str(org_tag) == "EXIF MaxApertureValue":
+                    if not str(org_tags[org_tag]).find('/') == -1:
+                        entry = str(org_tags[org_tag]).split("/")
+                        value = round(float(entry[0]) / float(entry[1]),2)    
+                    else:
+                        value = round(float(entry),2)
+                else:
+                    value = str(org_tags[org_tag])
+                new_tags[key]=value
+        
+        return(new_tags)
     except Exception as e:
         print("Error occurs in imageProcessing::getMetaInfo(img_input)")
         print(str(e))
@@ -206,6 +238,38 @@ def extractInnerFrame(in_file, dst_img, ratio):
     
     # Returns saved file path.
     return(dst_img)
+
+def correctRotaion(in_file):
+    img = pexif.JpegFile.fromFile(in_file)
+    
+    try:
+        '''
+        #Get the orientation if it exists
+        orientation = img.exif.primary.Orientation[0]
+        img.exif.primary.Orientation = [1]
+        img.writeFile(in_file)
+        
+        #now rotate the image using the Python Image Library (PIL)
+        img = Image.open(in_file)
+        if orientation is 6: img = img.rotate(-90)
+        elif orientation is 8: img = img.rotate(90)
+        elif orientation is 3: img = img.rotate(180)
+        elif orientation is 2: img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation is 5: img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation is 7: img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+        elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+        '''
+        #save the result
+        img.save(in_file)
+        
+        metadata = pyexiv2.ImageMetadata(in_file)
+        metadata.read()
+        thumb = metadata.exif_thumbnail
+        thumb.set_from_file(in_file)
+        thumb.write_to_file('512_' + "a")
+        thumb.erase()
+        metadata.write()
+    except: pass
 
 def rotation(in_file, dst_img, angle):
     # Load input image, and create the output file name.

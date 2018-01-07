@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, exifread
 
 # Import the library for acquiring file information.
 from stat import *
@@ -127,6 +127,9 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self.btn_fil_update.clicked.connect(self.updateFile)
         self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'add_box.png'))))
         self.btn_fil_update.setIconSize(QSize(24,24))
+        
+        self.btn_fil_dt_cre_exif.clicked.connect(self.getCreateDateByExif)
+        self.btn_fil_dt_mod_exif.clicked.connect(self.getModifiedDateByExif)
         
         self.tab_src.currentChanged.connect(self.toggleTab) 
         
@@ -380,3 +383,67 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             if img_ext.lower() == qt_ext.lower(): return(True)
         
         return(img_valid)
+    
+    def getCreateDateByExif(self):
+        print("imageInformationDialog::getCreateDateByExif(self)")
+        
+        try:
+            # Set dates of creation and modification.
+            self.dte_fil_dt_cre.setDateTime(self.getOriginalTime())
+        except Exception as e:
+            print(str(e))
+    
+    def getModifiedDateByExif(self):
+        print("imageInformationDialog::getModifiedDateByExif(self)")
+        
+        try:
+            # Set dates of creation and modification.
+            self.dte_fil_dt_mod.setDateTime(self.getOriginalTime())
+        except Exception as e:
+            print(str(e))
+        
+    def getOriginalTime(self):
+        print("imageInformationDialog::getMetaInfo(self)")
+        
+        try:
+            # Get the full path of the image.
+            if self._sop_file.filename == "":
+                img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+            else:
+                if not os.path.exists(os.path.join(self._root_directory, self._sop_file.filename)):
+                    img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+                else:
+                    img_file_path = os.path.join(self._root_directory, self._sop_file.filename)
+            
+            # Open the image.
+            img_object = open(img_file_path, 'rb')
+            print("OK")
+            # Get the exif entries.
+            org_tags = exifread.process_file(img_object)
+            
+            # Parse the exif entries.
+            for org_tag in sorted(org_tags.iterkeys()):
+                if org_tag in ('EXIF DateTimeDigitized'):
+                    # Split the tag value with a space.
+                    value = str(org_tags[org_tag]).split(" ")
+                    
+                    # Convert the text format.
+                    date = value[0].replace(":", "-")
+                    time = value[1]
+                    
+                    print(str(date) + "T" + str(time))
+                    
+                    # Convert the python date time to QDateTime. 
+                    exif_date = general.pyDateTimeToQDateTime(parse(str(date) + "T" + str(time)))
+                    
+                    # Return the result.
+                    return(exif_date)
+                    
+                    # Exit the roop.
+                    break
+            
+        except Exception as e:
+            print("Error occurs in imageProcessing::getMetaInfo(img_input)")
+            print(str(e))
+            
+            return(None)

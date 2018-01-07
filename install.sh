@@ -44,6 +44,7 @@ pip2 install imutils
 pip2 install colorcorrect
 pip2 install rawKit
 pip2 install exifread
+pip2 install pexif
 
 # Install Sound processing libraries.
 apt install python-pyqt5.qtmultimedia

@@ -15,6 +15,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 # Import GIS libraries for showing geographic data.
 import numpy as np
 import pyqtgraph as pg
+import cartopy.crs as ccrs
 
 # Import DB libraries
 import sqlite3 as sqlite
@@ -26,8 +27,10 @@ import modules.general as general
 import modules.features as features
 import modules.media as sop_media
 import modules.error as error
+import modules.setupUi as setupUi
 import modules.skin as skin
 import modules.imageProcessing as imageProcessing
+import modules.writeHtml as htmlWriter
 
 # Import GUI window.
 import dialog.mainWindow as mainWindow
@@ -59,6 +62,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def temporal_directory(self): return self._temporal_directory
     @property
     def root_directory(self): return self._root_directory
+    @property
+    def lib_directory(self): return self._lib_directory
     @property
     def table_directory(self): return self._table_directory
     @property
@@ -100,6 +105,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def temporal_directory(self, value): self._temporal_directory = value
     @root_directory.setter
     def root_directory(self, value): self._root_directory = value
+    @lib_directory.setter
+    def lib_directory(self, value): self._lib_directory = value
     @table_directory.setter
     def table_directory(self, value): self._table_directory = value
     @consolidation_directory.setter
@@ -139,24 +146,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Initialyze the window.
         self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
         
-        # Add a splitter handle between project item tree and selected object.
-        spl_main = QSplitter(Qt.Horizontal)
-        spl_main.addWidget(self.frm_left)
-        spl_main.addWidget(self.frm_right)
-        self.frm_main_lay.addWidget(spl_main)
-        self.setLayout(self.frm_main_lay)
-        
-        # Add a splitter handle between the file list tree and preview screen.
-        spl_fl = QSplitter(Qt.Horizontal)
-        spl_fl.addWidget(self.frm_fil_info_left)
-        spl_fl.addWidget(self.frm_fil_info_right)
-        self.frm_fil_info_lay.addWidget(spl_fl)
-        self.setLayout(self.frm_fil_info_lay)
-        
-        # giving the plots names allows us to link their axes together
-        self.plt_geo = pg.PlotWidget(name='plt_geo') 
-        self.plt_geo.setAspectLocked(lock=True, ratio=1)
-        self.tab_src_geo_lay.addWidget(self.plt_geo)
+        # Activate modules.
+        setupUi.activate(self)
         
         # Define paths
         self._root_directory = None
@@ -164,6 +155,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._consolidation_directory = None
         self._database = None
         self._source_directory = os.path.dirname(os.path.abspath(__file__))
+        self._lib_directory = os.path.join(self._source_directory, "lib")
         self._siggraph_directory = os.path.join(expanduser("~"),"siggraph")
         self._temporal_directory = os.path.join(self._source_directory, "temp")
         self._icon_directory = os.path.join(self._source_directory, "icon")
@@ -201,9 +193,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Set the default skin.
         self.setSkin(lang=self._language, theme=self._skin)
         
-        # Activate modules.
-        self.activate()
-        
         # Detect the camera automatically.
         self.detectCamera()
         
@@ -212,83 +201,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Set the initial image to thumbnail viewer.
         img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
         self.showImage(img_file_path)
-        
-    def activate(self):
-        # Activate actions on the menu bar.
-        self.bar_menu.setNativeMenuBar(False)
-        self.act_prj_open.triggered.connect(self.getTheRootDirectory)
-        self.act_imp_csv_con.triggered.connect(self.importConsolidationCSV)
-        self.act_imp_csv_mat.triggered.connect(self.importMaterialCSV)
-        self.act_imp_csv_fil.triggered.connect(self.importFileCSV)
-        self.act_export_html.triggered.connect(self.exportAsHtml)
-        self.act_exp_csv_con.triggered.connect(self.exportConsolidationCSV)
-        self.act_exp_csv_mat.triggered.connect(self.exportMaterialCSV)
-                
-        self.tre_prj_item.itemSelectionChanged.connect(self.toggleCurrentTreeObject)    # Handle current selection of consolidations and materials.
-        self.tre_fls.itemSelectionChanged.connect(self.toggleCurrentFile)               # Handle current selection of consolidations and materials.
-        
-        self.tab_control.setCurrentIndex(0) # Initialyze the tab for source tree view and camera setting.
-        self.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.
-        self.tab_src.setCurrentIndex(0)     # Initialyze the tab icons for source media tabs.
-        
-        self.tab_target.currentChanged.connect(self.toggleCurrentObjectTab)
-        
-        # Initialyze objects for consolidation
-        self.btn_con_add.clicked.connect(self.addConsolidation)         # Activate the adding a consolidation button.
-        self.btn_con_update.clicked.connect(self.updateConsolidation)   # Activate the updating the selected consolidation button.
-        self.btn_con_del.clicked.connect(self.deleteConsolidation)      # Activate the deleting the selected consolidation button.
-        self.btn_con_take.clicked.connect(self.tetheredShooting)        # Activate the taking a image of the consolidation button.
-        self.btn_con_imp.clicked.connect(self.importExternalData)       # Activate the importing files of the consolidation button.
-        self.btn_con_rec.clicked.connect(self.recordWithPhoto)          # Activate the opening recording dialog button.
-        
-        # Initialyze objects for materials
-        self.btn_mat_add.clicked.connect(self.addMaterial)          # Activate the adding a material button.
-        self.btn_mat_update.clicked.connect(self.updateMaterial)    # Activate the updating the selected material button.
-        self.btn_mat_del.clicked.connect(self.deleteMaterial)       # Activate the consolidation delete button.
-        self.btn_mat_take.clicked.connect(self.tetheredShooting)    # Activate the taking a image of the material button.
-        self.btn_mat_imp.clicked.connect(self.importExternalData)   # Activate the importing files of the consolidation button.
-        self.btn_mat_rec.clicked.connect(self.recordWithPhoto)      # Activate the opening recording dialog button.
-        
-        # Activate operation mode selecting button.
-        self.grp_con_ope = QButtonGroup()
-        self.grp_con_ope.addButton(self.rad_con_new, 0)
-        self.grp_con_ope.addButton(self.rad_con_mod, 1)
-        self.grp_con_ope.buttonClicked.connect(self.toggleEditModeForConsolidation)
-        
-        # Activate selecting operation mode button.
-        self.grp_mat_ope = QButtonGroup()
-        self.grp_mat_ope.addButton(self.rad_mat_new, 0)
-        self.grp_mat_ope.addButton(self.rad_mat_mod, 1)
-        self.grp_mat_ope.buttonClicked.connect(self.toggleEditModeForMaterial)
-        
-        # Initialyze the edit consolidation mode as modifying.
-        self.rad_con_mod.setChecked(True)
-        self.rad_mat_mod.setChecked(True)
-        
-        # Activate the check boxes for publishing mode.
-        self.cbx_fil_pub.setChecked(False)
-        self.cbx_fil_pub.clicked.connect(self.updateFile)
-        self.cbx_fil_original.clicked.connect(self.toggleShowFileMode)
-        self.cbx_fil_deleted.clicked.connect(self.toggleShowFileMode)
-        
-        # Activate the image processing functions.
-        self.btn_open_gimp.clicked.connect(self.openWithGimp)       # Activate the buttons for opening GIMP.
-        self.btn_img_cnt.clicked.connect(self.extractContour)       # Activate the image proccessing tool button of cropping.
-        self.btn_img_inv.clicked.connect(self.negativeToPositive)   # Activate the image processing tool button for inverting.
-        self.btn_img_del.clicked.connect(self.deleteSelectedImage)  # Activate the image processing tool button for deleting.
-        self.btn_img_rot_r.clicked.connect(self.rotateImageRight)   # Activate the image processing tool button for rotating clockwise.
-        self.btn_img_rot_l.clicked.connect(self.rotateImageLeft)    # Activating the image processing tool button for rotating anti-clockwise.
-        self.btn_img_rot_u.clicked.connect(self.rotateImageInvert)  # Activating the image processing tool button for ratating 180 degree.
-        self.btn_img_mno.clicked.connect(self.makeMonoImage)        # Activating the image processing tool button for making monochrome image.
-        self.btn_img_enh.clicked.connect(self.enhanceImage)         # Activating the image processing tool button for enhancing.
-        self.btn_img_sav.clicked.connect(self.saveImageAs)          # Activating the image processing tool button for export the selected image.
-        self.btn_img_awb.clicked.connect(self.adjustWhiteBalance)   # Activating the image processing tool button for adjusting image white balance.
-        self.btn_img_col.clicked.connect(self.colorlize)            # Activating the image processing tool button for adjusting image white balance.
-        
-        # Activate the extra functions.
-        self.btn_fil_edit.clicked.connect(self.editImageInformation) # Activate the editing the file informatin button.
-        self.btn_cam_detect.clicked.connect(self.detectCamera)      # Activate detecting a connected camera button.
-        self.btn_snd_play.clicked.connect(self.soundPlay)           # Activate the play button.
     
     # ==========================
     # General operation
@@ -521,6 +433,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file_path = img_base + ".thumb.jpg"
             
             if os.path.exists(img_file_path):
+                # Check the exif rotation information.
+                imageProcessing.correctRotaion(img_file_path)
+                
                 # Create the container for displaying the image
                 org_pixmap = QPixmap(img_file_path)
                 scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
@@ -2133,9 +2048,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tags = imageProcessing.getMetaInfo(img_file_path)
                     
                     for tag in sorted(tags.iterkeys()):
-                        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-                            # Add file information to the tree list.
-                            self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                        self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
             # Refresh the tree view.
             self.tre_img_prop.show()
             
@@ -2171,13 +2084,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.cbx_fil_edit.setEnabled(True)
             
             fil_status = sop_object.status
-        except Exception as e:
-            print("Error occurs in setFileInfo(self, sop_object)")
-            print(str(e))
             
-            return(None)
-        
-        try:
             if fil_status == "Original":
                 if self.cbx_fil_original.isChecked() == True:
                     # Update the tree view.
@@ -3654,6 +3561,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         ## Create an empty plot curve to be filled later, set its pen
         p1 = self.plt_geo.plot()
         
+        '''
+        ax = self.plt_geo.getPlotItem().axes(projection=ccrs.PlateCarree())
+        ax.coastlines()
+        
+        
         ## Add in some extra graphics
         rect = QGraphicsRectItem(QRectF(0, 0, 1, 5e-11))
         rect.setPen(pg.mkPen(100, 200, 100))
@@ -3663,6 +3575,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.plt_geo.setLabel('bottom', 'Longitude', units='Degree')
         self.plt_geo.setXRange(0, 100)
         self.plt_geo.setYRange(0, 100)
+        '''
     
     # ==========================
     # Exporting operation
@@ -3674,14 +3587,81 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
-            output = os.path.join(self._root_directory,"project.html")
+            bootstrap = os.path.join(self._lib_directory, "bootstrap")
+            bootstrap_css = os.path.join(bootstrap, "css")
+            bootstrap_js = os.path.join(bootstrap, "js")
             
-            features.exportAsHtml(self._database, output)
+            # Define directories for storing files.
+            output = QFileDialog.getExistingDirectory(self, "Select the output directory")
+            
+            # Define the directory for putting css and js.
+            html_theme = os.path.join(output, "theme")
+            html_images = os.path.join(output, "images")
+            
+            # Make directory for putting bootstrap themes.
+            if not os.path.exists(html_theme): os.makedirs(html_theme)
+            if not os.path.exists(html_images): os.makedirs(html_images)
+            if not os.path.exists(os.path.join(html_theme,"css")): shutil.copytree(bootstrap_css, os.path.join(html_theme,"css"))
+            if not os.path.exists(os.path.join(html_theme,"js")): shutil.copytree(bootstrap_js, os.path.join(html_theme,"js"))
+                      
+            org_noimage = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+            dst_noimage = os.path.join(html_images, "noimage.jpg")
+            
+            if not os.path.exists(dst_noimage): shutil.copy(org_noimage, dst_noimage)
+            
+            # Open the file stream
+            output_html = open(os.path.join(output,"index.html"),"w")
+            
+            # Define the pages
+            pages = dict()
+            pages['home'] = "index.html"
+            
+            output_html.write(htmlWriter.startHtml(title="Home"))
+            output_html.write(htmlWriter.startBody())
+            output_html.write(htmlWriter.setMenuBar(pages=pages))
+            output_html.write(htmlWriter.startContents())
+            
+            # Establish the connection to the self._database file.
+            conn = sqlite.connect(self._database)
+            
+            # Exit if connection is not established.
+            if conn == None: return(None)
+            
+            # Create the SQL query for selecting consolidation.
+            sql_con_sel = """SELECT uuid FROM consolidation"""
+            
+            # Create the SQL query for selecting the consolidation.
+            sql_mat_sel = """SELECT uuid FROM material WHERE con_id=?"""
+            
+            # Instantiate the cursor for query.
+            cur_con = conn.cursor()
+            rows_con = cur_con.execute(sql_con_sel)
+            
+            # Execute the query and get consolidation recursively
+            for row_con in rows_con:
+                # Get attributes from the row.
+                con_uuid = row_con[0]
+                consolidation = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=self._database)
+                
+                if not  consolidation.images == None:
+                    if not len(consolidation.images) == 0:
+                        for image in consolidation.images:
+                            org_img = os.path.join(self._root_directory, image.filename)
+                            dst_img = os.path.join(html_images, image.uuid + ".jpg")
+                            
+                            if os.path.exists(org_img): shutil.copy(org_img, dst_img)
+                    
+                output_html.write(htmlWriter.setConsolidation(consolidation))
+            
+            output_html.write(htmlWriter.endContents())
+            output_html.write(htmlWriter.endBody())
+            output_html.write(htmlWriter.endHtml())
+            
+            output_html.close()
         except Exception as e:
-            print("Error occurs in exportAsHtml(self)")
-            error.ErrorMessageUnknown(details=str(e))
-            return(None)
-
+            print(str(e))
+            pass
+    
 def main():
     app = QApplication(sys.argv)
     

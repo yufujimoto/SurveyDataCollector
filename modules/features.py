@@ -304,8 +304,6 @@ class Consolidation(SimpleObject):
         # Execute the query.
         super(Consolidation, self).excuteSQL(dbfile, sql_delete, values)
     
-    
-    
     def _getFileList(self, dbfile, file_type):
         print("Consolidation::_getFileList(self, dbfile, file_type)")
         
