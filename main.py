@@ -981,6 +981,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Clear the file list for consolidation.
             self.tre_fls.clear()
             
+            # Set the thumbnail No Image as the default.
+            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+            self.showImage(img_file_path)
+            
             # Only the add new consolidation button enabled.
             self.btn_con_add.setDisabled(False)
             self.btn_con_del.setDisabled(True)
@@ -1100,7 +1104,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         
                         sop_material = features.Material(is_new=True, uuid=None, dbfile=None)
                         
-                        self._consolidation_directory = ""
+                        con_dir = ""
                         mat_dir = ""
                         
                         for i in range(len(entries)):
@@ -1120,9 +1124,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                 elif mat_head[i] == "consolidation":
                                     sop_material.consolidation = entries[i]
                                     
-                                    self._consolidation_directory = os.path.join(self._consolidation_directory, sop_material.consolidation)
-                                    
-                                    mat_dir = os.path.join(self._consolidation_directory, "Materials")
+                                    con_dir = os.path.join(self._consolidation_directory, sop_material.consolidation)
+                                    mat_dir = os.path.join(con_dir, "Materials")
                                     
                                     # Create a directory for storing objects.
                                     general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
@@ -1136,7 +1139,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                 elif mat_head[i] == "altitude": sop_material.altitude = entries[i]
                                 elif mat_head[i] == "description": sop_material.description = entries[i]
                                 elif mat_head[i] == "main":
-                                    self._consolidation_directory = os.path.join(self._consolidation_directory, sop_material.consolidation)
+                                    con_dir = os.path.join(self._consolidation_directory, sop_material.consolidation)
                                     itm_dir = os.path.join(mat_dir, sop_material.uuid)
                                     
                                     # Define the path for saving files.
@@ -1183,8 +1186,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                     else:
                                         print("File not found:" + main_org)
                                 elif mat_head[i] == "raw":
-                                    
-                                    self._consolidation_directory = os.path.join(self._consolidation_directory, sop_material.consolidation)
+                                    con_dir = os.path.join(self._consolidation_directory, sop_material.consolidation)
                                     itm_dir = os.path.join(mat_dir, sop_material.uuid)
                                     
                                     # Define the path for saving files.
@@ -1802,7 +1804,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         # Create a new SOP object of consolidation.
                         sop_file = features.File(is_new=True, uuid=None, dbfile=None)
                         
-                        self._consolidation_directory = ""
+                        con_dir = ""
                         mat_dir = ""
                         
                         for i in range(len(entries)):
@@ -1846,17 +1848,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                     # Get the original image path.
                                     fil_org = entries[i]
                                     
-                                    self._consolidation_directory = None
+                                    con_dir = None
                                     mat_dir = None
                                     itm_dir = None
                                     
                                     if sop_file.material != None:
-                                        self._consolidation_directory = os.path.join(self._consolidation_directory, sop_file.consolidation)
-                                        mat_dir = os.path.join(self._consolidation_directory, "Materials")
+                                        con_dir = os.path.join(self._consolidation_directory, sop_file.consolidation)
+                                        mat_dir = os.path.join(con_dir, "Materials")
                                         itm_dir = os.path.join(mat_dir, sop_file.material)
-                                    else:
-                                        self._consolidation_directory = os.path.join(self._consolidation_directory, sop_file.consolidation)
-                                        itm_dir = self._consolidation_directory
                                     
                                     if sop_file.file_type == "image":
                                         # Define the path for saving files.
@@ -1865,15 +1864,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                         
                                         if img_ext.lower() == ".jpg":
                                             img_path_main = os.path.join(img_path, "Main")
-                                            
+                                            print(img_path_main)
                                             # Generate the GUID for the consolidation
                                             img_uuid = str(uuid.uuid4())
-                                            
+                                            print(img_uuid)
                                             # Define the destination file path.
                                             main_dest = os.path.join(img_path_main, img_uuid + ".jpg")
-                                            
+                                            print(main_dest)
                                             sop_file.filename =  general.getRelativePath(main_dest, "Consolidation")
-                                            
+                                            print(fil_org)
                                             if os.path.exists(fil_org):
                                                 # Copy the original file.
                                                 shutil.copy(fil_org, main_dest)
@@ -2910,6 +2909,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Instantiate the file object of SOP.
             sop_file = self.getCurrentImage()
             
+            # Set the default output file name.
+            fil_out = sop_file.uuid + ".jpg"
+            
             # Exit if SOP object is not instantiated.
             if sop_file == None: return(None)
             
@@ -2935,7 +2937,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     return(None)
                 
                 # Get the output file name by using file save dialog.
-                new_file, img_file_type = QFileDialog.getSaveFileName(self, "Export to", "output.jpg","Images (*.jpg)")
+                new_file, img_file_type = QFileDialog.getSaveFileName(self, "Export to", fil_out,"Images (*.jpg)")
                 
                 if new_file:
                     if not os.path.exists(new_file):
