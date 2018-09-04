@@ -373,8 +373,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Define directories for storing files.
             self._root_directory = QFileDialog.getExistingDirectory(self, "Select the project directory")
+            
+            # Return nothing and exit this process if direcotry is not selected.
+            if not os.path.exists(self.root_directory):
+                self._root_directory = None
+                self._table_directory = None
+                self._consolidation_directory = None
+                self._database = None
+                
+                return(None)
+            
+            # Some essential directories are created under the root directory if they are not existed.
             self._table_directory = os.path.join(self._root_directory, "Table")
             self._consolidation_directory = os.path.join(self._root_directory, "Consolidation")
+            
+            # Reset the current consolidation and the current material.
             self._current_consolidation = None
             self._current_material = None
             
@@ -417,7 +430,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 return(None)
         
         # Finally set the root path to the text box.
-        self.lbl_prj_path.setText(self._root_directory)
+        if not self.root_directory == None:
+            self.lbl_prj_path.setText(self._root_directory)
     
     def showImage(self, img_file_path):
         print("main::showImage(self)")
@@ -917,10 +931,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
         
-        # Confirm deleting the consolidation.
-        if not askDeleteConsolidation(self) == QMessageBox.Yes: return(None)
-        
         try:
+            # Confirm deleting the consolidation.
+            if not general.askDeleteConsolidation(self) == QMessageBox.Yes: return(None)
+        
             con_uuid = self.tbx_con_uuid.text()
             
             # Initialize the Consolidation Class.
@@ -951,12 +965,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Drop the consolidation from the DB table.
             con.dbDrop(self._database)
             
+            # Reflesh the last consolidation and material.
+            self.current_consolidation = None
+            self.current_material = None
+            
             # Reflesh the last selection.
             self.refreshConsolidationInfo()
             self.refreshMaterialInfo()
             self.refreshImageInfo()
         except Exception as e:
             print("Error occurs in main::deleteConsolidation(self)")
+            print(str(e))
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             return(None)
     
@@ -1492,8 +1511,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
-            # Confirm deleting the consolidation.
-            # if not general.askDeleteMaterial(self, self.language) == QMessageBox.Yes: return(None)
+            # Confirm deleting the material.
+            if not general.askDeleteMaterial(self) == QMessageBox.Yes: return(None)
             
             # Generate the GUID for the material
             mat_uuid = self.tbx_mat_uuid.text()
@@ -1518,6 +1537,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Clear selection.
             self.tre_prj_item.clearSelection()
             
+            # Refresh the current material.
+            self.current_material = None
+            
             # Refresh the tree view.
             self.tre_prj_item.show()
             self.tre_prj_item.resizeColumnToContents(0)
@@ -1538,8 +1560,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshImageInfo()
         except Exception as e:
             print("Error occurs in main::deleteMaterial(self)")
-            error.ErrorMessageUnknown(details=str(e), language=self._language)
             print(str(e))
+            error.ErrorMessageUnknown(details=str(e), language=self._language)
             return(None)
     
     def setMaterialInfo(self, material):
@@ -2061,8 +2083,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Get file information by using "dcraw" library.
                     tags = imageProcessing.getMetaInfo(img_file_path)
                     
+                    # Show EXIF tags on the tree item view.
                     for tag in sorted(tags.iterkeys()):
                         self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
+                        
             # Refresh the tree view.
             self.tre_img_prop.show()
             
@@ -2135,7 +2159,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def updateFile(self):
-        print("updateFile(self)")
+        print("main::updateFile(self)")
         
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
@@ -2143,9 +2167,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             selected = self.tre_fls.selectedItems()
             
-            if not selected == None or not len(selected) == 0:
+            if (selected != None) and (len(selected) != 0):
                 fil_uuid = selected[0].text(0)
-                print(fil_uuid)
                 
                 cur_file = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
                 cur_file.public = int(self.cbx_fil_pub.isChecked())

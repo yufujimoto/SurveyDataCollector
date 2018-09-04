@@ -90,18 +90,18 @@ def askNewProject(parent):
         error.ErrorMessageProjectNotCreated(details=str(e), language=parent.language)
         return(None)
 
-def askDeleteConsolidation(parent,lang):
+def askDeleteConsolidation(parent):
     con_uuid = parent.current_consolidation.uuid
     
-    if lang == "ja":
+    if parent.language == "ja":
         title = LAB_CON_JA + u"の削除"
         message = LAB_CON_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
-    elif lang == "en":
+    elif parent.language == "en":
         title = u"Delete the " + LAB_CON_EN + "."
         message = u"Every kinds of datasets included in the " + LAB_CON_EN + u" will be removed. Would you like to delete the " + LAB_CON_EN + u" ?"
-    print("OK") 
+    
     reply = QMessageBox.question(
-        self, 
+        parent, 
         title, 
         message, 
         QMessageBox.Yes, 
@@ -134,8 +134,8 @@ def askNewMaterial(parent):
         print(str(e))
 
 def askDeleteMaterial(parent):
-    con_uuid = parent.current_consolidation.uuid
-    print("1")
+    mat_uuid = parent.current_material.uuid
+    
     if parent.language == "ja":
         title = LAB_MAT_JA + u"の削除"
         message = LAB_MAT_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
@@ -144,7 +144,7 @@ def askDeleteMaterial(parent):
         message = u"Every kinds of datasets included in the " + LAB_MAT_EN + u" will be removed. Would you like to delete the " + LAB_MAT_JA + u" ?"
         
     reply = QMessageBox.question(
-        self, 
+        parent, 
         title, 
         message, 
         QMessageBox.Yes, 

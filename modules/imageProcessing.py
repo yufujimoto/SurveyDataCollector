@@ -54,45 +54,69 @@ def getMetaInfo(img_input):
     print("imageProcessing::getMetaInfo(img_input)")
     
     try:
+        # Open the image object with read only mode.
         img_object = open(img_input, 'rb')
         
+        # Get EXIF tags and their values.
         org_tags = exifread.process_file(img_object)
+        
+        # Prepare new tags object.
         new_tags = dict()
         
         for org_tag in sorted(org_tags.iterkeys()):
+            key = str(org_tag).replace("EXIF ","")
+            value = str(org_tags[org_tag])
+            print(org_tag)
+            
             if org_tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote', 'EXIF UserComment', 'Image PrintIM'):
-                key = str(org_tag)
-                
-                if str(org_tag) == "EXIF BrightnessValue":
-                    if not str(org_tags[org_tag]).find('/') == -1:
-                        entry = str(org_tags[org_tag]).split("/")
-                        value = float(entry[0]) / float(entry[1])
-                    else:
-                        value = float(entry)
+                if str(org_tag) == "EXIF Tag 0x9010":
+                    key = "OffsetTime"
+                elif str(org_tag) == "EXIF Tag 0x9011":
+                    key = "OffsetTimeOriginal"
+                elif str(org_tag) == "EXIF Tag 0x9012":
+                    key = "OffsetTimeDigitized"
+                elif str(org_tag) == "EXIF Tag 0x9400":
+                    key = "AmbientTemperature"
+                    value = exifRational(str(org_tags[org_tag]))
+                elif str(org_tag) == "EXIF Tag 0x9402":
+                    key = "Pressure"
+                elif str(org_tag) == "EXIF Tag 0x9403":
+                    key = "WaterDepth"
+                    value = exifRational(str(org_tags[org_tag]))
+                elif str(org_tag) == "EXIF Tag 0x9404":
+                    key = "Acceleration"
+                elif str(org_tag) == "EXIF BrightnessValue":
+                    value = exifRational(str(org_tags[org_tag]))
                 elif str(org_tag) == "EXIF ExifVersion":
                     entry = str(org_tags[org_tag])
                     value = float(entry) / 100
                 elif str(org_tag) == "EXIF FNumber":
-                    if not str(org_tags[org_tag]).find('/') == -1:
-                        entry = str(org_tags[org_tag]).split("/")
-                        value = round(float(entry[0]) / float(entry[1]),2)    
-                    else:
-                        value = round(float(entry),2)
+                    value = exifRational(str(org_tags[org_tag]))  
                 elif str(org_tag) == "EXIF MaxApertureValue":
-                    if not str(org_tags[org_tag]).find('/') == -1:
-                        entry = str(org_tags[org_tag]).split("/")
-                        value = round(float(entry[0]) / float(entry[1]),2)    
-                    else:
-                        value = round(float(entry),2)
-                else:
-                    value = str(org_tags[org_tag])
-                new_tags[key]=value
-        
+                    value = exifRational(str(org_tags[org_tag]))
+                elif str(org_tag) == "EXIF FocalLength":
+                    value = exifRational(str(org_tags[org_tag]))
+            new_tags[key]=value
         return(new_tags)
     except Exception as e:
         print("Error occurs in imageProcessing::getMetaInfo(img_input)")
         print(str(e))
         
+        return(None)
+
+def exifRational(exifTag):
+    try:
+        value = None
+        
+        if not exifTag.find('/') == -1:
+            entry = exifTag.split("/")
+            value = round(float(entry[0]) / float(entry[1]),2)
+        else:
+            value = round(float(exifTag),2)
+        
+        return(value)
+    except Exception as e:
+        print(str(e))
         return(None)
 
 def getThumbnail(img_input):
