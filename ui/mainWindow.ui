@@ -140,6 +140,9 @@
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
+                <property name="sortingEnabled">
+                 <bool>false</bool>
+                </property>
                 <attribute name="headerDefaultSectionSize">
                  <number>150</number>
                 </attribute>
@@ -722,7 +725,23 @@
                 </size>
                </property>
                <property name="text">
-                <string> インポートする</string>
+                <string>外部画像</string>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_con_txt">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>テキスト編集</string>
                </property>
                <property name="flat">
                 <bool>false</bool>
@@ -1551,10 +1570,23 @@
                 </size>
                </property>
                <property name="text">
-                <string> インポートする</string>
+                <string>外部画像</string>
                </property>
                <property name="flat">
                 <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_mat_txt">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>テキスト編集</string>
                </property>
               </widget>
              </item>
@@ -1732,7 +1764,7 @@
                  </attribute>
                  <column>
                   <property name="text">
-                   <string>画像ID</string>
+                   <string>ファイルID</string>
                   </property>
                  </column>
                  <column>
@@ -2257,6 +2289,20 @@
                  </item>
                 </layout>
                </widget>
+               <widget class="QWidget" name="tab">
+                <attribute name="title">
+                 <string>テキスト</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout">
+                   <item>
+                    <widget class="QTextBrowser" name="textBrowser"/>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
                <widget class="QWidget" name="tab_src_geo">
                 <attribute name="title">
                  <string>空間データ</string>
@@ -2307,14 +2353,15 @@
     <property name="title">
      <string>プロジェクト</string>
     </property>
-    <widget class="QMenu" name="mem_prj_exp">
+    <widget class="QMenu" name="men_prj_exp">
      <property name="title">
       <string>Export</string>
      </property>
-     <addaction name="act_export_html"/>
+     <addaction name="act_exp_html"/>
+     <addaction name="act_exp_flickr"/>
     </widget>
     <addaction name="act_prj_open"/>
-    <addaction name="mem_prj_exp"/>
+    <addaction name="men_prj_exp"/>
    </widget>
    <widget class="QMenu" name="men_dat">
     <property name="title">
@@ -2346,20 +2393,28 @@
      <property name="title">
       <string>エクスポート</string>
      </property>
-     <widget class="QMenu" name="mem_exp_csv">
+     <widget class="QMenu" name="men_exp_csv">
       <property name="title">
        <string>CSV File</string>
       </property>
       <addaction name="act_exp_csv_con"/>
       <addaction name="act_exp_csv_mat"/>
      </widget>
-     <addaction name="mem_exp_csv"/>
+     <addaction name="men_exp_csv"/>
+     <addaction name="act_exp_xml"/>
     </widget>
     <addaction name="men_imp"/>
     <addaction name="men_exp"/>
    </widget>
+   <widget class="QMenu" name="men_conf">
+    <property name="title">
+     <string>設定</string>
+    </property>
+    <addaction name="act_reg_flickr"/>
+   </widget>
    <addaction name="men_prj"/>
    <addaction name="men_dat"/>
+   <addaction name="men_conf"/>
   </widget>
   <action name="actionCreate_New_Project">
    <property name="text">
@@ -2397,7 +2452,7 @@
     <string>ファイルシステム</string>
    </property>
   </action>
-  <action name="act_export_html">
+  <action name="act_exp_html">
    <property name="text">
     <string>Export as HTML</string>
    </property>
@@ -2465,6 +2520,21 @@
   <action name="act_white">
    <property name="text">
     <string>ホワイト</string>
+   </property>
+  </action>
+  <action name="act_exp_xml">
+   <property name="text">
+    <string>XML File</string>
+   </property>
+  </action>
+  <action name="act_reg_flickr">
+   <property name="text">
+    <string>Flickr</string>
+   </property>
+  </action>
+  <action name="act_exp_flickr">
+   <property name="text">
+    <string>Export to Flickr</string>
    </property>
   </action>
  </widget>

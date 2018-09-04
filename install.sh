@@ -32,6 +32,9 @@ pip2 install gphoto2
 apt install gimp
 apt install audacity
 
+# Install Web tools.
+pip2 install flickrapi
+
 # Install image processing libraries.
 apt install libjpeg8-dev
 apt install libtiff5-dev 

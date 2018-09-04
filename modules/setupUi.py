@@ -40,10 +40,14 @@ def activate(ui_main):
     ui_main.act_imp_csv_con.triggered.connect(ui_main.importConsolidationCSV)
     ui_main.act_imp_csv_mat.triggered.connect(ui_main.importMaterialCSV)
     ui_main.act_imp_csv_fil.triggered.connect(ui_main.importFileCSV)
-    ui_main.act_export_html.triggered.connect(ui_main.exportAsHtml)
+    ui_main.act_exp_html.triggered.connect(ui_main.exportAsHtml)
     ui_main.act_exp_csv_con.triggered.connect(ui_main.exportConsolidationCSV)
     ui_main.act_exp_csv_mat.triggered.connect(ui_main.exportMaterialCSV)
-            
+    ui_main.act_exp_xml.triggered.connect(ui_main.exportAsXML)
+    ui_main.act_exp_xml.triggered.connect(ui_main.exportAsXML)
+    ui_main.act_reg_flickr.triggered.connect(ui_main.regFlickrKey)
+    ui_main.act_exp_flickr.triggered.connect(ui_main.uploadToFlickr)
+    
     ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)    # Handle current selection of consolidations and materials.
     ui_main.tre_fls.itemSelectionChanged.connect(ui_main.toggleCurrentFile)               # Handle current selection of consolidations and materials.
     

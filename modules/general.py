@@ -90,15 +90,16 @@ def askNewProject(parent):
         error.ErrorMessageProjectNotCreated(details=str(e), language=parent.language)
         return(None)
 
-def askDeleteConsolidation(parent):
+def askDeleteConsolidation(parent,lang):
     con_uuid = parent.current_consolidation.uuid
-    if parent.language == "ja":
+    
+    if lang == "ja":
         title = LAB_CON_JA + u"の削除"
         message = LAB_CON_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
-    elif parent.language == "en":
+    elif lang == "en":
         title = u"Delete the " + LAB_CON_EN + "."
         message = u"Every kinds of datasets included in the " + LAB_CON_EN + u" will be removed. Would you like to delete the " + LAB_CON_EN + u" ?"
-        
+    print("OK") 
     reply = QMessageBox.question(
         self, 
         title, 
@@ -134,6 +135,7 @@ def askNewMaterial(parent):
 
 def askDeleteMaterial(parent):
     con_uuid = parent.current_consolidation.uuid
+    print("1")
     if parent.language == "ja":
         title = LAB_MAT_JA + u"の削除"
         message = LAB_MAT_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
@@ -266,7 +268,8 @@ def createTableConsolidation(dbfile):
                         name text,
                         geographic_annotation text,
                         temporal_annotation text,
-                        description text
+                        description text,
+                        flickr_photosetid
                     );"""
         # Execute SQL create.
         executeSql(dbfile, sql_create)
@@ -330,6 +333,7 @@ def createTableFile(dbfile):
                         operating_application varying(255),
                         caption character varying(255),
                         description text,
+                        flickr_photoid text,
                         FOREIGN KEY (con_id) REFERENCES consolidation (uuid) ON UPDATE CASCADE ON DELETE CASCADE,
                         FOREIGN KEY (mat_id) REFERENCES material (uuid) ON UPDATE CASCADE ON DELETE CASCADE
                     );"""
@@ -408,7 +412,8 @@ def checkConsolidationTableFields(dbfile):
                         ("name", "text"),
                         ("geographic_annotation", "text"),
                         ("temporal_annotation", "text"),
-                        ("description", "text")
+                        ("description", "text"),
+                        ("flickr_photosetid", "text")
                     ]
         # Check fields.
         checkFieldsExists(dbfile, "consolidation", con_fields)
@@ -465,7 +470,8 @@ def checkFileTableFields(dbfile):
                         ("file_operation", "character varying(255)"),
                         ("operating_application", "character varying(255)"),
                         ("caption", "character varying(255)"),
-                        ("description", "text")
+                        ("description", "text"),
+                        ("flickr_photoid", "text")
                     ]
         # Check fields.
         checkFieldsExists(dbfile, "file", fil_fields)

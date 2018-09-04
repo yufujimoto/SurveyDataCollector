@@ -31,6 +31,7 @@ import modules.setupUi as setupUi
 import modules.skin as skin
 import modules.imageProcessing as imageProcessing
 import modules.writeHtml as htmlWriter
+import modules.flickr_upload as flickr
 
 # Import GUI window.
 import dialog.mainWindow as mainWindow
@@ -38,6 +39,7 @@ import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
 import dialog.imageInformation as imageInformationDialog
 import dialog.cameraSelect as cameraSelectDialog
+import dialog.flickr as flickrDialog
 
 # Import libraries for sound recording. 
 import Queue as queue
@@ -94,6 +96,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def language(self): return self._language
     @property
     def skin(self): return self._skin
+    @property
+    def flickr_apikey(self): return self._flickr_apikey
+    @property
+    def flickr_secret(self): return self._flickr_secret
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
@@ -137,6 +143,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def language(self, value): self._language = value
     @skin.setter
     def skin(self, value): self._skin = value
+    @flickr_apikey.setter
+    def flickr_apikey(self, value): self._flickr_apikey = value
+    @flickr_secret.setter
+    def flickr_secret(self, value): self._flickr_secret = value
     
     def __init__(self, parent=None):
         # Make this class as the super class and initialyze the class.
@@ -282,10 +292,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if conn == None: return(None)
             
             # Create the SQL query for selecting consolidation.
-            sql_con_sel = """SELECT uuid, name, description FROM consolidation"""
+            sql_con_sel = """SELECT uuid, name, description, id FROM consolidation ORDER BY id"""
             
             # Create the SQL query for selecting the consolidation.
-            sql_mat_sel = """SELECT uuid, name, description FROM material WHERE con_id=?"""
+            sql_mat_sel = """SELECT uuid, name, description, id FROM material WHERE con_id=? ORDER by id"""
             
             # Instantiate the cursor for query.
             cur_con = conn.cursor()
@@ -370,6 +380,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Define the DB file.
             self._database = os.path.join(self._table_directory, "project.db")
+            
+            # Check Flickr API Key File.
+            self.checkFlickrKey()
             
             if not os.path.exists(self._database):
                 general.askNewProject(self)
@@ -1480,8 +1493,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
             # Confirm deleting the consolidation.
-            
-            if not general.askDeleteMaterial(self) == QMessageBox.Yes: return(None)
+            # if not general.askDeleteMaterial(self, self.language) == QMessageBox.Yes: return(None)
             
             # Generate the GUID for the material
             mat_uuid = self.tbx_mat_uuid.text()
@@ -1527,6 +1539,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Exception as e:
             print("Error occurs in main::deleteMaterial(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
+            print(str(e))
             return(None)
     
     def setMaterialInfo(self, material):
@@ -1810,12 +1823,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         for i in range(len(entries)):
                             # Give a NULL value if the entry is empty.
                             if entries[i] == "" : entries[i] = "NULL"
-                            
+                                                        
                             # Convert the string to the unicode.
                             if isinstance(entries[i], str): entries[i] = entries[i].decode('utf-8')
                             
                             # Check the class of the current entry.
+                            
                             if feat_type[i] == "file":
+                                print(fil_head[i])
                                 
                                 if fil_head[i] == "uuid":
                                     if not entries[i] == "NULL":sop_file.uuid = entries[i]
@@ -2130,6 +2145,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             if not selected == None or not len(selected) == 0:
                 fil_uuid = selected[0].text(0)
+                print(fil_uuid)
+                
+                cur_file = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
+                cur_file.public = int(self.cbx_fil_pub.isChecked())
+                
+                # Update the file information.
+                cur_file.dbUpdate(self._database)
         except Exception as e:
             print("Error occurs in updateFile(self)")
             error.ErrorMessageUnknown(details=str(e))
@@ -3579,9 +3601,498 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.plt_geo.setYRange(0, 100)
         '''
     
+    def checkFlickrKey(self):
+        self._flickr_apikey = "Empty"
+        self._flickr_secret = "Empty"
+        
+        keyfile_path = os.path.join(self._root_directory,".flickr")
+        
+        if not os.path.exists(keyfile_path):
+            keyfile = open(keyfile_path,"w")
+            keyfile.write("Empty,Empty")
+            keyfile.close()
+        else:
+            keyfile = open(keyfile_path,"r")
+            api_params = keyfile.readline().split(",")
+            
+            self._flickr_apikey = api_params[0]
+            self._flickr_secret = api_params[1]
+            
+            keyfile.close()
+    
+    def regFlickrKey(self):
+        print("main::regFrickrKey(self)")
+        
+        # Create a sqLite file if not exists. 
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            keyfile_path = os.path.join(self._root_directory,".flickr")
+            
+            self.checkFlickrKey()
+            
+            # Display the camera select dialog.
+            self.dialog_flickr = flickrDialog.FlickrAPIDialog(self, self._flickr_apikey, self._flickr_secret)
+            
+            if self.dialog_flickr.exec_() == True:
+                self._flickr_apikey = self.dialog_flickr.tbx_flickr_key.text()
+                self._flickr_secret = self.dialog_flickr.tbx_flickr_sec.text()
+                
+                keyfile = open(keyfile_path,"w")
+                keyfile.write(self._flickr_apikey + "," + self._flickr_secret)
+        except Exception as e:
+                print(str(e.args[0]))
+                return(None)
+    
     # ==========================
     # Exporting operation
     # ==========================
+    def uploadToFlickr(self):
+        print("uploadToFrickr(self)")
+        
+        # Create a sqLite file if not exists. 
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Establish the connection to the self._database file.
+            conn = sqlite.connect(self._database)
+            
+            # Exit if connection is not established.
+            if conn == None: return(None)
+            
+            # Create the SQL query for selecting consolidation.
+            sql_con_sel = """SELECT uuid, id, flickr_photosetid FROM consolidation ORDER BY id"""
+            sql_mat_sel = """SELECT uuid, id FROM material WHERE con_id=? ORDER by id"""
+            
+            # Create the SQL query for selecting image files
+            sql_con_fil_sel = """SELECT flickr_photoid FROM material WHERE uuid=?"""
+            sql_mat_fil_sel = """SELECT flickr_photoid FROM material WHERE uuid=?"""
+
+            # Instantiate the cursor for query.
+            cur_con = conn.cursor()
+            rows_con = cur_con.execute(sql_con_sel)
+            
+            # Execute the query and get consolidation recursively
+            for row_con in rows_con:
+                photoset_ids = []
+                
+                # Initialyze the photoset id.
+                con_photoset_id = None
+                
+                # Get attributes from the row.
+                consolidation = features.Consolidation(
+                    is_new=False,
+                    uuid = row_con[0],
+                    dbfile = self._database)
+                
+                # Get the current photoset id.
+                con_photoset_id = row_con[2]
+                
+                # Set attributes to text boxes.
+                con_uuid = consolidation.uuid
+                con_cnid = consolidation.id
+                con_name = consolidation.name
+                con_geog = consolidation.geographic_annotation
+                con_temp = consolidation.temporal_annotation
+                con_desc = consolidation.description
+                con_imgs = consolidation.images
+                
+                if isinstance(con_uuid, unicode) : con_uuid = con_uuid.encode('utf-8')
+                if isinstance(con_cnid, unicode) : con_cnid = con_cnid.encode('utf-8')
+                if isinstance(con_name, unicode) : con_name = con_name.encode('utf-8')
+                if isinstance(con_geog, unicode) : con_geog = con_geog.encode('utf-8')
+                if isinstance(con_temp, unicode) : con_temp = con_temp.encode('utf-8')
+                if isinstance(con_desc, unicode) : con_desc = con_desc.encode('utf-8')
+                
+                for image in con_imgs:
+                    con_img_uuid = image.uuid
+                    con_img_flid = image.id
+                    con_img_alas = image.alias
+                    con_img_capt = image.caption
+                    con_img_cdat = image.created_date
+                    con_img_mdat = image.modified_date
+                    con_img_fnam = os.path.join(self._root_directory,image.filename)
+                    con_img_ftyp = image.file_type
+                    con_img_opap = image.operating_application
+                    con_img_oper = image.operation
+                    con_img_publ = image.public
+                    con_img_lock = image.lock
+                    con_img_srce = image.source
+                    con_img_stat = image.status
+                    con_img_desc = image.description
+                    con_img_exts = os.path.splitext(con_img_fnam)[1].upper()
+                    
+                    if isinstance(con_img_uuid, unicode) : con_img_uuid = con_img_uuid.encode('utf-8')
+                    if isinstance(con_img_flid, unicode) : con_img_flid = con_img_flid.encode('utf-8')
+                    if isinstance(con_img_alas, unicode) : con_img_alas = con_img_alas.encode('utf-8')
+                    if isinstance(con_img_capt, unicode) : con_img_capt = con_img_capt.encode('utf-8')
+                    if isinstance(con_img_cdat, unicode) : con_img_cdat = con_img_cdat.encode('utf-8')
+                    if isinstance(con_img_mdat, unicode) : con_img_mdat = con_img_mdat.encode('utf-8')
+                    if isinstance(con_img_fnam, unicode) : con_img_fnam = con_img_fnam.encode('utf-8')
+                    if isinstance(con_img_ftyp, unicode) : con_img_ftyp = con_img_ftyp.encode('utf-8')
+                    if isinstance(con_img_opap, unicode) : con_img_opap = con_img_opap.encode('utf-8')
+                    if isinstance(con_img_oper, unicode) : con_img_oper = con_img_oper.encode('utf-8')
+                    if isinstance(con_img_publ, unicode) : con_img_publ = con_img_publ.encode('utf-8')
+                    if isinstance(con_img_lock, unicode) : con_img_lock = con_img_lock.encode('utf-8')
+                    if isinstance(con_img_srce, unicode) : con_img_srce = con_img_srce.encode('utf-8')
+                    if isinstance(con_img_stat, unicode) : con_img_stat = con_img_stat.encode('utf-8')
+                    if isinstance(con_img_desc, unicode) : con_img_desc = con_img_desc.encode('utf-8')
+                    
+                    if con_img_publ == "1":
+                        if con_img_exts == ".JPG":
+                            con_img_path = con_img_fnam
+                            
+                            # Define the SQL query for get the photo id of the Flickr.
+                            sql_con_fil_sel = """SELECT flickr_photoid FROM file WHERE uuid=?"""
+                            cur_con_fil = conn.cursor()
+                            rows_con_fil = cur_con_fil.execute(sql_con_fil_sel, [image.uuid])
+                            
+                            # Get the Flickr photo id from the DB.
+                            flickr_pht_id = rows_con_fil.fetchone()
+                            
+                            # Create the HTML description for Flickr.
+                            con_flickr_desc = """
+                                <b>%s</b>
+                                <u>Geography:</u>
+                                <blockquote>%s</blockquote>
+                                <u>Period:</u>
+                                <blockquote>%s</blockquote>
+                                <u>Dscriptions:</u>
+                                <blockquote>%s</blockquote>
+                                """ % (con_name, con_geog, con_temp, con_desc)
+                            
+                            con_flickrPhoto = flickr.FlickrPhoto(
+                                api_key = self._flickr_apikey,
+                                secret_key = self._flickr_secret,
+                                photo_id = flickr_pht_id,
+                                title = con_name,
+                                description = con_flickr_desc,
+                                path = con_img_path)
+                            
+                            # Check the photo.
+                            res = con_flickrPhoto.getInfo()
+                            
+                            if res is not None:
+                                con_flickrPhoto.replace()
+                                photoset_ids.append(con_flickrPhoto.photo_id)
+                            else:
+                                con_flickrPhoto.upload()
+                                
+                                # Update the flickr id column.
+                                sql_update = """UPDATE file SET flickr_photoid = ? WHERE uuid = ?"""
+                                cur_con_fil = conn.cursor()
+                                cur_con_fil.execute(sql_update, [con_img_uuid,con_flickrPhoto.photo_id])
+                                photoset_ids.append(con_flickrPhoto.photo_id)
+                
+                cur_mat = conn.cursor()
+                rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
+                
+                for row_mat in rows_mat:
+                    material = features.Material(is_new=False, uuid = row_mat[0], dbfile=self._database)
+                    
+                    # Set attributes to text boxes.
+                    mat_uuid = material.uuid
+                    mat_mtid = material.id
+                    mat_mnum = material.material_number
+                    mat_mnam = material.name
+                    mat_mbgn = material.estimated_period_beginning
+                    mat_mpek = material.estimated_period_peak
+                    mat_mend = material.estimated_period_ending
+                    mat_mlat = material.latitude
+                    mat_mlon = material.longitude
+                    mat_malt = material.altitude
+                    mat_desc = material.description
+                    mat_imgs = material.images
+                    
+                    if isinstance(mat_uuid, unicode) : mat_uuid = mat_uuid.encode('utf-8')
+                    if isinstance(mat_mtid, unicode) : mat_mtid = mat_uuid.encode('utf-8')
+                    if isinstance(mat_mnum, unicode) : mat_mnum = mat_mnum.encode('utf-8')
+                    if isinstance(mat_mnam, unicode) : mat_mnam = mat_mnam.encode('utf-8')
+                    if isinstance(mat_mbgn, unicode) : mat_mbgn = mat_mbgn.encode('utf-8')
+                    if isinstance(mat_mpek, unicode) : mat_mpek = mat_mpek.encode('utf-8')
+                    if isinstance(mat_mend, unicode) : mat_mend = mat_mend.encode('utf-8')
+                    if isinstance(mat_mlat, unicode) : mat_mlat = mat_mlat.encode('utf-8')
+                    if isinstance(mat_mlon, unicode) : mat_mlon = mat_mlon.encode('utf-8')
+                    if isinstance(mat_malt, unicode) : mat_malt = mat_malt.encode('utf-8')
+                    if isinstance(mat_desc, unicode) : mat_desc = mat_desc.encode('utf-8')
+                    
+                    for image in mat_imgs:
+                        mat_img_uuid = image.uuid
+                        mat_img_flid = image.id
+                        mat_img_alas = image.alias
+                        mat_img_capt = image.caption
+                        mat_img_cdat = image.created_date
+                        mat_img_mdat = image.modified_date
+                        mat_img_fnam = os.path.join(self._root_directory,image.filename)
+                        mat_img_ftyp = image.file_type
+                        mat_img_opap = image.operating_application
+                        mat_img_oper = image.operation
+                        mat_img_publ = image.public
+                        mat_img_lock = image.lock
+                        mat_img_srce = image.source
+                        mat_img_stat = image.status
+                        mat_img_desc = image.description
+                        mat_img_exts = os.path.splitext(mat_img_fnam)[1].upper()
+                        
+                        if isinstance(mat_img_uuid, unicode) : mat_img_uuid = mat_img_uuid.encode('utf-8')
+                        if isinstance(mat_img_flid, unicode) : mat_img_flid = mat_img_flid.encode('utf-8')
+                        if isinstance(mat_img_alas, unicode) : mat_img_alas = mat_img_alas.encode('utf-8')
+                        if isinstance(mat_img_capt, unicode) : mat_img_capt = mat_img_capt.encode('utf-8')
+                        if isinstance(mat_img_cdat, unicode) : mat_img_cdat = mat_img_cdat.encode('utf-8')
+                        if isinstance(mat_img_mdat, unicode) : mat_img_mdat = mat_img_mdat.encode('utf-8')
+                        if isinstance(mat_img_fnam, unicode) : mat_img_fnam = mat_img_fnam.encode('utf-8')
+                        if isinstance(mat_img_ftyp, unicode) : mat_img_ftyp = mat_img_ftyp.encode('utf-8')
+                        if isinstance(mat_img_opap, unicode) : mat_img_opap = mat_img_opap.encode('utf-8')
+                        if isinstance(mat_img_oper, unicode) : mat_img_oper = mat_img_oper.encode('utf-8')
+                        if isinstance(mat_img_publ, unicode) : mat_img_publ = mat_img_publ.encode('utf-8')
+                        if isinstance(mat_img_lock, unicode) : mat_img_lock = mat_img_lock.encode('utf-8')
+                        if isinstance(mat_img_srce, unicode) : mat_img_srce = mat_img_srce.encode('utf-8')
+                        if isinstance(mat_img_stat, unicode) : mat_img_stat = mat_img_stat.encode('utf-8')
+                        if isinstance(mat_img_desc, unicode) : mat_img_desc = mat_img_desc.encode('utf-8')
+                        
+                        if mat_img_publ == "1":
+                            if mat_img_exts == ".JPG":
+                                mat_img_path = mat_img_fnam
+                                
+                                # Define the SQL query for get the photo id of the Flickr.
+                                sql_mat_fil_sel = """SELECT flickr_photoid FROM file WHERE uuid=?"""
+                                cur_mat_fil = conn.cursor()
+                                rows_mat_fil = cur_mat_fil.execute(sql_mat_fil_sel, [image.uuid])
+                                
+                                # Get the Flickr photo id from the DB.
+                                flickr_pht_id = rows_mat_fil.fetchone()
+                                
+                                # Create the HTML description for Flickr.
+                                mat_flickr_desc = """
+                                <b>%s</b>
+                                <u><b>General Information<b></u>
+                                <u>id:</u>
+                                <blockquote>%s</blockquote>
+                                <u>Dscriptions:</u>
+                                <blockquote>%s</blockquote>
+                                <u><b>Temporal Annotation</b></u>
+                                <blockquote>Start:%s</blockquote>
+                                <blockquote>Peak:%s</blockquote>
+                                <blockquote>End:%s</blockquote>
+                                <u><b>Geographic Annotation</b></u>
+                                <blockquote>latitude:%s</blockquote>
+                                <blockquote>longitude:%s</blockquote>
+                                <blockquote>altitude:%s</blockquote>
+                                """ % (mat_mnam, mat_mnum, mat_desc, mat_mbgn, mat_mpek, mat_mend, mat_mlat, mat_mlon, mat_malt)
+                                
+                                mat_flickrPhoto = flickr.FlickrPhoto(
+                                    api_key = self._flickr_apikey,
+                                    secret_key = self._flickr_secret,
+                                    photo_id = flickr_pht_id,
+                                    title = mat_mnam,
+                                    description = mat_flickr_desc,
+                                    path = mat_img_path)
+                                
+                                # Check the photo.
+                                res = mat_flickrPhoto.getInfo()
+                                
+                                if res is not None:
+                                    mat_flickrPhoto.replace()
+                                    photoset_ids.append(mat_flickrPhoto.photo_id)
+                                    print("replaced")
+                                else:
+                                    mat_flickrPhoto.upload()
+                                    
+                                    # Update the flickr id column.
+                                    sql_update = """UPDATE file SET flickr_photoid = ? WHERE uuid = ?"""
+                                    cur_con_fil = conn.cursor()
+                                    cur_con_fil.execute(sql_update, [mat_flickrPhoto.photo_id, mat_img_uuid])
+                                    photoset_ids.append(mat_flickrPhoto.photo_id)
+                                    print("uploaded")
+                
+                prime_photo = photoset_ids[0]
+                photoset_ids.pop(0)
+                
+                con_photoset = flickr.FlickrPhotoSet(
+                    api_key = self._flickr_apikey,
+                    secret_key = self._flickr_secret,
+                    photoset_id = con_photoset_id,
+                    title = con_name,
+                    description = con_flickr_desc,
+                    primary_photo_id = prime_photo,
+                    photos = photoset_ids)
+                
+                if con_photoset_id is None: con_photoset.createPhotoset()
+                con_photoset.addPhotosToPhotoset()
+                
+                
+        except Exception as e:
+            print("Error occured in uploading process:")
+            print(str(e.args[0]))
+            pass
+    
+    def exportAsXML(self):
+        print("exportAsXML(self)")
+        
+        # Create a sqLite file if not exists. 
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Define directories for storing files.
+            output = QFileDialog.getExistingDirectory(self, "Select the output directory")
+            
+            # Open the file stream
+            output_xml = open(os.path.join(output,"output.xml"),"w")
+            
+            output_xml.write("<dataset>\n")
+            
+            # Establish the connection to the self._database file.
+            conn = sqlite.connect(self._database)
+            
+            # Exit if connection is not established.
+            if conn == None: return(None)
+            
+            # Create the SQL query for selecting consolidation.
+            sql_con_sel = """SELECT uuid, id FROM consolidation ORDER BY id"""
+            sql_mat_sel = """SELECT uuid, id FROM material WHERE con_id=? ORDER by id"""
+            
+            # Instantiate the cursor for query.
+            cur_con = conn.cursor()
+            rows_con = cur_con.execute(sql_con_sel)
+            
+            # Execute the query and get consolidation recursively
+            for row_con in rows_con:
+                output_xml.write("\t<consolidation>\n")
+                
+                # Get attributes from the row.
+                consolidation = features.Consolidation(is_new=False, uuid = row_con[0], dbfile=self._database)
+                
+                # Set attributes to text boxes.
+                con_uuid = consolidation.uuid
+                con_cnid = consolidation.id
+                con_name = consolidation.name
+                con_geog = consolidation.geographic_annotation
+                con_temp = consolidation.temporal_annotation
+                con_desc = consolidation.description
+                
+                if isinstance(con_uuid, unicode) : con_uuid = con_uuid.encode('utf-8')
+                if isinstance(con_cnid, unicode) : con_cnid = con_cnid.encode('utf-8')
+                if isinstance(con_name, unicode) : con_name = con_name.encode('utf-8')
+                if isinstance(con_geog, unicode) : con_geog = con_geog.encode('utf-8')
+                if isinstance(con_temp, unicode) : con_temp = con_temp.encode('utf-8')
+                if isinstance(con_desc, unicode) : con_desc = con_desc.encode('utf-8')
+                
+                output_xml.write("\t\t<uuid>%s</uuid>\n" % con_uuid)
+                output_xml.write("\t\t<id>%s</id>\n" % con_cnid)
+                output_xml.write("\t\t<name>%s</name>\n" % con_name)
+                output_xml.write("\t\t<geographic_annotation>%s</geographic_annotation>\n" %(con_geog))
+                output_xml.write("\t\t<temporal_annotation>%s</temporal_annotation>\n" %(con_temp))
+                output_xml.write("\t\t<description>%s</description>\n" %(con_desc))
+                output_xml.write("\t\t<materials>\n")
+                
+                cur_mat = conn.cursor()
+                rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
+                
+                for row_mat in rows_mat:
+                    material = features.Material(is_new=False, uuid = row_mat[0], dbfile=self._database)
+                    
+                    # Set attributes to text boxes.
+                    mat_uuid = material.uuid
+                    mat_mtid = material.id
+                    mat_mnum = material.material_number
+                    mat_mnam = material.name
+                    mat_mbgn = material.estimated_period_beginning
+                    mat_mpek = material.estimated_period_peak
+                    mat_mend = material.estimated_period_ending
+                    mat_mlat = material.latitude
+                    mat_mlon = material.longitude
+                    mat_malt = material.altitude
+                    mat_desc = material.description
+                    mat_imgs = material.images
+                    
+                    if isinstance(mat_uuid, unicode) : mat_uuid = mat_uuid.encode('utf-8')
+                    if isinstance(mat_mtid, unicode) : mat_mtid = mat_uuid.encode('utf-8')
+                    if isinstance(mat_mnum, unicode) : mat_mnum = mat_mnum.encode('utf-8')
+                    if isinstance(mat_mnam, unicode) : mat_mnam = mat_mnam.encode('utf-8')
+                    if isinstance(mat_mbgn, unicode) : mat_mbgn = mat_mbgn.encode('utf-8')
+                    if isinstance(mat_mpek, unicode) : mat_mpek = mat_mpek.encode('utf-8')
+                    if isinstance(mat_mend, unicode) : mat_mend = mat_mend.encode('utf-8')
+                    if isinstance(mat_mlat, unicode) : mat_mlat = mat_mlat.encode('utf-8')
+                    if isinstance(mat_mlon, unicode) : mat_mlon = mat_mlon.encode('utf-8')
+                    if isinstance(mat_malt, unicode) : mat_malt = mat_malt.encode('utf-8')
+                    if isinstance(mat_desc, unicode) : mat_desc = mat_desc.encode('utf-8')
+                    
+                    output_xml.write("\t\t\t<material>\n")
+                    output_xml.write("\t\t\t\t<uuid>%s</uuid>\n" % mat_uuid)
+                    output_xml.write("\t\t\t\t<id>%s</id>\n" % mat_mtid)
+                    output_xml.write("\t\t\t\t<number>%s</number>\n" % mat_mnum)
+                    output_xml.write("\t\t\t\t<name>%s</name>\n" % mat_mnam)
+                    output_xml.write("\t\t\t\t<date_begin>%s</date_begin>\n" % mat_mbgn)
+                    output_xml.write("\t\t\t\t<date_peak>%s</date_peak>\n" % mat_mpek)
+                    output_xml.write("\t\t\t\t<date_end>%s</date_end>\n" % mat_mend)
+                    output_xml.write("\t\t\t\t<latitude>%s</latitude>\n" % mat_mlat)
+                    output_xml.write("\t\t\t\t<longitude>%s</longitude>\n" % mat_mlon)
+                    output_xml.write("\t\t\t\t<altitude>%s</altitude>\n" % mat_malt)
+                    output_xml.write("\t\t\t\t<description>%s</description>\n" % mat_desc)
+                    output_xml.write("\t\t\t\t<images>\n")
+                    
+                    for image in mat_imgs:
+                        img_uuid = image.uuid
+                        img_flid = image.id
+                        img_alas = image.alias
+                        img_capt = image.caption
+                        img_cdat = image.created_date
+                        img_mdat = image.modified_date
+                        img_fnam = os.path.join(self._root_directory,image.filename)
+                        img_ftyp = image.file_type
+                        img_opap = image.operating_application
+                        img_oper = image.operation
+                        img_publ = image.public
+                        img_lock = image.lock
+                        img_srce = image.source
+                        img_stat = image.status
+                        img_desc = image.description
+                        
+                        if isinstance(img_uuid, unicode) : img_uuid = img_uuid.encode('utf-8')
+                        if isinstance(img_flid, unicode) : img_flid = img_flid.encode('utf-8')
+                        if isinstance(img_alas, unicode) : img_alas = img_alas.encode('utf-8')
+                        if isinstance(img_capt, unicode) : img_capt = img_capt.encode('utf-8')
+                        if isinstance(img_cdat, unicode) : img_cdat = img_cdat.encode('utf-8')
+                        if isinstance(img_mdat, unicode) : img_mdat = img_mdat.encode('utf-8')
+                        if isinstance(img_fnam, unicode) : img_fnam = img_fnam.encode('utf-8')
+                        if isinstance(img_ftyp, unicode) : img_ftyp = img_ftyp.encode('utf-8')
+                        if isinstance(img_opap, unicode) : img_opap = img_opap.encode('utf-8')
+                        if isinstance(img_oper, unicode) : img_oper = img_oper.encode('utf-8')
+                        if isinstance(img_publ, unicode) : img_publ = img_publ.encode('utf-8')
+                        if isinstance(img_lock, unicode) : img_lock = img_lock.encode('utf-8')
+                        if isinstance(img_srce, unicode) : img_srce = img_srce.encode('utf-8')
+                        if isinstance(img_stat, unicode) : img_stat = img_stat.encode('utf-8')
+                        if isinstance(img_desc, unicode) : img_desc = img_desc.encode('utf-8')
+                        
+                        output_xml.write("\t\t\t\t\t<image>\n")
+                        output_xml.write("\t\t\t\t\t\t<uuid>%s</uuid>\n" % img_uuid)
+                        output_xml.write("\t\t\t\t\t\t<id>%s</id>\n" % img_flid)
+                        output_xml.write("\t\t\t\t\t\t<alias>%s</alias>\n" % img_alas)
+                        output_xml.write("\t\t\t\t\t\t<caption>%s</caption>\n" % img_capt)
+                        output_xml.write("\t\t\t\t\t\t<created>%s</created>\n" % img_cdat)
+                        output_xml.write("\t\t\t\t\t\t<modified>%s</modified>\n" % img_mdat)
+                        output_xml.write("\t\t\t\t\t\t<filename>%s</filename>\n" % img_fnam)
+                        output_xml.write("\t\t\t\t\t\t<filetype>%s</filetype>\n" % img_ftyp)
+                        output_xml.write("\t\t\t\t\t\t<application>%s</application>\n" % img_opap)
+                        output_xml.write("\t\t\t\t\t\t<operation>%s</operation>\n" % img_oper)
+                        output_xml.write("\t\t\t\t\t\t<public>%s</public>\n" % img_publ)
+                        output_xml.write("\t\t\t\t\t\t<lock>%s</lock>\n" % img_lock)
+                        output_xml.write("\t\t\t\t\t\t<source>%s</source>\n" % img_srce)
+                        output_xml.write("\t\t\t\t\t\t<status>%s</status>\n" % img_stat)
+                        output_xml.write("\t\t\t\t\t\t<description>%s</description>\n" % img_desc)
+                        output_xml.write("\t\t\t\t\t</image>\n")
+                    output_xml.write("\t\t\t\t</images>\n")
+                    output_xml.write("\t\t\t</material>\n")
+                output_xml.write("\t\t</materials>\n")
+                output_xml.write("\t</consolidation>\n")
+            output_xml.write("</dataset>")
+        except Exception as e:
+            print(str(e.args[0]))
+            return(None)
+        
     def exportAsHtml(self):
         print("exportAsHtml(self)")
         
