@@ -10,6 +10,7 @@ pip2 install --upgrade pip
 apt install python-dev 
 apt install build-essential 
 apt install pkg-config
+apt install imutils
 
 # Install general libraries.
 apt install python-dateutil
@@ -18,6 +19,10 @@ pip2 install argparse
 pip2 install uuid
 pip2 install lxml
 pip2 install pipes
+pip2 install Cython
+pip2 install pyqtgraph
+pip2 install cartopy
+pip2 install scipy
 
 # Install GUI libraries.
 apt install python-pyqt5
