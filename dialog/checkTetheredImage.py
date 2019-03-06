@@ -15,6 +15,9 @@ import modules.imageProcessing as imageProcessing
 import modules.skin as skin
 import modules.error as error
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../viewer')
+import viewer.imageViewer as viewer
+
 import dialog.checkTetheredImageDialog as checkTetheredImageDialog
 
 class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
@@ -90,9 +93,43 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
         super(CheckImageDialog, self).__init__(parent)
         self.setupUi(self)
         
+        # Create the graphic view item.        
+        self.graphicsView = viewer.ImageViewer()
+        self.graphicsView.setObjectName("graphicsView")
+        self.horizontalLayout_2.addWidget(self.graphicsView)
+        
         # Initialize the window.
         self.setWindowTitle(self.tr("Check Tethered Image"))
         self.setWindowState(Qt.WindowMaximized)
+        
+        # Initialyze the user interface.
+        # Get the proper font size from the display size and set the font size.
+        font_size = skin.getFontSize()
+        
+        # Make the style sheet.
+        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
+        
+        # Define the font object for Qt.
+        font = QFont()
+        font.setPointSize(font_size)
+        
+        self.setFont(font)
+        
+        if parent.skin == "grey":
+            # Set the icon path.
+            self._icon_directory = os.path.join(self._icon_directory, "white")
+            
+            # Set the default background and front color.
+            back_color = 'background-color: #2C2C2C;'
+            font_style_color = 'color: #FFFFFF;'
+            font_style = font_style_color + font_style_size
+            
+            # Set the default skin for all components.
+            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+            
+        elif skin == "white":
+            # Set the icon path.
+            self._icon_directory = os.path.join(self._icon_directory, "black")
         
         # Get the path of the tethered image.
         self.tethered = path
@@ -101,12 +138,8 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         
-        # Initialyze the image panel.
-        self.image_panel.resize(800, 600)
-        self.image_panel.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-        
         # Initialyze the image info view.
-        self.tre_img_info.setMaximumSize(QSize(300, 16777215))
+        self.tre_img_info.setMaximumSize(QSize(600, 16777215))
         
         # Initialyze the file information view.
         self.lst_fls.setMaximumSize(QSize(16777215, 100))
@@ -185,10 +218,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
     def showImage(self):
         print("CheckImageDialog::showImage(self)")
         
-        try:
-            panel_w = self.image_panel.width()
-            panel_h = self.image_panel.height()
-            
+        try:            
             if not self.lst_fls.currentItem() == None:
                 # Get the file name and its path.
                 img_file_name = self.lst_fls.currentItem().text()
@@ -206,25 +236,22 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 
                 # Check whether the image is Raw image or not.
                 if not img_valid == True:
-                    # Extract the thumbnail image from the RAW image by using "dcraw".
-                    imageProcessing.getThumbnail(img_path)
+                    # Create error messages.
+                    error_title = "プレビューに対応していません。"
+                    error_msg = "このファイルはプレビューに対応していません。"
+                    error_info = "プレビュー機能はJPEGにのみ対応しています。"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = str(e)
                     
-                    # Get the extracted thumbnail image.
-                    img_file_name = img_base + ".thumb.jpg"
+                    # Handle error.
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
                     
-                    # Get the full path of the thumbnail image.
-                    img_path = os.path.join(self.tethered, img_file_name)
+                    # Returns nothing.
+                    return(None)
                 
                 if os.path.exists(img_path):
-                    # Create the container for displaying the image
-                    org_pixmap = QPixmap(img_path)
-                    scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
-                    
-                    # Set the image file to the image view container.
-                    self.image_panel.setPixmap(scl_pixmap)
-                    
-                    # Show the selected image.
-                    self.image_panel.show()
+                    # Show the image on graphic view.
+                    self.graphicsView.setFile(img_path)
                 else:
                     # Create error messages.
                     error_title = "エラーが発生しました"

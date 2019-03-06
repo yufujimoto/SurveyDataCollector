@@ -14,6 +14,9 @@ import numpy as np
 import pyqtgraph as pg
 import cartopy.crs as ccrs
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../viewer')
+import viewer.imageViewer as viewer
+
 def activate(ui_main):
     # Add a splitter handle between project item tree and selected object.
     spl_main = QSplitter(Qt.Horizontal)
@@ -21,6 +24,11 @@ def activate(ui_main):
     spl_main.addWidget(ui_main.frm_right)
     ui_main.frm_main_lay.addWidget(spl_main)
     ui_main.setLayout(ui_main.frm_main_lay)
+    
+    # Create the graphic view item.        
+    ui_main.graphicsView = viewer.ImageViewer()
+    ui_main.graphicsView.setObjectName("graphicsView")
+    ui_main.verticalLayout_10.addWidget(ui_main.graphicsView)
     
     # Add a splitter handle between the file list tree and preview screen.
     spl_fl = QSplitter(Qt.Horizontal)
@@ -47,6 +55,9 @@ def activate(ui_main):
     ui_main.act_exp_xml.triggered.connect(ui_main.exportAsXML)
     ui_main.act_reg_flickr.triggered.connect(ui_main.regFlickrKey)
     ui_main.act_exp_flickr.triggered.connect(ui_main.uploadToFlickr)
+    
+    ui_main.act_lan_en.triggered.connect(ui_main.setLangEn)
+    ui_main.act_lan_ja.triggered.connect(ui_main.setLangJa)
     
     ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)    # Handle current selection of consolidations and materials.
     ui_main.tre_fls.itemSelectionChanged.connect(ui_main.toggleCurrentFile)               # Handle current selection of consolidations and materials.

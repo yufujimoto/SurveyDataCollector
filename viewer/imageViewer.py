@@ -12,7 +12,7 @@ class ImageViewScene(QGraphicsScene):
         super( ImageViewScene, self ).__init__( *argv, **keywords )
         
         self.__zoom          = 1.0
-        self.__image_item    = None
+        self.__imageItem    = None
         self.__currentPos    = None
         self.__pressedButton = None
  
@@ -24,7 +24,7 @@ class ImageViewScene(QGraphicsScene):
             pixmap = QPixmap(img_path)
             
             # Refresh the image object if exists.
-            if self.__image_item: self.removeItem(self.__image_item)
+            if self.__imageItem: self.removeItem(self.__imageItem)
             
             # Set the item as movable.
             item = QGraphicsPixmapItem(pixmap)
@@ -32,7 +32,7 @@ class ImageViewScene(QGraphicsScene):
             
             # Add the QPixmap object to the scene.
             self.addItem(item)
-            self.__image_item = item
+            self.__imageItem = item
             
             # Fit the image.
             self.fitImage()
@@ -40,23 +40,15 @@ class ImageViewScene(QGraphicsScene):
             print("Error in ImageViewScene::setFile(self, img_path)")
             print(str(e))
     
-    def imageItem(self):
-        try:
-            return self.__image_item
-        except Exception as e:
-            print("Error in ImageViewScene::imageItem(self)")
-            print(str(e))
-            return(None)
-    
     def fitImage(self):
         print("ImageViewScene::fitImage(self)")
         
         # Exit if the image is not loaded.
-        if not self.imageItem(): return(None)
+        if not self.__imageItem: return(None)
         
         try:
             # Get the rectangle of the image and the scene.
-            rect_image = self.imageItem().boundingRect()
+            rect_image = self.__imageItem.boundingRect()
             rect_scene = self.sceneRect()
             
             # Get the aspect ratio of image and scene.
@@ -77,7 +69,7 @@ class ImageViewScene(QGraphicsScene):
             transform.scale(aspect_ratio, aspect_ratio)
             
             # Transform the image object.
-            self.imageItem().setTransform(transform)
+            self.__imageItem.setTransform(transform)
         except Exception as e:
             print("Error in ImageViewScene::fitImage(self)")
             print(str(e))
@@ -98,24 +90,21 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def wheelEvent(self, event):
+        print("ImageViewScene::wheelEvent(self,event)")
         # Exit if the image is not loaded.
-        if not self.imageItem(): return(None)
+        if not self.__imageItem: return(None)
         
         try:
-            # Get the current secne position.
-            scene_pos = event.scenePos()
-            
-            # Set the zoom factor from mouse wheel.
             self.__zoom = 1.0 + float(event.delta())/1000
             
-            # Create the transform object.
-            transform = self.imageItem().transform()
+            # マウスカーソル位置を中心にスケールするように変換
+            scene_pos = event.scenePos()
             
-            # Set the zoom factor.
-            transform.scale(self.__zoom, self.__zoom)
-            
-            # Apply zooming to the image object.
-            self.imageItem().setTransform( transform )
+            transform = self.__imageItem.transform()
+            localTrs = self.__imageItem.mapFromScene(scene_pos)
+            transform.translate(localTrs.x(), localTrs.y()).scale(self.__zoom, self.__zoom).translate(-localTrs.x(), -localTrs.y())
+    
+            self.__imageItem.setTransform(transform)
         except Exception as e:
             print("Error in ImageViewScene::mousePressEvent(self, event)")
             print(str(e))
@@ -125,7 +114,7 @@ class ImageViewScene(QGraphicsScene):
         if not self.__currentPos: return(None)
         
         # Exit if the image is not loaded.
-        if not self.imageItem(): return(None)
+        if not self.__imageItem: return(None)
         
         try:
             # Get the current position.
@@ -133,16 +122,19 @@ class ImageViewScene(QGraphicsScene):
             
             # Get the new position current position and moved position.
             new_scne_pos = scene_pos - self.__currentPos
+            
             self.__currentPos = scene_pos
-                    
+            
+            rect_scene = self.sceneRect()
+            
             # Create the transform object.
-            transform = self.imageItem().transform()
+            transform = self.__imageItem.transform()
             
             # Set the new scene position.
             transform *= QTransform().translate(new_scne_pos.x(), new_scne_pos.y())
             
             # Apply the new scene position.
-            self.imageItem().setTransform(transform)
+            self.__imageItem.setTransform(transform)
         except Exception as e:
             print("Error in ImageViewScene::mouseMoveEvent(self, event)")
             print(str(e))

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/tetheredShooting/ui/checkTetheredImageDialog.ui'
+# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/checkTetheredImageDialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -20,10 +20,6 @@ class Ui_tetheredDialog(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setContentsMargins(0, -1, -1, -1)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.image_panel = QtWidgets.QLabel(tetheredDialog)
-        self.image_panel.setAlignment(QtCore.Qt.AlignCenter)
-        self.image_panel.setObjectName("image_panel")
-        self.verticalLayout.addWidget(self.image_panel)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setContentsMargins(-1, 0, -1, -1)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -52,6 +48,5 @@ class Ui_tetheredDialog(object):
     def retranslateUi(self, tetheredDialog):
         _translate = QtCore.QCoreApplication.translate
         tetheredDialog.setWindowTitle(_translate("tetheredDialog", "Dialog"))
-        self.image_panel.setText(_translate("tetheredDialog", "TextLabel"))
         self.tre_img_info.headerItem().setText(1, _translate("tetheredDialog", "値"))
 

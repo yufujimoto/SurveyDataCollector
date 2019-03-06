@@ -66,7 +66,6 @@ def getMetaInfo(img_input):
         for org_tag in sorted(org_tags.iterkeys()):
             key = str(org_tag).replace("EXIF ","")
             value = str(org_tags[org_tag])
-            print(org_tag)
             
             if org_tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote', 'EXIF UserComment', 'Image PrintIM'):
                 if str(org_tag) == "EXIF Tag 0x9010":

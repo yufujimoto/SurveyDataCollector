@@ -1900,7 +1900,7 @@
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>0</number>
                </property>
                <property name="iconSize">
                 <size>
@@ -2187,16 +2187,6 @@
                            </item>
                           </layout>
                          </item>
-                         <item>
-                          <widget class="QLabel" name="lbl_img_preview">
-                           <property name="text">
-                            <string>preview</string>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignCenter</set>
-                           </property>
-                          </widget>
-                         </item>
                         </layout>
                        </item>
                       </layout>
@@ -2328,7 +2318,7 @@
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>23</height>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -2355,7 +2345,7 @@
     </property>
     <widget class="QMenu" name="men_prj_exp">
      <property name="title">
-      <string>Export</string>
+      <string>&amp;Export</string>
      </property>
      <addaction name="act_exp_html"/>
      <addaction name="act_exp_flickr"/>
@@ -2373,7 +2363,7 @@
      </property>
      <widget class="QMenu" name="men_imp_csv">
       <property name="title">
-       <string>CSV File</string>
+       <string>&amp;CSV File</string>
       </property>
       <addaction name="act_imp_csv_con"/>
       <addaction name="act_imp_csv_mat"/>
@@ -2381,7 +2371,7 @@
      </widget>
      <widget class="QMenu" name="men_imp_xml">
       <property name="title">
-       <string>XML File</string>
+       <string>&amp;XML File</string>
       </property>
       <addaction name="act_imp_gml"/>
       <addaction name="act_imp_sop"/>
@@ -2395,7 +2385,7 @@
      </property>
      <widget class="QMenu" name="men_exp_csv">
       <property name="title">
-       <string>CSV File</string>
+       <string>&amp;CSV File</string>
       </property>
       <addaction name="act_exp_csv_con"/>
       <addaction name="act_exp_csv_mat"/>
@@ -2410,6 +2400,14 @@
     <property name="title">
      <string>設定</string>
     </property>
+    <widget class="QMenu" name="men_lang">
+     <property name="title">
+      <string>言語</string>
+     </property>
+     <addaction name="act_lan_en"/>
+     <addaction name="act_lan_ja"/>
+    </widget>
+    <addaction name="men_lang"/>
     <addaction name="act_reg_flickr"/>
    </widget>
    <addaction name="men_prj"/>
@@ -2454,17 +2452,17 @@
   </action>
   <action name="act_exp_html">
    <property name="text">
-    <string>Export as HTML</string>
+    <string>&amp;Export as HTML</string>
    </property>
   </action>
   <action name="act_imp_csv_con">
    <property name="text">
-    <string>Consolidation</string>
+    <string>&amp;Consolidation</string>
    </property>
   </action>
   <action name="act_imp_csv_mat">
    <property name="text">
-    <string>Materials</string>
+    <string>&amp;Materials</string>
    </property>
   </action>
   <action name="actionGML">
@@ -2479,27 +2477,27 @@
   </action>
   <action name="act_imp_gml">
    <property name="text">
-    <string>GML</string>
+    <string>&amp;GML</string>
    </property>
   </action>
   <action name="act_imp_sop">
    <property name="text">
-    <string>SOP</string>
+    <string>&amp;SOP</string>
    </property>
   </action>
   <action name="act_exp_csv_con">
    <property name="text">
-    <string>consolidation</string>
+    <string>&amp;consolidation</string>
    </property>
   </action>
   <action name="act_exp_csv_mat">
    <property name="text">
-    <string>material</string>
+    <string>&amp;material</string>
    </property>
   </action>
   <action name="act_imp_csv_fil">
    <property name="text">
-    <string>File</string>
+    <string>&amp;File</string>
    </property>
   </action>
   <action name="act_ja">
@@ -2524,17 +2522,27 @@
   </action>
   <action name="act_exp_xml">
    <property name="text">
-    <string>XML File</string>
+    <string>&amp;XML File</string>
    </property>
   </action>
   <action name="act_reg_flickr">
    <property name="text">
-    <string>Flickr</string>
+    <string>&amp;Flickr</string>
    </property>
   </action>
   <action name="act_exp_flickr">
    <property name="text">
-    <string>Export to Flickr</string>
+    <string>Export to &amp;Flickr</string>
+   </property>
+  </action>
+  <action name="act_lan_en">
+   <property name="text">
+    <string>&amp;English</string>
+   </property>
+  </action>
+  <action name="act_lan_ja">
+   <property name="text">
+    <string>日本語</string>
    </property>
   </action>
  </widget>

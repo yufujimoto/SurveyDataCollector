@@ -134,7 +134,6 @@ def setMainWindowButtonText(parent):
         parent.btn_fil_edit.setText("ファイル情報の編集")
         parent.cbx_fil_pub.setText("公開設定")
         parent.cbx_fil_edit.setText("削除可能")
-        parent.lbl_img_preview.setText("preview")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_img), "画像")
         parent.btn_snd_play.setText("Play")
         parent.btn_snd_stop.setText("Stop")
@@ -151,6 +150,8 @@ def setMainWindowButtonText(parent):
         parent.men_imp_xml.setTitle("XML File")
         parent.men_exp.setTitle("エクスポート")
         parent.men_exp_csv.setTitle("CSV File")
+        parent.men_conf.setTitle("設定")
+        parent.men_lang.setTitle("言語")
         parent.actionCreate_New_Project.setText("Create New Project")
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("開く")
@@ -168,6 +169,7 @@ def setMainWindowButtonText(parent):
         parent.act_exp_csv_con.setText("consolidation")
         parent.act_exp_csv_mat.setText("material")
         parent.act_imp_csv_fil.setText("File")
+        
     elif parent.language == "en":
         parent.tab_control.setTabText(parent.tab_control.indexOf(parent.tab_prj_item), "Item")
         parent.tab_control.setTabText(parent.tab_control.indexOf(parent.tab_prj_cam), "Camera")
@@ -187,6 +189,7 @@ def setMainWindowButtonText(parent):
         parent.lbl_cam_wht.setText("White Balance")
         parent.lbl_cam_exp.setText("Exposure Compensation")
         parent.lbl_cam_met.setText("Metering Mode")
+        
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_con), "Consolidation")
         parent.lbl_con_uuid.setText("UUID :")
         parent.lbl_con_description.setText("Description :")
@@ -201,6 +204,7 @@ def setMainWindowButtonText(parent):
         parent.btn_con_imp.setText("Import")
         parent.btn_con_rec.setText("Record")
         parent.btn_con_del.setText("Delete")
+        
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_mat), "Material")
         parent.lbl_mat_uuid.setText("UUID :")
         parent.lbl_mat_number.setText("Number :")
@@ -229,7 +233,6 @@ def setMainWindowButtonText(parent):
         parent.btn_fil_edit.setText("Edit File Information")
         parent.cbx_fil_pub.setText("Make public")
         parent.cbx_fil_edit.setText("Removable")
-        parent.lbl_img_preview.setText("preview")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_img), "Image")
         parent.btn_snd_play.setText("Play")
         parent.btn_snd_stop.setText("Stop")
@@ -238,6 +241,7 @@ def setMainWindowButtonText(parent):
         parent.tre_img_prop.headerItem().setText(0, "Property")
         parent.tre_img_prop.headerItem().setText(1, "Value")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_prop), "Property")
+        
         parent.men_prj.setTitle("Project")
         parent.men_prj_exp.setTitle("Export")
         parent.men_dat.setTitle("Data")
@@ -246,6 +250,9 @@ def setMainWindowButtonText(parent):
         parent.men_imp_xml.setTitle("XML File")
         parent.men_exp.setTitle("Export")
         parent.men_exp_csv.setTitle("CSV File")
+        parent.men_conf.setTitle("Configuration")
+        parent.men_lang.setTitle("Language")
+        
         parent.actionCreate_New_Project.setText("Create New Project")
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("Open")
@@ -253,7 +260,7 @@ def setMainWindowButtonText(parent):
         parent.act_imp_db.setText("Database")
         parent.act_imp_txt.setText("Text ile")
         parent.act_imp_fls.setText("File system")
-        parent.act_export_html.setText("Export as HTML")
+        parent.act_exp_html.setText("Export as HTML")
         parent.act_imp_csv_con.setText("Consolidation")
         parent.act_imp_csv_mat.setText("Materials")
         parent.actionGML.setText("GML")
@@ -263,7 +270,7 @@ def setMainWindowButtonText(parent):
         parent.act_exp_csv_con.setText("consolidation")
         parent.act_exp_csv_mat.setText("material")
         parent.act_imp_csv_fil.setText("File")
-    
+        
 def setMainWindowToolTips(parent):
     if parent.language == "ja":
         parent.btn_open_gimp.setToolTip("選択したファイルをGIMPで開きます。")  
@@ -505,9 +512,6 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
     parent.btn_mat_update.setFont(font)
     parent.btn_open_gimp.setFont(font)
     
-    # Set preview window size.
-    img_width, img_height = getImagePreviewSize()
-    parent.lbl_img_preview.setMinimumSize(img_width, img_height)
     
     if skin == "grey":
         # Set the icon path.

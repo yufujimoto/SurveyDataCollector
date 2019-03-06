@@ -3,6 +3,7 @@
 
 # Import general libraries.
 import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+import xml.etree.cElementTree as ET
 
 from os.path import expanduser
 
@@ -57,6 +58,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     @property
     def source_directory(self): return self._source_directory
     @property
+    def config_file(self): return self._config_file
+    @property
     def siggraph_directory(self): return self._siggraph_directory
     @property
     def icon_directory(self): return self._icon_directory
@@ -103,6 +106,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
+    @config_file.setter
+    def config_file(self, value): self._config_file = value
     @siggraph_directory.setter
     def siggraph_directory(self, value): self._siggraph_directory = value
     @icon_directory.setter
@@ -165,19 +170,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._consolidation_directory = None
         self._database = None
         self._source_directory = os.path.dirname(os.path.abspath(__file__))
+        self._config_file = os.path.join(self._source_directory, "config.xml")
         self._lib_directory = os.path.join(self._source_directory, "lib")
         self._siggraph_directory = os.path.join(expanduser("~"),"siggraph")
         self._temporal_directory = os.path.join(self._source_directory, "temp")
         self._icon_directory = os.path.join(self._source_directory, "icon")
-        
-        # Initialyze the temporal directory.
-        if not os.path.exists(self._temporal_directory):
-            # Create the temporal directory if not exists.
-            os.mkdir(self._temporal_directory)
-        else:
-            # Delete the existing temporal directory before create.
-            shutil.rmtree(self._temporal_directory)
-            os.mkdir(self._temporal_directory)
         
         # Define the default extensions.
         self._qt_image = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
@@ -191,36 +188,101 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._current_file = None
         self._current_camera = None
         
-        # Define language and skin theme.
-        self._language = "ja"
-        self._skin = "grey"
-        
-        '''
-        self._language = "en"
-        self._skin = "white"
-        '''
-        
-        # Set the default skin.
-        self.setSkin(lang=self._language, theme=self._skin)
-        
         # Detect the camera automatically.
         self.detectCamera()
-        
         self.addGeographiData()
+        
+        # Initialyze the temporal directory.
+        if not os.path.exists(self._temporal_directory):
+            # Create the temporal directory if not exists.
+            os.mkdir(self._temporal_directory)
+        else:
+            # Delete the existing temporal directory before create.
+            shutil.rmtree(self._temporal_directory)
+            os.mkdir(self._temporal_directory)
+        
+        # Check whether configutation exists or not. And create the configuration if not exists.
+        if not os.path.exists(self._config_file):
+            # Create the root node.
+            root = ET.Element("config")
+            
+            # Create the theme node.
+            theme = ET.SubElement(root, "theme")
+            
+            ET.SubElement(theme, "language").text = "en"
+            ET.SubElement(theme, "skin").text = "grey"
+            
+            # Set the default settings.
+            self._language = "en"
+            self._skin = "grey"
+            
+            # Create the project node.
+            project = ET.SubElement(root, "project")
+            ET.SubElement(project, "root").text = ""
+            
+            tree = ET.ElementTree(root)
+            tree.write(self._config_file)
+        else:
+            xml_config = ET.parse(self._config_file).getroot()
+            
+            for xml_child in xml_config:
+                if xml_child.tag == "theme":
+                    self._language = xml_child.find("language").text
+                    self._skin = xml_child.find("skin").text
+                if xml_child.tag == "project":
+                    if not xml_child.find("root").text == "":
+                        xml_root = xml_child.find("root").text
+                        
+                        if xml_root and os.path.exists(xml_root):
+                            self._root_directory = xml_child.find("root").text
+                            
+                            # Some essential directories are created under the root directory if they are not existed.
+                            self._table_directory = os.path.join(self._root_directory, "Table")
+                            self._consolidation_directory = os.path.join(self._root_directory, "Consolidation")
+                            
+                            # Reset the current consolidation and the current material.
+                            self._current_consolidation = None
+                            self._current_material = None
+                            
+                            # Define the DB file.
+                            self._database = os.path.join(self._table_directory, "project.db")
+                            
+                            # Check Flickr API Key File.
+                            self.checkFlickrKey()
+                            
+                            # Open the previous project.
+                            self.openProject()
+                        
+        # Set the default skin.
+        self.setSkin(lang=self._language, theme=self._skin)
         
         # Set the initial image to thumbnail viewer.
         img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
         self.showImage(img_file_path)
-    
+        
     # ==========================
     # General operation
     # ==========================
+    def changeConfig(self):
+        print("main::changeConfig(self)")
+        xml_config = ET.parse(self._config_file).getroot()
+            
+        for xml_child in xml_config:
+            if xml_child.tag == "theme":
+                xml_child.find("language").text = self._language
+                xml_child.find("skin").text = self._skin
+            if xml_child.tag == "project":
+                xml_child.find("root").text = self._root_directory
+                
+        tree = ET.ElementTree(xml_config)
+        tree.write(self._config_file)
+        
     def setSkin(self, lang, theme):
         print("main::setSkin(self, lang, theme)")
         
         self._language = lang
         self._skin = theme
-        
+                
         # Set skin.
         skin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
         skin.setMainWindowButtonText(self)
@@ -228,6 +290,35 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Set the tool tips with the specific language.
         skin.setMainWindowToolTips(self)
         
+    def setLangEn(self):
+        # Define language and skin theme.
+        self._language = "en"
+        
+        # Set the default skin.
+        skin.setMainWindowButtonText(self)
+        skin.setMainWindowToolTips(self)
+        
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
+        # Update the current config.
+        self.changeConfig()
+    def setLangJa(self):
+        # Define language and skin theme.
+        self._language = "ja"
+        
+        # Set the default skin.
+        skin.setMainWindowButtonText(self)
+        skin.setMainWindowToolTips(self)
+        
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
+        # Update the current config.
+        self.changeConfig()
+    
     def importExternalData(self):
         print("main::importExternalData(self)")
         
@@ -376,12 +467,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Return nothing and exit this process if direcotry is not selected.
             if not os.path.exists(self.root_directory):
-                self._root_directory = None
-                self._table_directory = None
-                self._consolidation_directory = None
-                self._database = None
+                self._root_directory = prev_root_directory
+                self._table_directory = prev_table_directory
+                self._consolidation_directory = prev_consolidation_directory
+                self._database = prev_database
+                self._current_consolidation = prev_consolidation
+                self._current_material = prev_material
                 
                 return(None)
+            
             
             # Some essential directories are created under the root directory if they are not existed.
             self._table_directory = os.path.join(self._root_directory, "Table")
@@ -402,6 +496,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Exception as e:
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             return(None)
+        
+        # Open the project.
+        self.openProject()
+    
+    def openProject(self):
+        print("main::openProject(self)")
         
         if os.path.exists(self._database):
             # Create a sqLite file if not exists. 
@@ -425,6 +525,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Reconstruct the tree view for project items. 
                     self.retriveProjectItems()
                     
+                    # Change the current project.
+                    self.changeConfig()
             except dbError as e:
                 error.ErrorMessageDbConnection(details=e.args[0], language=self._language)
                 return(None)
@@ -440,11 +542,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Check the image file can be displayed directry.
             img_base, img_ext = os.path.splitext(img_file_path)
             img_valid = False
-            
-            # Get container size.
-            panel_w = int(self.lbl_img_preview.width() * 0.95)
-            panel_h = int(self.lbl_img_preview.height() * 0.95)
-            
+                        
             for qt_ext in self._qt_image:
                 # Exit loop if extension is matched with Qt supported image.
                 if img_ext.lower() == qt_ext.lower():
@@ -457,21 +555,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 imageProcessing.getThumbnail(img_file_path)
                 
                 # Get the extracted thumbnail image.
-                img_file_path = img_base + ".thumb.jpg"
+                if not img_ext.lower() == "jpg":
+                    img_file_path = img_base + ".thumb.jpg"
             
             if os.path.exists(img_file_path):
                 # Check the exif rotation information.
                 imageProcessing.correctRotaion(img_file_path)
                 
-                # Create the container for displaying the image
-                org_pixmap = QPixmap(img_file_path)
-                scl_pixmap = org_pixmap.scaled(panel_w, panel_h, Qt.KeepAspectRatio)
-                
-                # Set the image file to the image view container.
-                self.lbl_img_preview.setPixmap(scl_pixmap)
-                            
-                # Show the selected image.
-                self.lbl_img_preview.show()
+                # Show the image on graphic view.
+                self.graphicsView.setFile(img_file_path)
             else:
                 error.ErrorMessageImagePreview(details=str(e), language=self._language)
                 
@@ -934,7 +1026,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Confirm deleting the consolidation.
             if not general.askDeleteConsolidation(self) == QMessageBox.Yes: return(None)
-        
+            
             con_uuid = self.tbx_con_uuid.text()
             
             # Initialize the Consolidation Class.
@@ -1008,7 +1100,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Change text color for text boxes.
             skin.setDefaultConsolidationText(self, status="new", skin=self._skin)
             
+            # Set current mode "create".
             self.rad_con_new.setChecked(True)
+            
+            # Refresh preview image.
+            self.refreshImageInfo()
             
             # Clear the file list for consolidation.
             self.tre_fls.clear()
@@ -1602,7 +1698,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Change text color for text boxes.
             skin.setDefaultMaterialText(self, status="new", skin=self._skin)
             
+            # Set current mode "create".
             self.rad_mat_new.setChecked(True)
+            
+            # Refresh preview image.
+            self.refreshImageInfo()
             
             # Clear the file list for consolidation.
             self.tre_fls.clear()
@@ -2105,7 +2205,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def setFileInfo(self, sop_object):
-        print("setFileInfo(self, sop_object)")
+        print("main::setFileInfo(self, sop_object)")
         
         try:
             if sop_object.public == "1":

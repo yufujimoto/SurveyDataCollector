@@ -16,6 +16,8 @@ import modules.features as features
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
+import modules.skin as skin
+
 import dialog.recordWithPhotoDialog as recordWithPhotoDialog
 
 # Import libraries for sound recording. 
@@ -135,9 +137,30 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.setWindowTitle(self.tr("Check Tethered Image"))
         self.setWindowState(Qt.WindowMaximized)
         
+        # Initialyze the user interface.
+        # Get the proper font size from the display size and set the font size.
+        font_size = skin.getFontSize()
+        
+        # Make the style sheet.
+        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
+        
+        # Define the font object for Qt.
+        font = QFont()
+        font.setPointSize(font_size)
+        
+        self.setFont(font)
+        
         if parent.skin == "grey":
             # Set the icon path.
             self._icon_directory = os.path.join(self._icon_directory, "white")
+            
+            # Set the default background and front color.
+            back_color = 'background-color: #2C2C2C;'
+            font_style_color = 'color: #FFFFFF;'
+            font_style = font_style_color + font_style_size
+            
+            # Set the default skin for all components.
+            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
             
         elif skin == "white":
             # Set the icon path.
