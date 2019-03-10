@@ -1,0 +1,233 @@
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+import xml.etree.cElementTree as ET
+from os.path import expanduser
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import numpy as np
+import pyqtgraph as pg
+import cartopy.crs as ccrs
+import sqlite3 as sqlite
+from sqlite3 import Error as dbError
+import modules.camera as camera
+import modules.general as general
+import modules.features as features
+import modules.media as sop_media
+import modules.error as error
+import modules.setupUi as setupUi
+import modules.skin as skin
+import modules.imageProcessing as imageProcessing
+import modules.writeHtml as htmlWriter
+import modules.flickr_upload as flickr
+import dialog.mainWindow as mainWindow
+import dialog.consolidation as consolidationDialog
+import dialog.material as materialDialog
+import dialog.checkTetheredImage as checkTetheredImageDialog
+import dialog.recordWithPhoto as recordWithPhotoDiaolog
+import dialog.imageInformation as imageInformationDialog
+import dialog.cameraSelect as cameraSelectDialog
+import dialog.flickr as flickrDialog
+import Queue as queue
+import sounddevice as sd
+import soundfile as sf
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+import xml.etree.cElementTree as ET
+from os.path import expanduser
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import numpy as np
+import pyqtgraph as pg
+import cartopy.crs as ccrs
+import sqlite3 as sqlite
+from sqlite3 import Error as dbError
+import modules.camera as camera
+import modules.general as general
+import modules.features as features
+import modules.media as sop_media
+import modules.error as error
+import modules.setupUi as setupUi
+import modules.skin as skin
+import modules.imageProcessing as imageProcessing
+import modules.writeHtml as htmlWriter
+import modules.flickr_upload as flickr
+import dialog.mainWindow as mainWindow
+import dialog.consolidation as consolidationDialog
+import dialog.material as materialDialog
+import dialog.checkTetheredImage as checkTetheredImageDialog
+import dialog.recordWithPhoto as recordWithPhotoDiaolog
+import dialog.imageInformation as imageInformationDialog
+import dialog.cameraSelect as cameraSelectDialog
+import dialog.flickr as flickrDialog
+import Queue as queue
+import sounddevice as sd
+import soundfile as sf
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import dialog.cameraSelectDialog as cameraSelectDialog
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import modules.general as general
+import modules.imageProcessing as imageProcessing
+import modules.skin as skin
+import modules.error as error
+import viewer.imageViewer as viewer
+import dialog.checkTetheredImageDialog as checkTetheredImageDialog
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, exifread
+from stat import *
+from dateutil.parser import parse
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import modules.general as general
+import modules.features as features
+import modules.error as error
+import modules.skin as skin
+import dialog.consolidationDialog as consolidationDialog
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import dialog.flickrDialog as flickrDialog
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, exifread
+from stat import *
+from dateutil.parser import parse
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import modules.general as general
+import modules.imageProcessing as imageProcessing
+import modules.features as features
+import modules.error as error
+import modules.skin as skin
+import modules.imageProcessing as imageProcessing
+import dialog.imageInformationDialog as imageInformationDialog
+import viewer.imageViewer as viewer
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, exifread
+from stat import *
+from dateutil.parser import parse
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import modules.general as general
+import modules.features as features
+import modules.error as error
+import modules.skin as skin
+import dialog.materialDialog as materialDialog
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import modules.general as general
+import modules.features as features
+import modules.imageProcessing as imageProcessing
+import modules.skin as skin
+import dialog.recordWithPhotoDialog as recordWithPhotoDialog
+import Queue as queue
+import sounddevice as sd
+import soundfile as sf
+import numpy as np
+import viewer.imageViewer as viewer
+from PyQt5 import QtCore, QtGui, QtWidgets
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import modules.general as general
+import modules.features as features
+import modules.imageProcessing as imageProcessing
+import dialog.textEditDialog as textEditDialog
+import Queue as queue
+import sounddevice as sd
+import soundfile as sf
+import numpy as np
+import viewer.imageViewer as viewer
+from PyQt5 import QtCore, QtGui, QtWidgets
+# import the necessary packages
+import cv2, imutils, argparse, uuid, numpy, six, gphoto2 as gp, colorcorrect.algorithm as cca
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys
+from sys import argv
+from optparse import OptionParser
+from imutils import perspective, contours
+from PIL import Image, ImageDraw
+from PIL.ExifTags import TAGS, GPSTAGS
+from colorcorrect.util import from_pil, to_pil
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+from stat import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import os, sys, uuid, features, general
+import sqlite3 as sqlite
+from sqlite3 import Error
+from mimetypes import MimeTypes
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+from stat import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+import os, sys, subprocess, uuid as unique
+from lxml import etree as et
+import sqlite3 as sqlite
+from sqlite3 import Error
+from __future__ import print_function
+import flickrapi
+import os
+import sys, os, time, pyexiv2
+import sqlite3 as sqlite
+from mimetypes import MimeTypes
+import modules.error as error
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
+# import the necessary packages
+import cv2, imutils, argparse, uuid, math, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread, pexif
+from sys import argv
+from optparse import OptionParser
+from imutils import perspective, contours
+from PIL import Image, ImageDraw
+from PIL.ExifTags import TAGS, GPSTAGS
+from rawkit.raw import Raw
+from colorcorrect.util import from_pil, to_pil
+# import the necessary packages
+import os, sys, subprocess, tempfile, pipes, getopt, uuid
+import shutil, time, math, tempfile, logging, pyexiv2, datetime
+import modules.features as features
+import modules.general as general
+import sys, os, subprocess
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import numpy as np
+import pyqtgraph as pg
+import cartopy.crs as ccrs
+import viewer.imageViewer as viewer
+import sys, os, subprocess
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+import sys, os
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal

@@ -581,6 +581,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 return(None)
         except Exception as e:
             print("Error occurs in main::showImage(self)")
+            print(str(e))
             error.ErrorMessageUnknown(details=str(e), language=self._language)
             
             return(None)
@@ -2432,39 +2433,40 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     shutil.copy(img_path, new_file)
                     
                     # Open the image with GIMP.
-                    imageProcessing.openWithGimp(new_file)
+                    img_gimp = imageProcessing.openWithGimp(new_file)
                     
-                    # Get the time for closing GIMP.
-                    time_close = datetime.datetime.utcnow().isoformat()
-                    
-                    # Instantiate the File class.
-                    img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                    img_file.material = sop_file.material
-                    img_file.consolidation = sop_file.consolidation
-                    img_file.filename = general.getRelativePath(new_file, "Consolidation")
-                    img_file.created_date = time_open
-                    img_file.modified_date = time_close
-                    img_file.file_type = "image"
-                    img_file.alias = "Edited by GIMP"
-                    img_file.status = "Edited"
-                    img_file.lock = False
-                    img_file.public = False
-                    img_file.source = sop_file.uuid
-                    img_file.operation = "Editing on GIMP"
-                    img_file.operating_application = "GIMP"
-                    img_file.caption = "Edited by GIMP"
-                    img_file.description = "This file is edited by GIMP."
-                    
-                    img_file.dbInsert(self._database)
-                    
-                    sop_object = None
-                    if img_file.material == "":
-                        sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=self._database)
-                    else:
-                        sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=self._database)
-                    
-                    # Refresh the image file list.
-                    self.refreshFileList(sop_object)
+                    if not img_gimp == None:
+                        # Get the time for closing GIMP.
+                        time_close = datetime.datetime.utcnow().isoformat()
+                        
+                        # Instantiate the File class.
+                        img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                        img_file.material = sop_file.material
+                        img_file.consolidation = sop_file.consolidation
+                        img_file.filename = general.getRelativePath(new_file, "Consolidation")
+                        img_file.created_date = time_open
+                        img_file.modified_date = time_close
+                        img_file.file_type = "image"
+                        img_file.alias = "Edited by GIMP"
+                        img_file.status = "Edited"
+                        img_file.lock = False
+                        img_file.public = False
+                        img_file.source = sop_file.uuid
+                        img_file.operation = "Editing on GIMP"
+                        img_file.operating_application = "GIMP"
+                        img_file.caption = "Edited by GIMP"
+                        img_file.description = "This file is edited by GIMP."
+                        
+                        img_file.dbInsert(self._database)
+                        
+                        sop_object = None
+                        if img_file.material == "":
+                            sop_object = features.Consolidation(is_new=False, uuid=img_file.consolidation, dbfile=self._database)
+                        else:
+                            sop_object = features.Material(is_new=False, uuid=img_file.material, dbfile=self._database)
+                        
+                        # Refresh the image file list.
+                        self.refreshFileList(sop_object)
             else:
                 error.ErrorMessageFileNotExist()
                 
@@ -2545,7 +2547,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 new_file = os.path.join(out_dir, new_uuid+".jpg")
                 
                 # Rotate the image 90 degree.
-                imageProcessing.rotation(img_path, new_file, angle)
+                img_rot = imageProcessing.rotation(img_path, new_file, angle)
+                if img_rot == None: return(None)
                 
                 # Copy the exif information.
                 general.copyExif(img_path, new_file)

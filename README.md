@@ -8,17 +8,58 @@
  versatile implementation of the ISO 19109. This system implements the SOP on the one hand. 
 
 # This tethered shooting system requires following softwares. These are easily installed by the "apt-get" command.
-    + gphoto2       : The open source software, which provides tethered shooting function on this system.
+    + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
     + dcraw         : The open source software handling RAW images on this system.
-    + tesseract-ocr : The open source library of the Optical Character Recognition(OCR).
-    + gimp          : The open source photo retouch software providing advanced image editing.
+    + gimp          : The open source photo retouch software under GPL providing advanced image editing.
     + rawtherapee   : The open source RAW image processing software.
     + Sqlite        : The open source light weight DataBase Management System.
 
 # In addition to above softwares, this system requires python libraries as below:
  [GUI libraries]
     + PyQt5
-    
+
+ [Python Libraries]
+    +	argparse
+    +	cartopy
+    +	colorcorrect.util
+    +	colorsys
+    +	cv2
+    +	datetime
+    +	dateutil.parser
+    +	exifread
+    +	flickrapi
+    +	getopt
+    +	gphoto2
+    +	imutils
+    +	logging
+    +	lxml
+    +	math
+    +	mimetypes
+    +	numpy
+    +	operator
+    +	optparse
+    +	os
+    +	pexif
+    +	PIL
+    +	pipes
+    +	pyexiv2
+    +	PyQt5
+    +	pyqtgraph
+    +	Queue
+    +	rawkit
+    +	shutil
+    +	six
+    +	sounddevice
+    +	soundfile
+    +	sqlite3
+    +	stat
+    +	subprocess
+    +	sys
+    +	tempfile
+    +	time
+    +	uuid
+    +	xml
+
  [Generic libraries]
     + sys, stat, os, shutil, subprocess, pipes, getopt,
       argparse, optparse, uuid, time, math, tempfile, logging,
@@ -35,3 +76,13 @@
  [Sound managing libraries] 
     + Queue, sounddevice, soundfile
 
+# General Functions
+## Image Processing Tools
+    + Rotation           : A generic function.
+    + Automatic Cropping : A contour function provided by OpenCV. The function automalicaly remove mergines.
+    + Auto Enhancing     : A CLAHE (Contrast Limited Adaptive Histogram Equalization) Algolithm provided by OpenCV.
+    + Auto White Balance : A generic function provided by OpenCV.
+    + Color Inversion    : In each RGB channel, the value is converted to 255-R, 255-G and 255-B.
+    + Greyscaling        : A generic function provided by OpenCV.
+    + Auto Colorizing    : An automatic colorization of grayscale images package "SIGGRAPH", which is developed by Dr.Satoshi Iizuka is used. Please refer to http://hi.cs.waseda.ac.jp/~iizuka/projects/colorization/ for the detail.
+    + Open with GIMP     : You can edit each image by GIMP if you want. 

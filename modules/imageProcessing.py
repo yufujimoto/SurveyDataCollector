@@ -13,17 +13,45 @@ from PIL.ExifTags import TAGS, GPSTAGS
 from rawkit.raw import Raw
 from colorcorrect.util import from_pil, to_pil
 
-def colorize(dir_source, img_input, img_output, col_model="colornet.t7"):
-    print("imageProcessing::colorize(dir_source, img_input, img_output)")
+def imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8):
+    print("imageProcessing::imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8)")
+    try:
+        img_numpy = numpy.fromfile(fl_input, dtype)
+        fl_output = cv2.imdecode(img_numpy, flags)
+        return fl_output
+    except Exception as e:
+        print("Error occurs in imageProcessing::imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8)")
+        print(e)
+        return None
+
+def imwrite(fl_input, fl_output, params=None):
+    print("imageProcessing::imwrite(fl_input, img, params=None)")
+    try:
+        ext = os.path.splitext(fl_input)[1]
+        img_enc, img_numpy = cv2.imencode(ext, fl_output, params)
+        
+        if img_enc:
+            with open(fl_input, mode='w+b') as f:
+                img_numpy.tofile(f)
+            return True
+        else:
+            return False
+    except Exception as e:
+        print("Error occurs in imageProcessing::colorize(src_dir, imgfile, output)")
+        print(e)
+        return False
+
+def colorize(dir_source, fl_input, fl_output, col_model="colornet.t7"):
+    print("imageProcessing::imwrite(fl_input, img, params=None)")
     
-    try:        
+    try:
         # Get the full path to the bash script command.
         script_siggraph = ["th"]
-        
+                
         # Define the parameters for the command.
         script_siggraph.append(str(os.path.join(dir_source, "colorize.lua")))
-        script_siggraph.append(str(img_input))      # Input grey scaled image file.
-        script_siggraph.append(str(img_output))     # Output colorized image.
+        script_siggraph.append(unicode(fl_input.encode("utf-8"),"utf-8"))     # Input grey scaled image file.
+        script_siggraph.append(unicode(fl_output.encode("utf-8"),"utf-8"))     # Output colorized image.
         script_siggraph.append(str(os.path.join(dir_source, col_model)))
         
         # Execute the colorize function.
@@ -31,34 +59,36 @@ def colorize(dir_source, img_input, img_output, col_model="colornet.t7"):
     except Exception as e:
         print("Error occurs in imageProcessing::colorize(src_dir, imgfile, output)")
         print(str(e))
-        
+        str
         return(None)
 
-def openWithGimp(img_input):
-    print("imageProcessing::openWithGimp(img_input)")
+def openWithGimp(fl_input):
+    print("imageProcessing::openWithGimp(fl_input)")
     
     try:
         # Define the subprocess for tethered shooting by using gphoto2
         cmd_gimp = ["gimp"]
-        cmd_gimp.append(img_input)
+        cmd_gimp.append(fl_input)
         
         # Execute the subprocess. 
         subprocess.check_output(cmd_gimp)
-    except Exception as e:
-        print("Error occurs in imageProcessing::openWithGimp(img_input)")
-        print(str(e))
         
+        # Return the result as Boolean.
+        return(True)
+    except Exception as e:
+        print("Error occurs in imageProcessing::openWithGimp(fl_input)")
+        print(str(e))
         return(None)
 
-def getMetaInfo(img_input):
-    print("imageProcessing::getMetaInfo(img_input)")
+def getMetaInfo(fl_input):
+    print("imageProcessing::getMetaInfo(fl_input)")
     
     try:
         # Open the image object with read only mode.
-        img_object = open(img_input, 'rb')
+        img_input = open(fl_input, 'rb')
         
         # Get EXIF tags and their values.
-        org_tags = exifread.process_file(img_object)
+        org_tags = exifread.process_file(img_input)
         
         # Prepare new tags object.
         new_tags = dict()
@@ -98,15 +128,17 @@ def getMetaInfo(img_input):
             new_tags[key]=value
         return(new_tags)
     except Exception as e:
-        print("Error occurs in imageProcessing::getMetaInfo(img_input)")
+        print("Error occurs in imageProcessing::getMetaInfo(fl_input)")
         print(str(e))
-        
         return(None)
 
 def exifRational(exifTag):
+    print("imageProcessing::exifRational(exifTag)")
+    
     try:
         value = None
         
+        # Convert the rational tag value to float number.
         if not exifTag.find('/') == -1:
             entry = exifTag.split("/")
             value = round(float(entry[0]) / float(entry[1]),2)
@@ -115,35 +147,41 @@ def exifRational(exifTag):
         
         return(value)
     except Exception as e:
+        print("Error occurs in imageProcessing::exifRational(exifTag)")
         print(str(e))
         return(None)
 
-def getThumbnail(img_input):
-    print("imageProcessing::getThumbnail(img_input)")
+def getThumbnail(fl_input):
+    print("imageProcessing::getThumbnail(fl_input)")
     
     try:
-        img_output = os.path.splitext(img_input)[0] + ".thumb" + ".jpg"
+        # Define the output thumbnail file.
+        fl_output = os.path.splitext(fl_input)[0] + ".thumb" + ".jpg"
         
-        with Raw(filename=img_input) as raw:
-            raw.save_thumb(filename=img_output)
+        # Extract the thumbnail image from raw image file.
+        with Raw(filename=fl_input) as img_raw:
+            img_raw.save_thumb(filename=fl_output)
         
-        return(img_output)
+        # Return the result.
+        return(fl_output)
         
     except Exception as e:
-        print("Error occurs in imageProcessing::getThumbnail(img_input)")
+        print("Error occurs in imageProcessing::getThumbnail(fl_input)")
         print(str(e))
+        return(None)
 
-def enhance(img_input, img_output):
-    print("imageProcessing::enhance(img_input, img_output)")
+def enhance(fl_input, fl_output):
+    print("imageProcessing::enhance(fl_input, fl_output)")
     
     try:
         # Load input image, and create the output file name.
-        org_cv2_img = cv2.imread(img_input)
+        img_cv2_input = imread(fl_input)
         
         # Split RGB channels into single channels.
-        b,g,r = cv2.split(org_cv2_img)
+        b,g,r = cv2.split(img_cv2_input)
         
-        # Define the histogram normalization algorithm.
+        # Define the histogram normalization algorithm
+        # CLAHE (Contrast Limited Adaptive Histogram Equalization).
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         
         # Apply the histogram normalization algorithm to each channel.
@@ -152,49 +190,47 @@ def enhance(img_input, img_output):
         norm_g = clahe.apply(g)
         
         # Merge single channels into one image.
-        cnv_cv2_img = cv2.merge((norm_b,norm_g,norm_r))
+        img_cv2_output = cv2.merge((norm_b,norm_g,norm_r))
         
         # Save the result.
-        cv2.imwrite(img_output, cnv_cv2_img)
+        imwrite(fl_output, img_cv2_output)
         
         # Return the output file name.
-        return(img_output)
+        return(fl_output)
     except Exception as e:
-        print("Error occurs in imageProcessing::enhance(img_input)")
+        print("Error occurs in imageProcessing::enhance(fl_input)")
         print(str(e))
-        
         return(None)
     
-def makeMono(img_input, img_output):
-    print("imageProcessing::makeMono(img_input, img_output)")
+def makeMono(fl_input, fl_output):
+    print("imageProcessing::makeMono(fl_input, fl_output)")
     
     try:
         # Load input image, and create the output file name.
-        org_cv2_img = cv2.imread(img_input)
+        img_cv2_input = imread(fl_input)
         
         # Convert color image to gray scale image.
-        gry_cv2_img = cv2.cvtColor(org_cv2_img, cv2.COLOR_BGR2GRAY)
+        gry_cv2_img = cv2.cvtColor(img_cv2_input, cv2.COLOR_BGR2GRAY)
         
         # Save the result.
-        cv2.imwrite(img_output, gry_cv2_img)
+        imwrite(fl_output, gry_cv2_img)
         
         # Return the output file name.
-        return(img_output)
+        return(fl_output)
     except Exception as e:
-        print("Error occurs in imageProcessing::makeMono(img_input, img_output)")
+        print("Error occurs in imageProcessing::makeMono(fl_input, fl_output)")
         print(str(e))
-        
         return(None)
 
-def negaToPosi(img_input, img_output):
-    print("imageProcessing::negaToPosi(img_input, img_output)")
+def negaToPosi(fl_input, fl_output):
+    print("imageProcessing::negaToPosi(fl_input, fl_output)")
     
     try:
         # Load input image, and create the output file name.
-        org_cv2_img = cv2.imread(img_input)
+        img_cv2_input = imread(fl_input)
         
         # Split RGB channels into single channels.
-        b,g,r = cv2.split(org_cv2_img)
+        b,g,r = cv2.split(img_cv2_input)
         
         # Invert color in each channel.
         conv_b = 255 - b
@@ -202,184 +238,231 @@ def negaToPosi(img_input, img_output):
         conv_r = 255 - r
         
         # Merge single channels into one image.
-        cnv_cv2_img = cv2.merge((conv_b, conv_g, conv_r))
+        img_cv2_output = cv2.merge((conv_b, conv_g, conv_r))
         
         # Save the result.
-        cv2.imwrite(img_output, cnv_cv2_img)
+        imwrite(fl_output, img_cv2_output)
         
         # Return the output file name.
-        return(img_output)
+        return(fl_output)
     except Exception as e:
-        print("Error occurs in imageProcessing::negaToPosi(img_input, img_output)")
+        print("Error occurs in imageProcessing::negaToPosi(fl_input, fl_output)")
         print(str(e))
-        
         return(None)
 
-def extractInnerFrame(in_file, dst_img, ratio):
-    # Load input image, and create the output file name.
-    org_img = cv2.imread(in_file)
-    
-    # Shrink the image for extracting contour.
-    h, w = org_img.shape[:2]
-    image = cv2.resize(org_img,(int(w * ratio), int(h * ratio)), interpolation=cv2.INTER_CUBIC)
-    
-    # Convert the image to grayscale and make it blur.
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (7, 7), 0)
-    
-    # Detect the edge.
-    edged = cv2.Canny(gray, 50, 100)
-    
-    # Perform dilation and erosion.
-    edged = cv2.dilate(edged, None, iterations=1)
-    edged = cv2.erode(edged, None, iterations=1)
-    
-    # Find contours in the edge map.
-    cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-    
-    # Get the largest contour.
-    cnts_areas = list()
-    for c in cnts:
-        cnts_areas.append(cv2.contourArea(c))
-
-    rect_index = cnts_areas.index(max(cnts_areas))
-    cnt = cnts[rect_index]
-    
-    # Get the bounding rectangle for the largest rectangle.
-    x,y,w,h = cv2.boundingRect(cnt)
-    
-    # Rescale to apply the crop area to original image.
-    x = int(x / ratio)
-    y = int(y / ratio)
-    w = int(w / ratio)
-    h = int(h / ratio)
-    
-    # Finally extract interior of the original image and save it.
-    crop = org_img[y:(y+h),x:(x+w)]
-    cv2.imwrite(dst_img, crop)
-    
-    # Returns saved file path.
-    return(dst_img)
-
-def correctRotaion(in_file):
-    img = pexif.JpegFile.fromFile(in_file)
+def extractInnerFrame(fl_input, fl_output, ratio):
+    print("imageProcessing::extractInnerFrame(in_file fl_output, ratio)")
     
     try:
-        '''
-        #Get the orientation if it exists
-        orientation = img.exif.primary.Orientation[0]
-        img.exif.primary.Orientation = [1]
-        img.writeFile(in_file)
+        # Load input image, and create the output file name.
+        org_img = imread(fl_input)
         
-        #now rotate the image using the Python Image Library (PIL)
-        img = Image.open(in_file)
-        if orientation is 6: img = img.rotate(-90)
-        elif orientation is 8: img = img.rotate(90)
-        elif orientation is 3: img = img.rotate(180)
-        elif orientation is 2: img = img.transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation is 5: img = img.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation is 7: img = img.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation is 4: img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
-        '''
-        #save the result
-        img.save(in_file)
+        # Shrink the image for extracting contour.
+        h, w = org_img.shape[:2]
+        img_cv2_resize = cv2.resize(org_img,(int(w * ratio), int(h * ratio)), interpolation=cv2.INTER_CUBIC)
         
-        metadata = pyexiv2.ImageMetadata(in_file)
+        # Convert the image to grayscale and make it blur.
+        img_cv2_gray = cv2.cvtColor(img_cv2_resize, cv2.COLOR_BGR2GRAY)
+        img_cv2_gray = cv2.GaussianBlur(img_cv2_gray, (7, 7), 0)
+        
+        # Detect the edge.
+        img_cv2_edged = cv2.Canny(img_cv2_gray, 50, 100)
+        
+        # Perform dilation and erosion.
+        img_cv2_edged = cv2.dilate(img_cv2_edged, None, iterations=1)
+        img_cv2_edged = cv2.erode(img_cv2_edged, None, iterations=1)
+        
+        # Find contours in the edge map.
+        img_cv2_cnts = cv2.findContours(img_cv2_edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        img_cv2_cnts = img_cv2_cnts[0] if imutils.is_cv2() else img_cv2_cnts[1]
+        
+        # Get the largest contour.
+        cnts_areas = list()
+        for c in img_cv2_cnts:
+            cnts_areas.append(cv2.contourArea(c))
+        
+        # Exstract the biggest area.
+        rect_index = cnts_areas.index(max(cnts_areas))
+        cnt = img_cv2_cnts[rect_index]
+        
+        # Get the bounding rectangle for the largest rectangle.
+        x,y,w,h = cv2.boundingRect(cnt)
+        
+        # Rescale to apply the crop area to original image.
+        x = int(x / ratio)
+        y = int(y / ratio)
+        w = int(w / ratio)
+        h = int(h / ratio)
+        
+        # Finally extract interior of the original image and save it.
+        img_cv2_crop = org_img[y:(y+h),x:(x+w)]
+        imwrite(fl_output, img_cv2_crop)
+        
+        # Returns saved file path.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::extractInnerFrame(in_file fl_output, ratio)")
+        print(str(e))
+        return(None)
+
+def correctRotaion(fl_input):
+    print("imageProcessing::correctRotaion(fl_input)")
+    
+    # Get the image file.
+    img_pexif = pexif.JpegFile.fromFile(fl_input)
+    
+    try:
+        # save the result
+        img_pexif.save(fl_input)
+        
+        metadata = pyexiv2.ImageMetadata(fl_input)
         metadata.read()
+        
+        # Get the thumbnail of the image from EXIF.
         thumb = metadata.exif_thumbnail
-        thumb.set_from_file(in_file)
+        thumb.set_from_file(fl_input)
         thumb.write_to_file('512_' + "a")
         thumb.erase()
-        metadata.write()
-    except: pass
-
-def rotation(in_file, dst_img, angle):
-    # Load input image, and create the output file name.
-    org_img = cv2.imread(in_file)
-    
-    # grab the dimensions of the image and then determine the center
-    (h, w) = org_img.shape[:2]
-    (cX, cY) = (w // 2, h // 2)
-    
-    # grab the rotation matrix (applying the negative of the
-    # angle to rotate clockwise), then grab the sine and cosine
-    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
-    cos = numpy.abs(M[0, 0])
-    sin = numpy.abs(M[0, 1])
-    
-    # compute the new bounding dimensions of the image
-    nW = int((h * sin) + (w * cos))
-    nH = int((h * cos) + (w * sin))
-    
-    # adjust the rotation matrix to take into account translation
-    M[0, 2] += (nW / 2) - cX
-    M[1, 2] += (nH / 2) - cY
-    
-    # perform the actual rotation and return the image
-    rot_img = cv2.warpAffine(org_img, M, (nW, nH))
-    
-    # Save the result.
-    cv2.imwrite(dst_img, rot_img)
-    
-    # Return the output file name.
-    return(dst_img)
-
-def makeThumbnail(imgfile, output, basewidth):
-    img = Image.open(imgfile).convert("RGB")
-    scale = 0
-    wsize = 0
-    hsize = 0
         
-    if img.size[0]>=img.size[1]:
-        scale=(float(basewidth)/float(img.size[0]))
-        wsize = basewidth
-        hsize = int((float(img.size[1])*float(scale)))
-    else:
-        scale=(float(basewidth)/float(img.size[1]))
-        wsize = int((float(img.size[0])*float(scale)))
-        hsize = basewidth
-    
-    new = img.resize((int(wsize), int(hsize)), Image.ANTIALIAS)
-    new.save(output)
+        # Rewrite the thumbnail with corrected image.
+        metadata.write()
+        
+        # Return the output file name.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::correctRotaion(in_file)")
+        print(str(e))
+        return(None)
 
-def autoWhiteBalance(imgfile, output, method = "automatic"):
-    img = Image.open(imgfile)
+def rotation(fl_input, fl_output, angle):
+    print("imageProcessing::rotation(fl_input, fl_output, angle)")
+    # Load input image, and create the output file name.
     
-    adj_img = None
+    try:
+        img_cv2_input = imread(fl_input)
+        
+        # grab the dimensions of the image and then determine the center
+        (h, w) = img_cv2_input.shape[:2]
+        (cX, cY) = (w // 2, h // 2)
+        
+        # grab the rotation matrix (applying the negative of the
+        # angle to rotate clockwise), then grab the sine and cosine
+        M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+        cos = numpy.abs(M[0, 0])
+        sin = numpy.abs(M[0, 1])
+        
+        # compute the new bounding dimensions of the image
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+        
+        # adjust the rotation matrix to take into account translation
+        M[0, 2] += (nW / 2) - cX
+        M[1, 2] += (nH / 2) - cY
+        
+        # perform the actual rotation and return the image
+        img_cv2_rot = cv2.warpAffine(img_cv2_input, M, (nW, nH))
+        
+        # Save the result.
+        imwrite(fl_output, img_cv2_rot)
+        
+        # Return the output file name.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::rotation(in_file, fl_output, angle)")
+        print(str(e))
+        return(None)
+
+def makeThumbnail(fl_input, fl_output, basewidth):
+    print("imageProcessing::makeThumbnail(fl_input, output, basewidth)")
     
-    if method == "stretch": adj_img = to_pil(cca.stretch(from_pil(img)))
-    elif method == "gray_world": adj_img = to_pil(cca.gray_world(from_pil(img)))
-    elif method == "max_white": adj_img = to_pil(cca.max_white(from_pil(img)))
-    elif method == "retinex": adj_img = to_pil(cca.cca.retinex(from_pil(img)))
-    elif method == "retinex_adjusted": adj_img = to_pil(cca.retinex_with_adjust(from_pil(img)))
-    elif method == "stdev_luminance": adj_img = to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(img)))
-    elif method == "stdev_grey_world": adj_img = to_pil(cca.standard_deviation_weighted_grey_world(from_pil(img)))
-    elif method == "luminance_weighted": adj_img = to_pil(cca.luminance_weighted_gray_world(from_pil(img)))
-    elif method == "automatic": adj_img = to_pil(cca.automatic_color_equalization(from_pil(img)))
+    try:
+        img = Image.open(fl_input).convert("RGB")
+        scale = 0
+        wsize = 0
+        hsize = 0
+            
+        if img.size[0]>=img.size[1]:
+            scale=(float(basewidth)/float(img.size[0]))
+            wsize = basewidth
+            hsize = int((float(img.size[1])*float(scale)))
+        else:
+            scale=(float(basewidth)/float(img.size[1]))
+            wsize = int((float(img.size[0])*float(scale)))
+            hsize = basewidth
+        
+        new = img.resize((int(wsize), int(hsize)), Image.ANTIALIAS)
+        new.save(fl_output)
+        
+        # Return the output file name.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in mageProcessing::makeThumbnail(fl_input, output, basewidth)")
+        print(str(e))
+        return(None)
+
+def autoWhiteBalance(fl_input, fl_output, method = "automatic"):
+    print("imageProcessing::autoWhiteBalance(fl_input, fl_output, method = 'automatic'")
     
-    adj_img.save(output)
+    try:
+        # Open the image object to be adjusted.
+        img_pil_input = Image.open(fl_input)
+        
+        # Define the empty image object.
+        img_pil_adj = None
+        
+        if method == "stretch": img_pil_adj = to_pil(cca.stretch(from_pil(img_pil_input)))
+        elif method == "gray_world": img_pil_adj = to_pil(cca.gray_world(from_pil(img_pil_input)))
+        elif method == "max_white": img_pil_adj = to_pil(cca.max_white(from_pil(img_pil_input)))
+        elif method == "retinex": img_pil_adj = to_pil(cca.cca.retinex(from_pil(img_pil_input)))
+        elif method == "retinex_adjusted": img_pil_adj = to_pil(cca.retinex_with_adjust(from_pil(img_pil_input)))
+        elif method == "stdev_luminance": img_pil_adj = to_pil(cca.standard_deviation_and_luminance_weighted_gray_world(from_pil(img_pil_input)))
+        elif method == "stdev_grey_world": img_pil_adj = to_pil(cca.standard_deviation_weighted_grey_world(from_pil(img_pil_input)))
+        elif method == "luminance_weighted": img_pil_adj = to_pil(cca.luminance_weighted_gray_world(from_pil(img_pil_input)))
+        elif method == "automatic": img_pil_adj = to_pil(cca.automatic_color_equalization(from_pil(img_pil_input)))
+        
+        # Save the adjusted image.
+        img_pil_adj.save(fl_output)
+        
+        # Return the output file name.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::autoWhiteBalance(fl_input, fl_output, method = 'automatic'")
+        print(str(e))
+        return(None)
     
-def pansharpen(thumbnail, original, output, method="ihs"):
-    # Open the colorized image and the original image.
-    thm = Image.open(thumbnail)
-    org = Image.open(original)
+def pansharpen(thumbnail, fl_input, fl_output, method="ihs"):
+    print("imageProcessing::pansharpen(thumbnail, fl_input, fl_output, method='ihs')")
     
-    # Rescale the colorized image to original image size.
-    col = thm.resize(org.size, Image.ANTIALIAS)
-    
-    if method == "ihs":
-        # IHS conversion.
-        img = ihsConvert(img=col, high=org)
-        img.save(output)
-    elif method =="sm":
-        # Simple Mean conversion.
-        img = simpleMeanConvert(img=col, high=org)
-        img.save(output)
-    elif method == "br":
-        #BroveyConvert
-        img = broveyConvert(img=col, high=org)
-        img.save(output)
+    try:
+        # Open the colorized image and the original image.
+        img_pil_thm = Image.open(thumbnail)
+        img_pil_input = Image.open(fl_input)
+        
+        # Rescale the colorized image to original image size.
+        img_pil_col = img_pil_thm.resize(img_pil_input.size, Image.ANTIALIAS)
+        
+        # Define the empty image object to be converted.
+        img_pil_output = None
+        
+        if method == "ihs":
+            # IHS conversion.
+            img_pil_output = ihsConvert(img=img_pil_col, high=img_pil_input)
+        elif method =="sm":
+            # Simple Mean conversion.
+            img_pil_output = simpleMeanConvert(img=img_pil_col, high=img_pil_input)
+        elif method == "br":
+            #BroveyConvert
+            img_pil_output = broveyConvert(img=img_pil_col, high=img_pil_input)
+        
+        # Save the result
+        img_pil_output.save(fl_output)
+        
+        # Return the output file name.
+        return(fl_output)
+    except Exception as e:
+        print("Error occurs in imageProcessing::pansharpen(thumbnail, fl_input, fl_output, method='ihs')")
+        print(str(e))
+        return(None)
 
 def normalize(arr):
     arr = arr.astype('float')
