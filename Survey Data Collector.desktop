@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Survey Data Collector
+Comment=The digital archiving software developed by Dr. Yu Fujimoto.
+Exec=python2 main.py
+Icon=sqlitebrowser
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Categories=Development;Utility;Database;
+MimeType=application/sqlitebrowser;application/x-sqlitebrowser;application/x-sqlite2;application/x-sqlite3;

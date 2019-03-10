@@ -233,9 +233,9 @@ class ErrorMessageFileNotExist(ErrorMessage):
         if not show == False: super(ErrorMessageFileNotExist, self).showMessageBox()        
 
 class ErrorMessageUnknown(ErrorMessage):
-    def __init__(self, details=None, show=True):
+    def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
-        ErrorMessage.__init__(self)
+        ErrorMessage.__init__(self, language)
         
         if self._language == "ja":                
             self._message = "不明なエラーです。"
@@ -250,7 +250,7 @@ class ErrorMessageUnknown(ErrorMessage):
         # Execute the query.
         super(ErrorMessageUnknown, self).printErrorMessage()
         if not show == False: super(ErrorMessageUnknown, self).showMessageBox()        
-    
+        
 class ErrorMessageDbConnection(ErrorMessage):
     def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.
@@ -275,13 +275,16 @@ class ErrorMessageCameraDetection(ErrorMessage):
         # Initialize the super class.
         ErrorMessage.__init__(self, language)
         
-        if self._language == "ja":                
-            self._message = "カメラを認識できません。"
-            self._information = "カメラの接続状況を確認してください。"
-        elif self._language == "en":
-            self._message = "Cannot detect the connected cameras."
-            self._information = "Please check connected devices."
         
+        if self._language == "ja":
+            self._title = "カメラの接続エラー"
+            self._message = "カメラを認識できません。カメラが接続されていないか、複数のイメージデバイス（スマートフォンも含む）が接続されています。"
+            self._information = "カメラの接続状況を確認してください。全ての機器を取り外して再度実行してください。"
+        elif self._language == "en":
+            self._title = "Camera Detection Error"
+            self._message = "Cannot detect the connected cameras."
+            self._information = "Please check connected devices. Remove all devices and retry this operation."
+            
         self._icon = QMessageBox.Critical
         self._details = details
         

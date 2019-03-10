@@ -84,6 +84,8 @@ def askNewProject(parent):
             
             # Create new tables which defined by Simple Object Profile(SOP).
             createTables(parent._database)
+            
+            return(True)
         else:
             raise
     except Exception as e:
