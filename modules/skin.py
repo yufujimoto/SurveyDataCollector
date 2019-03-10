@@ -94,13 +94,12 @@ def setMainWindowButtonText(parent):
         parent.lbl_cam_met.setText("Metering Mode")
         parent.tab_control.setTabText(parent.tab_control.indexOf(parent.tab_prj_cam), "カメラ")
         parent.lbl_con_uuid.setText("UUID :")
-        parent.rad_con_new.setText("新規作成")
-        parent.rad_con_mod.setText("情報更新")
         parent.btn_con_add.setText("統合体の追加")
         parent.btn_con_update.setText("統合体の更新")
         parent.btn_con_take.setText("撮影する")
         parent.btn_con_imp.setText(" インポートする")
         parent.btn_con_rec.setText("録音する")
+        parent.btn_con_txt.setText("テキスト編集")
         parent.btn_con_del.setText("統合体の削除")
         parent.lbl_con_tempral.setText("時間識別子 :")
         parent.lbl_con_description.setText("統合体の備考 :")
@@ -108,11 +107,9 @@ def setMainWindowButtonText(parent):
         parent.lbl_con_geoname.setText("地理識別子 :")
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_con), "統合体情報")
         parent.lbl_mat_uuid.setText("UUID :")
-        parent.rad_mat_new.setText("新規作成")
-        parent.rad_mat_mod.setText("情報更新")
         parent.lbl_mat_number.setText("資料番号 :")
         parent.lbl_mat_name.setText("資料の名称 :")
-        parent.lbl_mat_geoname.setText("緯度 :")
+        parent.lbl_mat_geo_lat.setText("緯度 :")
         parent.lbl_mat_geo_lon.setText("経度 :")
         parent.lbl_mat_geo_alt.setText("標高 :")
         parent.lbl_mat_tmp_bgn.setText("開始時期 :")
@@ -124,6 +121,7 @@ def setMainWindowButtonText(parent):
         parent.btn_mat_take.setText("撮影する")
         parent.btn_mat_imp.setText(" インポートする")
         parent.btn_mat_rec.setText("録音する")
+        parent.btn_mat_txt.setText("テキスト編集")
         parent.btn_mat_del.setText("資料の削除")
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_mat), "資料情報")
         parent.cbx_fil_deleted.setText("削除済みを表示")
@@ -189,42 +187,37 @@ def setMainWindowButtonText(parent):
         parent.lbl_cam_wht.setText("White Balance")
         parent.lbl_cam_exp.setText("Exposure Compensation")
         parent.lbl_cam_met.setText("Metering Mode")
-        
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_con), "Consolidation")
         parent.lbl_con_uuid.setText("UUID :")
         parent.lbl_con_description.setText("Description :")
         parent.lbl_con_name.setText("Name :")
         parent.lbl_con_geoname.setText("Location:")
         parent.lbl_con_tempral.setText("Era/Age:")
-        parent.rad_con_new.setText("Create Mode")
-        parent.rad_con_mod.setText("Update Mode")
-        parent.btn_con_add.setText("Add")
+        parent.btn_con_add.setText("New Consolidation")
         parent.btn_con_update.setText("Update")
         parent.btn_con_take.setText("Shoot")
         parent.btn_con_imp.setText("Import")
         parent.btn_con_rec.setText("Record")
+        parent.btn_con_txt.setText("Text Edit")
         parent.btn_con_del.setText("Delete")
-        
         parent.tab_target.setTabText(parent.tab_target.indexOf(parent.tab_mat), "Material")
         parent.lbl_mat_uuid.setText("UUID :")
         parent.lbl_mat_number.setText("Number :")
         parent.lbl_mat_name.setText("Name :")
-        parent.lbl_mat_geoname.setText("Latitude :")
+        parent.lbl_mat_geo_lat.setText("Latitude :")
         parent.lbl_mat_geo_lon.setText("Longitude :")
         parent.lbl_mat_geo_alt.setText("Altitude :")
         parent.lbl_mat_tmp_bgn.setText("Begin :")
         parent.lbl_mat_tmp_mid.setText("Peak :")
         parent.lbl_mat_tmp_end.setText("End :")
         parent.lbl_mat_description.setText("Description :")
-        parent.rad_mat_new.setText("Create Mode")
-        parent.rad_mat_mod.setText("Update Mode")
-        parent.btn_mat_add.setText("Add")
+        parent.btn_mat_add.setText("New Material")
         parent.btn_mat_update.setText("Update")
         parent.btn_mat_take.setText("Shoot")
         parent.btn_mat_imp.setText("Import")
         parent.btn_mat_rec.setText("Record")
+        parent.btn_mat_txt.setText("Text Edit")
         parent.btn_mat_del.setText("Delete")
-        
         parent.cbx_fil_deleted.setText("Show removed files")
         parent.cbx_fil_original.setText("Show original files")
         parent.tre_fls.headerItem().setText(0, "Image ID")
@@ -241,7 +234,6 @@ def setMainWindowButtonText(parent):
         parent.tre_img_prop.headerItem().setText(0, "Property")
         parent.tre_img_prop.headerItem().setText(1, "Value")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_prop), "Property")
-        
         parent.men_prj.setTitle("Project")
         parent.men_prj_exp.setTitle("Export")
         parent.men_dat.setTitle("Data")
@@ -252,7 +244,6 @@ def setMainWindowButtonText(parent):
         parent.men_exp_csv.setTitle("CSV File")
         parent.men_conf.setTitle("Configuration")
         parent.men_lang.setTitle("Language")
-        
         parent.actionCreate_New_Project.setText("Create New Project")
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("Open")
@@ -302,7 +293,7 @@ def setMainWindowToolTips(parent):
 def setMainWindowIcons(parent, icon_path):
     icon_size = getIconSize()
     qicon_size = QSize(icon_size, icon_size)
-    
+
     parent.act_prj_open.setIcon(getIconFromPath(os.path.join(icon_path, 'folder_open.png')))
         
     parent.tab_target.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'apps.png')))
@@ -461,7 +452,7 @@ def setDefaultFileText(parent, status, skin="grey"):
         
         if skin == "grey":
             back_color_tree = 'QHeaderView::section {background-color: #2C2C2C;}'
-            parent.tre_fls.setStyleSheet(back_color_tree)
+            
             if status == "original":
                 font_style_color = QBrush(QColor("#00FFFF"))
             elif status == "removed":
@@ -498,19 +489,6 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
     parent.tab_src.setFont(font)
     parent.tab_img_info.setFont(font)
     parent.frm_fil_info.setFont(font)
-    parent.btn_con_add.setFont(font)
-    parent.btn_con_del.setFont(font)
-    parent.btn_con_imp.setFont(font)
-    parent.btn_con_rec.setFont(font)
-    parent.btn_con_take.setFont(font)
-    parent.btn_con_update.setFont(font)
-    parent.btn_mat_add.setFont(font)
-    parent.btn_mat_del.setFont(font)
-    parent.btn_mat_imp.setFont(font)
-    parent.btn_mat_rec.setFont(font)
-    parent.btn_mat_take.setFont(font)
-    parent.btn_mat_update.setFont(font)
-    parent.btn_open_gimp.setFont(font)
     
     
     if skin == "grey":
@@ -560,9 +538,28 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
         parent.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
+        parent.tre_prj_item.headerItem().setForeground(0,QBrush(Qt.gray))
+        parent.tre_prj_item.headerItem().setForeground(1,QBrush(Qt.gray))
+        parent.tre_fls.headerItem().setForeground(0,QBrush(Qt.gray))
+        parent.tre_fls.headerItem().setForeground(1,QBrush(Qt.gray))
+        parent.tre_fls.headerItem().setForeground(2,QBrush(Qt.gray))
     elif skin == "white":
         icon_path = os.path.join(icon_path, "black")
         setMainWindowIcons(parent, icon_path)
+        
+        parent.btn_con_add.setFont(font)
+        parent.btn_con_del.setFont(font)
+        parent.btn_con_imp.setFont(font)
+        parent.btn_con_rec.setFont(font)
+        parent.btn_con_take.setFont(font)
+        parent.btn_con_update.setFont(font)
+        parent.btn_mat_add.setFont(font)
+        parent.btn_mat_del.setFont(font)
+        parent.btn_mat_imp.setFont(font)
+        parent.btn_mat_rec.setFont(font)
+        parent.btn_mat_take.setFont(font)
+        parent.btn_mat_update.setFont(font)
+        parent.btn_open_gimp.setFont(font)
 
     
     

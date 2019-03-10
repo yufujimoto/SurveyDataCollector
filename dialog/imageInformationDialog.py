@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/imageInformationDialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -67,6 +67,7 @@ class Ui_imageInformationDialog(object):
         self.dte_fil_dt_cre.setObjectName("dte_fil_dt_cre")
         self.lay_h_date.addWidget(self.dte_fil_dt_cre)
         self.btn_fil_dt_cre_exif = QtWidgets.QPushButton(imageInformationDialog)
+        self.btn_fil_dt_cre_exif.setFlat(True)
         self.btn_fil_dt_cre_exif.setObjectName("btn_fil_dt_cre_exif")
         self.lay_h_date.addWidget(self.btn_fil_dt_cre_exif)
         self.lab_fil_dt_mod = QtWidgets.QLabel(imageInformationDialog)
@@ -80,6 +81,7 @@ class Ui_imageInformationDialog(object):
         self.dte_fil_dt_mod.setObjectName("dte_fil_dt_mod")
         self.lay_h_date.addWidget(self.dte_fil_dt_mod)
         self.btn_fil_dt_mod_exif = QtWidgets.QPushButton(imageInformationDialog)
+        self.btn_fil_dt_mod_exif.setFlat(True)
         self.btn_fil_dt_mod_exif.setObjectName("btn_fil_dt_mod_exif")
         self.lay_h_date.addWidget(self.btn_fil_dt_mod_exif)
         self.lay_v_info.addLayout(self.lay_h_date)
@@ -140,6 +142,7 @@ class Ui_imageInformationDialog(object):
         self.laly_h_update.setContentsMargins(-1, 10, -1, 10)
         self.laly_h_update.setObjectName("laly_h_update")
         self.btn_fil_update = QtWidgets.QPushButton(imageInformationDialog)
+        self.btn_fil_update.setFlat(True)
         self.btn_fil_update.setObjectName("btn_fil_update")
         self.laly_h_update.addWidget(self.btn_fil_update)
         self.verticalLayout_2.addLayout(self.laly_h_update)

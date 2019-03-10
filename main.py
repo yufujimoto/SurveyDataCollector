@@ -36,6 +36,8 @@ import modules.flickr_upload as flickr
 
 # Import GUI window.
 import dialog.mainWindow as mainWindow
+import dialog.consolidation as consolidationDialog
+import dialog.material as materialDialog
 import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
 import dialog.imageInformation as imageInformationDialog
@@ -222,6 +224,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             tree = ET.ElementTree(root)
             tree.write(self._config_file)
+            
+            # Set the initial image to thumbnail viewer.
+            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+            self.showImage(img_file_path)
         else:
             xml_config = ET.parse(self._config_file).getroot()
             
@@ -252,13 +258,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             
                             # Open the previous project.
                             self.openProject()
-                        
+                        else:
+                            # Set the initial image to thumbnail viewer.
+                            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+                            self.showImage(img_file_path)
         # Set the default skin.
         self.setSkin(lang=self._language, theme=self._skin)
-        
-        # Set the initial image to thumbnail viewer.
-        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-        self.showImage(img_file_path)
         
     # ==========================
     # General operation
@@ -304,6 +309,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Update the current config.
         self.changeConfig()
+    
     def setLangJa(self):
         # Define language and skin theme.
         self._language = "ja"
@@ -325,6 +331,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:    
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
             
             # Define directories for storing files.
             in_dir = QFileDialog.getOpenFileNames(self, "ファイルの選択")
@@ -598,10 +608,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::toggleCurrentTreeObject(self)")
         
         # Exit if the root directory is not loaded.
-        if self._root_directory == None:
-            error.ErrorMessageProjectOpen(language=self._language)
-            
-            return(None)
+        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
         
         # Get the item of the material.
         selected = self.tre_prj_item.selectedItems()
@@ -609,8 +616,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Exit if selected item is 0.
         if (selected == None or len(selected) == 0): return(None)
         
+        # Clear the information of the previously selected objects.
         self._current_consolidation = None
         self._current_material = None
+        self.refreshMaterialInfo()
         
         try:
             if selected[0].parent() == None:
@@ -623,10 +632,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Set attributes of the consolidation to input boxes.
                 self.setConsolidationInfo(self._current_consolidation)
                 
-                # Clear the information of the previously selected material.
-                self._current_material = None
-                self.refreshMaterialInfo()
-                
                 # Set active control tab for consolidation.
                 self.tab_target.setCurrentIndex(0)
                 
@@ -635,15 +640,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             elif selected[0].parent() != None:
                 self.tre_prj_item.setCurrentItem(selected[0])
                 
-                # Clear all information beforehand.
-                self.refreshMaterialInfo()
-                
                 # Get the Materil if the node have a parent.
                 selected_uuid = selected[0].text(0)
                 
                 # Set current material.
                 self._current_material = features.Material(is_new=False, uuid=selected_uuid, dbfile=self._database)
                 self._current_consolidation = features.Consolidation(is_new=False, uuid=self._current_material.consolidation, dbfile=self._database)
+                
+                print(self._current_material.consolidation)
+                print(self._current_consolidation)
                 
                 # Set attributes of the consolidation and the material to the input boxes.
                 self.setConsolidationInfo(self._current_consolidation)
@@ -846,6 +851,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
+            
             # Get the output file name by using file save dialog.
             output, output_type = QFileDialog.getSaveFileName(self, "Export to", "output.csv","Images (*.csv)")
             
@@ -933,48 +945,53 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def addConsolidation(self):
         print("main::addConsolidation(self)")
         
-        # Exit if the root directory is not loaded.
-        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-        
         try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
             # Initialize the Consolidation Class.
             self._current_consolidation = features.Consolidation(is_new=True, uuid=None, dbfile=None)
             
-            # Instantiate the consolidation class
-            self._current_consolidation.name = self.tbx_con_name.text()
-            self._current_consolidation.geographic_annotation = self.tbx_con_geoname.text()
-            self._current_consolidation.temporal_annotation = self.tbx_con_temporal.text()
-            self._current_consolidation.description = self.tbx_con_description.text()
+            # Show the dialog.
+            dlg_con = consolidationDialog.consolidationDialog(parent=self)
             
-            # Insert the instance into DBMS.
-            self._current_consolidation.dbInsert(self._database)
+            isAccepted = dlg_con.exec_()
             
-            # Create a directory to store consolidation.
-            general.createDirectories(os.path.join(self._consolidation_directory,self._current_consolidation.uuid), True)
-            
-            # Update the tree view.
-            tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
-            
-            # Set text item to the tree widget.
-            tre_prj_item_items.setText(0, self._current_consolidation.uuid)
-            tre_prj_item_items.setText(1, self._current_consolidation.name)
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            
-            # Adjust columns width.
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
-            
-            # Select the new consolidation from the tree.
-            self.tre_prj_item.setCurrentItem(tre_prj_item_items)
-            
-            # Change edit mode to modifying.
-            self.rad_con_mod.setChecked(True)
-            self.toggleEditModeForConsolidation()
-            
-            # Current material should be clear.
-            self._current_material = None
+            if isAccepted == 1:
+                # Instantiate the consolidation class
+                self._current_consolidation.name = dlg_con.tbx_con_name.text()
+                self._current_consolidation.geographic_annotation = dlg_con.tbx_con_geoname.text()
+                self._current_consolidation.temporal_annotation = dlg_con.tbx_con_temporal.text()
+                self._current_consolidation.description = dlg_con.tbx_con_description.text()
+                
+                # Insert the instance into DBMS.
+                self._current_consolidation.dbInsert(self._database)
+                
+                # Create a directory to store consolidation.
+                general.createDirectories(os.path.join(self._consolidation_directory,self._current_consolidation.uuid), True)
+                
+                # Update the tree view.
+                tre_prj_item_items = QTreeWidgetItem(self.tre_prj_item)
+                
+                # Set text item to the tree widget.
+                tre_prj_item_items.setText(0, self._current_consolidation.uuid)
+                tre_prj_item_items.setText(1, self._current_consolidation.name)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                # Adjust columns width.
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Select the new consolidation from the tree.
+                self.tre_prj_item.setCurrentItem(tre_prj_item_items)
+                
+                # Set new values
+                self.setConsolidationInfo(self._current_consolidation)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_consolidation)
         except Exception as e:
             print("Error occurs in main::addConsolidation(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
@@ -983,35 +1000,49 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def updateConsolidation(self):
         print("main::updateConsolidation(self)")
         
-        # Exit if the root directory is not loaded.
-        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-        
         try:
-            con_uuid = self.tbx_con_uuid.text()
+           # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
-            # Initialize the Consolidation Class.
-            con = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=self._database)
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
             
-            # Instantiate the consolidation class
-            con.name = self.tbx_con_name.text()
-            con.geographic_annotation = self.tbx_con_geoname.text()
-            con.temporal_annotation = self.tbx_con_temporal.text()
-            con.description = self.tbx_con_description.text()
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
             
-            # Update the instance into DBMS.
-            con.dbUpdate(self._database)
+            # Show the dialog.
+            dlg_con = consolidationDialog.consolidationDialog(parent=self)
             
-            # Get the item of the material.
-            selected = self.tre_prj_item.selectedItems()[0]
+            isAccepted = dlg_con.exec_()
             
-            # Update the tree view.
-            if selected.text(0) == con.uuid:
-                selected.setText(1, con.name)
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
+            if isAccepted == 1:
+                # Instantiate the consolidation class
+                self._current_consolidation.name = dlg_con.tbx_con_name.text()
+                self._current_consolidation.geographic_annotation = dlg_con.tbx_con_geoname.text()
+                self._current_consolidation.temporal_annotation = dlg_con.tbx_con_temporal.text()
+                self._current_consolidation.description = dlg_con.tbx_con_description.text()
+                
+                # Update the instance into DBMS.
+                self._current_consolidation.dbUpdate(self._database)
+                
+                # Get the item of the material.
+                selected = self.tre_prj_item.selectedItems()[0]
+                
+                # Update the tree view.
+                if selected.text(0) == self._current_consolidation.uuid:
+                    selected.setText(1, self._current_consolidation.name)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Set new values
+                self.setConsolidationInfo(self._current_consolidation)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_consolidation)
         except Exception as e:
             print("Error occurs in main::updateConsolidation(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
@@ -1020,10 +1051,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def deleteConsolidation(self):
         print("main::deleteConsolidation(self)")
         
-        # Exit if the root directory is not loaded.
-        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-        
         try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
+            
             # Confirm deleting the consolidation.
             if not general.askDeleteConsolidation(self) == QMessageBox.Yes: return(None)
             
@@ -1077,11 +1115,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Initialyze the consolidation and the material info.
             self.refreshConsolidationInfo()
-            
-            # Initialyze the edit material mode as modifying.
-            self.rad_con_mod.setChecked(True)
-            self.toggleEditModeForConsolidation()
-            
+                        
             # Set attributes to text boxes.
             self.tbx_con_uuid.setText(consolidation.uuid)
             self.tbx_con_name.setText(consolidation.name)
@@ -1098,10 +1132,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Change text color for text boxes.
-            skin.setDefaultConsolidationText(self, status="new", skin=self._skin)
-            
-            # Set current mode "create".
-            self.rad_con_new.setChecked(True)
+            skin.setDefaultConsolidationText(self, status="default", skin=self._skin)
             
             # Refresh preview image.
             self.refreshImageInfo()
@@ -1112,18 +1143,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Set the thumbnail No Image as the default.
             img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
             self.showImage(img_file_path)
-            
-            # Only the add new consolidation button enabled.
-            self.btn_con_add.setDisabled(False)
-            self.btn_con_del.setDisabled(True)
-            self.btn_con_take.setDisabled(True)
-            self.btn_con_update.setDisabled(True)
-            
-            # Text boxes for attributes are enabled.
-            self.tbx_con_name.setDisabled(False)
-            self.tbx_con_geoname.setDisabled(False)
-            self.tbx_con_temporal.setDisabled(False)
-            self.tbx_con_description.setDisabled(False)
             
             # Clear text boxes for attributes.
             self.tbx_con_uuid.setText("")
@@ -1136,39 +1155,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e))
             return(None)
     
-    def toggleEditModeForConsolidation(self):
-        print("main::toggleEditModeForConsolidation(self)")
-        
-        try: 
-            if self.grp_con_ope.checkedId() == 1:
-                # Change text color for text boxes.
-                skin.setDefaultConsolidationText(self, status="default", skin=self._skin)
-                
-                # Only the add new consolidation button is disabled.
-                self.btn_con_add.setDisabled(True)
-                self.btn_con_update.setDisabled(False)
-                self.btn_con_take.setDisabled(False)
-                self.btn_con_del.setDisabled(False)
-                
-                # All text boxes for attributes of consolidation is enabled.
-                self.tbx_con_name.setDisabled(False)
-                self.tbx_con_geoname.setDisabled(False)
-                self.tbx_con_temporal.setDisabled(False)
-                self.tbx_con_description.setDisabled(False)
-                
-                # Reset the current consolidation.
-                if self._current_consolidation == None:
-                    print("No current consolidation")
-                    # Set attributes to text boxes.
-                    self.refreshConsolidationInfo()
-            else:
-                print("New is selected")
-                self.refreshConsolidationInfo()
-        except Exception as e:
-            print("Error occurs in main::toggleEditModeForConsolidation(self)")
-            error.ErrorMessageUnknown(details=str(e))
-            return(None)
-
     # ==========================
     # Material
     # ==========================
@@ -1392,6 +1378,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if the current consolidation is not selected.
+            if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
+            
             # Get the output file name by using file save dialog.
             output, output_type = QFileDialog.getSaveFileName(self, "Export to", "output.csv","Commna Separation Values(*.csv)")
             
@@ -1489,21 +1485,22 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def addMaterial(self):
         print("main::addMaterial(self)")
         
-        # Exit if the root directory is not loaded.
-        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-        
-        # Exit if there are no tree item selected.
-        if self.tre_prj_item.selectedItems()[0] == None: return(None)
-        
         try:
-            # Exit if no tree items are selected.
-            if self._current_consolidation == None: return(None)
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageCurrentMaterial(language=self._language); return(None)
             
             # Initialyze the consolidation tree item.
             consolidation_tree_item = None
             
             # Check the selected object is consolidation or not.
-            if not self.tre_prj_item.selectedItems()[0].parent() == None:            
+            if not self.tre_prj_item.selectedItems()[0].parent() == None:
                 # Confirm whether select the parent consolidations.
                 reply = general.askNewMaterial(self)
                 
@@ -1518,39 +1515,50 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Generate the GUID for the material
             self._current_material = features.Material(is_new=True, uuid=None, dbfile=None)
             
-            # Get attributes from text boxes.
-            self._current_material.consolidation = self._current_consolidation.uuid
-            self._current_material.material_number = self.tbx_mat_number.text()
-            self._current_material.name = self.tbx_mat_name.text()
-            self._current_material.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
-            self._current_material.estimated_period_peak = self.tbx_mat_tmp_mid.text()
-            self._current_material.estimated_period_ending = self.tbx_mat_tmp_end.text()
-            self._current_material.latitude = self.tbx_mat_geo_lat.text()
-            self._current_material.longitude = self.tbx_mat_geo_lon.text()
-            self._current_material.altitude = self.tbx_mat_geo_alt.text()
-            self._current_material.description = self.tbx_mat_description.text()
+            # Show the dialog.
+            dlg_mat = materialDialog.materialDialog(parent=self)
             
-            # Create the SQL query for inserting the new consolidation.
-            self._current_material.dbInsert(self._database)
+            isAccepted = dlg_mat.exec_()
             
-            # Create a directory to store consolidation.
-            con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
-            mat_dir = os.path.join(con_dir, "Materials")
-            
-            general.createDirectories(os.path.join(mat_dir, self._current_material.uuid), False)
-            
-            # Update the tree view.
-            tree_item_new_material = QTreeWidgetItem([self._current_material.uuid,self._current_material.name])
-            consolidation_tree_item.addChild(tree_item_new_material)
-            
-            # Show tree view.
-            self.tre_prj_item.show()
-            
-            # Adjust columns width.
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
-            
-            self.tre_prj_item.setCurrentItem(tree_item_new_material)
+            if isAccepted == 1:
+                # Get attributes from text boxes.
+                self._current_material.consolidation = self._current_consolidation.uuid
+                self._current_material.material_number = dlg_mat.tbx_mat_number.text()
+                self._current_material.name = dlg_mat.tbx_mat_name.text()
+                self._current_material.estimated_period_beginning = dlg_mat.tbx_mat_tmp_bgn.text()
+                self._current_material.estimated_period_peak = dlg_mat.tbx_mat_tmp_mid.text()
+                self._current_material.estimated_period_ending = dlg_mat.tbx_mat_tmp_end.text()
+                self._current_material.latitude = dlg_mat.tbx_mat_geo_lat.text()
+                self._current_material.longitude = dlg_mat.tbx_mat_geo_lon.text()
+                self._current_material.altitude = dlg_mat.tbx_mat_geo_alt.text()
+                self._current_material.description = dlg_mat.tbx_mat_description.text()
+                
+                # Create the SQL query for inserting the new consolidation.
+                self._current_material.dbInsert(self._database)
+                
+                # Create a directory to store consolidation.
+                con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
+                mat_dir = os.path.join(con_dir, "Materials")
+                
+                general.createDirectories(os.path.join(mat_dir, self._current_material.uuid), False)
+                
+                # Update the tree view.
+                tree_item_new_material = QTreeWidgetItem([self._current_material.uuid,self._current_material.name])
+                consolidation_tree_item.addChild(tree_item_new_material)
+                
+                # Show tree view.
+                self.tre_prj_item.show()
+                
+                # Adjust columns width.
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                self.tre_prj_item.setCurrentItem(tree_item_new_material)
+                
+                # Set the new values.
+                self.setMaterialInfo(self._current_material)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_material)
         except Exception as e:
             print("Error occurs in main::addMaterial(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
@@ -1563,38 +1571,54 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
-            # Generate the GUID for the material
-            mat_uuid = self.tbx_mat_uuid.text()
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
             
-            # Instantiate the material by using uuid.
-            mat = features.Material(is_new=False, uuid=mat_uuid, dbfile=self._database)
+            # Exit if the current consolidation is not selected.
+            if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
             
-            # Get attributes from text boxes.
-            mat.name = self.tbx_mat_name.text()
-            mat.material_number = self.tbx_mat_number.text()
-            mat.estimated_period_beginning = self.tbx_mat_tmp_bgn.text()
-            mat.estimated_period_peak = self.tbx_mat_tmp_mid.text()
-            mat.estimated_period_ending = self.tbx_mat_tmp_end.text()
-            mat.latitude = self.tbx_mat_geo_lat.text()
-            mat.longitude = self.tbx_mat_geo_lon.text()
-            mat.altitude = self.tbx_mat_geo_alt.text()
-            mat.description = self.tbx_mat_description.text()
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageCurrentMaterial(language=self._language); return(None)
             
-            # Create the SQL query for updating the new consolidation.
-            mat.dbUpdate(self._database)
+            # Show the dialog.
+            dlg_mat = materialDialog.materialDialog(parent=self)
             
-            # Get the item of the material.
-            selected = self.tre_prj_item.selectedItems()[0]
+            isAccepted = dlg_mat.exec_()
             
-            # Update the tree view.
-            if selected.text(0) == mat.uuid:
-                selected.setText(1, mat.name)
-            
-            # Refresh the tree view.
-            self.tre_prj_item.show()
-            
-            self.tre_prj_item.resizeColumnToContents(0)
-            self.tre_prj_item.resizeColumnToContents(1)
+            if isAccepted == 1:
+                # Get attributes from text boxes.
+                self._current_material.name = dlg_mat.tbx_mat_name.text()
+                self._current_material.material_number = dlg_mat.tbx_mat_number.text()
+                self._current_material.estimated_period_beginning = dlg_mat.tbx_mat_tmp_bgn.text()
+                self._current_material.estimated_period_peak = dlg_mat.tbx_mat_tmp_mid.text()
+                self._current_material.estimated_period_ending = dlg_mat.tbx_mat_tmp_end.text()
+                self._current_material.latitude = dlg_mat.tbx_mat_geo_lat.text()
+                self._current_material.longitude = dlg_mat.tbx_mat_geo_lon.text()
+                self._current_material.altitude = dlg_mat.tbx_mat_geo_alt.text()
+                self._current_material.description = dlg_mat.tbx_mat_description.text()
+                
+                # Create the SQL query for updating the new consolidation.
+                self._current_material.dbUpdate(self._database)
+                
+                # Get the item of the material.
+                selected = self.tre_prj_item.selectedItems()[0]
+                
+                # Update the tree view.
+                if selected.text(0) == self._current_material.uuid:
+                    selected.setText(1, self._current_material.name)
+                
+                # Refresh the tree view.
+                self.tre_prj_item.show()
+                
+                self.tre_prj_item.resizeColumnToContents(0)
+                self.tre_prj_item.resizeColumnToContents(1)
+                
+                # Set the new values.
+                self.setMaterialInfo(self._current_material)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_material)
         except Exception as e:
             print("Error occurs in main::updateMaterial(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
@@ -1606,6 +1630,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the current consolidation is not selected.
+            if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if the current consolidation is not selected.
+            if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageCurrentMaterial(language=self._language); return(None)
             
             # Confirm deleting the material.
             if not general.askDeleteMaterial(self) == QMessageBox.Yes: return(None)
@@ -1667,9 +1701,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Initialyze the material info.
             self.refreshMaterialInfo()
             
-            # Initialyze the edit material mode as modifying.
-            self.rad_mat_mod.setChecked(True)
-            
             # Set attributes to text boxes.
             self.tbx_mat_uuid.setText(material.uuid)
             self.tbx_mat_number.setText(material.material_number)
@@ -1681,7 +1712,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_mat_geo_lon.setText(str(material.longitude))
             self.tbx_mat_geo_alt.setText(str(material.altitude))
             self.tbx_mat_description.setText(material.description)
-            self.toggleEditModeForMaterial()
             
             # Returns the value.
             return(True)
@@ -1696,33 +1726,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Change text color for text boxes.
-            skin.setDefaultMaterialText(self, status="new", skin=self._skin)
-            
-            # Set current mode "create".
-            self.rad_mat_new.setChecked(True)
+            skin.setDefaultMaterialText(self, status="default", skin=self._skin)
             
             # Refresh preview image.
             self.refreshImageInfo()
             
             # Clear the file list for consolidation.
             self.tre_fls.clear()
-            
-            # Only the add new material button enabled.
-            self.btn_mat_add.setDisabled(False)
-            self.btn_mat_del.setDisabled(True)
-            self.btn_mat_take.setDisabled(True)
-            self.btn_mat_update.setDisabled(True)
-            
-            # Text boxes for attributes are enabled.
-            self.tbx_mat_number.setDisabled(False)
-            self.tbx_mat_name.setDisabled(False)
-            self.tbx_mat_geo_lat.setDisabled(False)
-            self.tbx_mat_geo_lon.setDisabled(False)
-            self.tbx_mat_geo_alt.setDisabled(False)
-            self.tbx_mat_tmp_bgn.setDisabled(False)
-            self.tbx_mat_tmp_mid.setDisabled(False)
-            self.tbx_mat_tmp_end.setDisabled(False)
-            self.tbx_mat_description.setDisabled(False)
             
             # Clear text boxes for attributes.
             self.tbx_mat_uuid.setText("")
@@ -1738,40 +1748,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Exception as e:
             print("Error occcurs in main::refreshMaterialInfo(self)")
             error.ErrorMessageUnknown(details=str(e), language=self._language)
-            return(None)
-    
-    def toggleEditModeForMaterial(self):
-        print("main::toggleEditModeForMaterial(self)")
-        
-        try:
-            if self.grp_mat_ope.checkedId() == 1:
-                # Change text color for text boxes.
-                skin.setDefaultMaterialText(self, status="default", skin=self._skin)
-                
-                # Only the add new consolidation button is disabled.
-                self.btn_mat_add.setDisabled(True)
-                self.btn_mat_update.setDisabled(False)
-                self.btn_mat_take.setDisabled(False)
-                self.btn_mat_del.setDisabled(False)
-                
-                # All text boxes for attributes of material is enabled.
-                self.tbx_mat_number.setDisabled(False)
-                self.tbx_mat_name.setDisabled(False)
-                self.tbx_mat_geo_lat.setDisabled(False)
-                self.tbx_mat_geo_lon.setDisabled(False)
-                self.tbx_mat_geo_alt.setDisabled(False)
-                self.tbx_mat_tmp_bgn.setDisabled(False)
-                self.tbx_mat_tmp_mid.setDisabled(False)
-                self.tbx_mat_tmp_end.setDisabled(False)
-                self.tbx_mat_description.setDisabled(False)
-                
-                if self._current_material == None:
-                    self.refreshMaterialInfo()
-            else:
-                self.refreshMaterialInfo()
-        except Exception as e:
-            print("Error occurs in main::toggleEditModeForMaterial(self)")
-            error.ErrorMessageUnknown(details=str(e))
             return(None)
     
     # ==========================
@@ -2208,11 +2184,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::setFileInfo(self, sop_object)")
         
         try:
+            # Check whether the object can be published or not.
             if sop_object.public == "1":
                 self.cbx_fil_pub.setChecked(True)
             else:
                 self.cbx_fil_pub.setChecked(False)
             
+            # Check whether the object is locked or not.
             if sop_object.lock == "1":
                 self.cbx_fil_edit.setChecked(False)
                 self.cbx_fil_edit.setDisabled(True)
@@ -2221,20 +2199,23 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.cbx_fil_edit.setDisabled(False)
                 self.cbx_fil_edit.setEnabled(True)
             
+            # Get get the status of the object.
             fil_status = sop_object.status
             
             if fil_status == "Original":
                 if self.cbx_fil_original.isChecked() == True:
                     # Update the tree view.
+                    
                     tre_fls_item = QTreeWidgetItem(self.tre_fls)
                     
                     tre_fls_item.setText(0, sop_object.uuid)
                     tre_fls_item.setText(1, sop_object.alias)
                     tre_fls_item.setText(2, sop_object.file_type)
                     
-                    skin.setDefaultFileText(tre_fls_item, status="original", skin="grey")
+                    skin.setDefaultFileText(tre_fls_item, status="original", skin=self._skin)
             elif fil_status == "Removed":
                 if self.cbx_fil_deleted.isChecked() == True:
+                    
                     # Update the tree view.
                     tre_fls_item = QTreeWidgetItem(self.tre_fls)
                     
@@ -2242,11 +2223,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tre_fls_item.setText(1, sop_object.alias)
                     tre_fls_item.setText(2, sop_object.file_type)
                     
-                    skin.setDefaultFileText(tre_fls_item, status="removed", skin="grey")
+                    skin.setDefaultFileText(tre_fls_item, status="removed", skin=self._skin)
             else:
                 # Update the tree view.
+                print("7")
                 tre_fls_item = QTreeWidgetItem(self.tre_fls)
-                
+                print("8")
                 tre_fls_item.setText(0, sop_object.uuid)
                 tre_fls_item.setText(1, sop_object.alias)
                 tre_fls_item.setText(2, sop_object.file_type)
@@ -3413,11 +3395,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
         
-        # Get the item of the material.
+        # Exit if the tree object is not selected.
         selected = self.tre_prj_item.selectedItems()
-        
-        # Exit if selected item is 0.
-        if len(selected) == 0: error.errorTreeItemNotSelected("self.tre_prj_item.selectedItems() == 0"); return(None)
+        if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
         
         # Initialyze the uuid for the consolidation and the material.
         sop_object = None
@@ -3539,6 +3519,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+        
+        # Exit if the tree object is not selected.
+        selected = self.tre_prj_item.selectedItems()
+        if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
         
         try:
             # Initialyze the variables.

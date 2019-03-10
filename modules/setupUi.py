@@ -22,6 +22,7 @@ def activate(ui_main):
     spl_main = QSplitter(Qt.Horizontal)
     spl_main.addWidget(ui_main.frm_left)
     spl_main.addWidget(ui_main.frm_right)
+    
     ui_main.frm_main_lay.addWidget(spl_main)
     ui_main.setLayout(ui_main.frm_main_lay)
     
@@ -83,22 +84,6 @@ def activate(ui_main):
     ui_main.btn_mat_take.clicked.connect(ui_main.tetheredShooting)    # Activate the taking a image of the material button.
     ui_main.btn_mat_imp.clicked.connect(ui_main.importExternalData)   # Activate the importing files of the consolidation button.
     ui_main.btn_mat_rec.clicked.connect(ui_main.recordWithPhoto)      # Activate the opening recording dialog button.
-    
-    # Activate operation mode selecting button.
-    ui_main.grp_con_ope = QButtonGroup()
-    ui_main.grp_con_ope.addButton(ui_main.rad_con_new, 0)
-    ui_main.grp_con_ope.addButton(ui_main.rad_con_mod, 1)
-    ui_main.grp_con_ope.buttonClicked.connect(ui_main.toggleEditModeForConsolidation)
-    
-    # Activate selecting operation mode button.
-    ui_main.grp_mat_ope = QButtonGroup()
-    ui_main.grp_mat_ope.addButton(ui_main.rad_mat_new, 0)
-    ui_main.grp_mat_ope.addButton(ui_main.rad_mat_mod, 1)
-    ui_main.grp_mat_ope.buttonClicked.connect(ui_main.toggleEditModeForMaterial)
-    
-    # Initialyze the edit consolidation mode as modifying.
-    ui_main.rad_con_mod.setChecked(True)
-    ui_main.rad_mat_mod.setChecked(True)
     
     # Activate the check boxes for publishing mode.
     ui_main.cbx_fil_pub.setChecked(False)

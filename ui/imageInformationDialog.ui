@@ -167,6 +167,9 @@
          <property name="text">
           <string>Exifから取得</string>
          </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -208,6 +211,9 @@
         <widget class="QPushButton" name="btn_fil_dt_mod_exif">
          <property name="text">
           <string>Exifから取得</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -359,6 +365,9 @@
       <widget class="QPushButton" name="btn_fil_update">
        <property name="text">
         <string>更新する</string>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

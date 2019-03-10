@@ -20,7 +20,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icon/ic_add_a_photo_black_24dp_2x.png</normaloff>icon/ic_add_a_photo_black_24dp_2x.png</iconset>
+    <normaloff>../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</normaloff>../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</iconset>
   </property>
   <widget class="QWidget" name="frm_main">
    <layout class="QHBoxLayout" name="frm_main_lay">
@@ -630,31 +630,8 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="rad_con_new">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>新規作成</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="rad_con_mod">
-               <property name="text">
-                <string>情報更新</string>
+               <property name="readOnly">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -676,11 +653,14 @@
                  <height>25</height>
                 </size>
                </property>
+               <property name="styleSheet">
+                <string notr="true">border: none; margin: 0px; padding: 0px;</string>
+               </property>
                <property name="text">
                 <string>統合体の追加</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -696,7 +676,7 @@
                 <string>統合体の更新</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -712,7 +692,7 @@
                 <string>撮影する</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -728,7 +708,7 @@
                 <string>外部画像</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -744,7 +724,7 @@
                 <string>テキスト編集</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -760,7 +740,7 @@
                 <string>録音する</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -776,7 +756,7 @@
                 <string>統合体の削除</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -830,6 +810,9 @@
                 </size>
                </property>
                <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
@@ -886,6 +869,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -940,6 +926,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -992,6 +981,9 @@
                 </size>
                </property>
                <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
@@ -1067,37 +1059,8 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="rad_mat_new">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>新規作成</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="rad_mat_mod">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>情報更新</string>
+               <property name="readOnly">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1147,6 +1110,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1185,6 +1151,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -1198,7 +1167,7 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QLabel" name="lbl_mat_geoname">
+              <widget class="QLabel" name="lbl_mat_geo_lat">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1237,6 +1206,9 @@
                 </size>
                </property>
                <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
@@ -1283,6 +1255,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1325,6 +1300,9 @@
                 </size>
                </property>
                <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
@@ -1381,6 +1359,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1413,6 +1394,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1437,6 +1421,9 @@
                 </size>
                </property>
                <property name="frame">
+                <bool>true</bool>
+               </property>
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
               </widget>
@@ -1493,6 +1480,9 @@
                <property name="frame">
                 <bool>true</bool>
                </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
             </layout>
@@ -1525,7 +1515,7 @@
                 <string>資料の追加</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1541,7 +1531,7 @@
                 <string>資料の更新</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1557,7 +1547,7 @@
                 <string>撮影する</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1573,7 +1563,7 @@
                 <string>外部画像</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1587,6 +1577,9 @@
                </property>
                <property name="text">
                 <string>テキスト編集</string>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1602,7 +1595,7 @@
                 <string>録音する</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1618,7 +1611,7 @@
                 <string>資料の削除</string>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1756,6 +1749,9 @@
                </item>
                <item>
                 <widget class="QTreeWidget" name="tre_fls">
+                 <property name="styleSheet">
+                  <string notr="true"/>
+                 </property>
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
                  </property>
@@ -1796,7 +1792,7 @@
                     <string>ファイル情報の編集</string>
                    </property>
                    <property name="flat">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -2560,8 +2556,6 @@
   <tabstop>cbx_cam_met</tabstop>
   <tabstop>tab_target</tabstop>
   <tabstop>tbx_con_uuid</tabstop>
-  <tabstop>rad_con_new</tabstop>
-  <tabstop>rad_con_mod</tabstop>
   <tabstop>tbx_con_name</tabstop>
   <tabstop>tbx_con_geoname</tabstop>
   <tabstop>tbx_con_temporal</tabstop>
@@ -2572,8 +2566,6 @@
   <tabstop>btn_con_rec</tabstop>
   <tabstop>btn_con_del</tabstop>
   <tabstop>tbx_mat_uuid</tabstop>
-  <tabstop>rad_mat_new</tabstop>
-  <tabstop>rad_mat_mod</tabstop>
   <tabstop>tbx_mat_number</tabstop>
   <tabstop>tbx_mat_name</tabstop>
   <tabstop>tbx_mat_geo_lat</tabstop>

@@ -87,6 +87,57 @@ class ErrorMessageProjectOpen(ErrorMessage):
         # Execute the query.
         if not show == False: super(ErrorMessageProjectOpen, self).showMessageBox()
 
+class ErrorMessageTreeItemNotSelected(ErrorMessage):
+    def __init__(self, language, details=None, show=True):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":           
+            self._message = "オブジェクトが選択されていません。"
+            self._information = "オブジェクトツリーパネルからオブジェクトを再選択してください。"
+        elif self._language == "en":
+            self._message = "Any objects are not selected."
+            self._information = "Please reselect a specific object from the objects tree panel."
+        self._icon = QMessageBox.Information
+        self._details = details
+        
+        # Execute the query.
+        if not show == False: super(ErrorMessageTreeItemNotSelected, self).showMessageBox()
+
+class ErrorMessageCurrentConsolidation(ErrorMessage):
+    def __init__(self, language, details=None, show=True):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":           
+            self._message = "現在の統合体が選択されていません。"
+            self._information = "オブジェクトツリーパネルから統合体を再選択してください。"
+        elif self._language == "en":
+            self._message = "The current consolidation is empty."
+            self._information = "Please reselect the specific consolidation from the objects tree panel."
+        self._icon = QMessageBox.Information
+        self._details = details
+        
+        # Execute the query.
+        if not show == False: super(ErrorMessageCurrentConsolidation, self).showMessageBox()
+
+class ErrorMessageCurrentMaterial(ErrorMessage):
+    def __init__(self, language, details=None, show=True):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":           
+            self._message = "現在の資料が選択されていません。"
+            self._information = "オブジェクトツリーパネルから資料を再選択してください。"
+        elif self._language == "en":
+            self._message = "The current material is empty."
+            self._information = "Please reselect the specific material from the objects tree panel."
+        self._icon = QMessageBox.Information
+        self._details = details
+        
+        # Execute the query.
+        if not show == False: super(ErrorMessageCurrentMaterial, self).showMessageBox()
+
 class ErrorMessageProjectNotCreated(ErrorMessage):
     def __init__(self, details=None, show=True, language="en"):
         # Initialize the super class.

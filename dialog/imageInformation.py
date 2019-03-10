@@ -19,6 +19,7 @@ import modules.general as general
 import modules.imageProcessing as imageProcessing
 import modules.features as features
 import modules.error as error
+import modules.skin as skin
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
@@ -27,9 +28,10 @@ import dialog.imageInformationDialog as imageInformationDialog
 import viewer.imageViewer as viewer
 
 class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformationDialog):
-    # Properties for default paths.
     @property
     def source_directory(self): return self._source_directory
+    @property
+    def config_file(self): return self._config_file
     @property
     def siggraph_directory(self): return self._siggraph_directory
     @property
@@ -38,32 +40,11 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
     def temporal_directory(self): return self._temporal_directory
     @property
     def root_directory(self): return self._root_directory
-    @property
-    def table_directory(self): return self._table_directory
-    @property
-    def consolidation_directory(self): return self._consolidation_directory
-    @property
-    def database(self): return self._database
-    @property
-    def label_consolidation(self): return self._label_consolidation
-    @property
-    def label_material(self): return self._label_material
-    @property
-    def qt_image(self): return self._qt_image
-    @property
-    def image_extensions(self): return self._image_extensions
-    @property
-    def raw_image_extensions(self): return self._raw_image_extensions
-    @property
-    def sound_extensions(self): return self._sound_extensions
-    @property
-    def language(self): return self._language
     
-    # Property for selected SOP object
-    @property
-    def sop_file(self): return self._sop_file
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
+    @config_file.setter
+    def config_file(self, value): self._config_file = value
     @siggraph_directory.setter
     def siggraph_directory(self, value): self._siggraph_directory = value
     @icon_directory.setter
@@ -72,60 +53,59 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
     def temporal_directory(self, value): self._temporal_directory = value
     @root_directory.setter
     def root_directory(self, value): self._root_directory = value
-    @table_directory.setter
-    def table_directory(self, value): self._table_directory = value
-    @consolidation_directory.setter
-    def consolidation_directory(self, value): self._consolidation_directory = value
-    @database.setter
-    def database(self, value): self._database = value
-    @label_consolidation.setter
-    def label_consolidation(self, value): self._label_consolidation = value
-    @label_material.setter
-    def label_material(self, value): self._label_material = value
+    @property
+    def qt_image(self): return self._qt_image
+    @property
+    def language(self): return self._language
+    
     @qt_image.setter
     def qt_image(self, value): self._qt_image = value
-    @image_extensions.setter
-    def image_extensions(self, value): self._image_extensions = value
-    @raw_image_extensions.setter
-    def raw_image_extensions(self, value): self._raw_image_extensions = value
-    @sound_extensions.setter
-    def sound_extensions(self, value): self._sound_extensions = value
-    @sop_file.setter
-    def sop_file(self, value): self._sop_file = value
     @language.setter
     def language(self, value): self._language = value
     
     def __init__(self, parent=None, sop_file=None):
         # Get the path of the tethered image.
         self._sop_file = sop_file
+        self._qt_image = parent.qt_image
+        self._language = parent.language
+        self._source_directory = parent.source_directory
+        self._root_directory = parent.root_directory
         
         # Set the source directory which this program located.
-        self._root_directory = parent.root_directory
-        self._source_directory = parent.source_directory
-        self._icon_directory = parent.icon_directory
-        self._database = parent.database
-        self._qt_image = parent.qt_image
-        self._image_extensions = parent.image_extensions
-        self._raw_image_extensions = parent.raw_image_extensions
-        self._sound_extensions = parent.sound_extensions
-        self._language = parent.language
-        
         super(imageInformationDialog, self).__init__(parent)
         self.setupUi(self)
         
         # Initialize the window.
         self.setWindowTitle(self.tr("File Information Dialog"))
         
+        # Initialyze the user interface.
+        # Get the proper font size from the display size and set the font size.
+        font_size = skin.getFontSize()
+        
+        # Make the style sheet.
+        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
+        
+        # Define the font object for Qt.
+        font = QFont()
+        font.setPointSize(font_size)
+        
+        self.setFont(font)
+        
         if parent.skin == "grey":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "white")
+            # Set the default background and front color.
+            back_color = 'background-color: #2C2C2C;'
+            font_style_color = 'color: #FFFFFF;'
+            font_style = font_style_color + font_style_size
+            
+            # Set the default skin for all components.
+            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
             
         elif skin == "white":
             # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "black")
+            parent.icon_directory = os.path.join(parent.icon_directory, "black")
         
         self.btn_fil_update.clicked.connect(self.updateFile)
-        self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'add_box.png'))))
+        self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(parent.icon_directory, 'add_box.png'))))
         self.btn_fil_update.setIconSize(QSize(24,24))
         
         self.btn_fil_dt_cre_exif.clicked.connect(self.getCreateDateByExif)
@@ -219,12 +199,12 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             self.tab_src.addTab(self.tab_img_thumb, "")
             
             # Add the text label to the tab
-            if self.language == "ja":
+            if self._language == "ja":
                 self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"サムネイル")
-            elif self.language == "en":
+            elif self._language == "en":
                 self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"Thumbnail")
             
-            img_file_path = os.path.join(self._root_directory, self._sop_file.filename)
+            img_file_path = os.path.join(parent.root_directory, self._sop_file.filename)
             
             if self.imageIsValid(img_file_path) == True:
                 # Add a tab for the image viewer
@@ -250,32 +230,35 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
                 # Add the text label to the tab
                 if self._language == "ja":
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"画像ビューア")
-                elif self.language == "en":
+                elif self._language == "en":
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"Image Viewer")
             
             # Get the image file.
             self.showImage()
             # self.setViewer()
-            
+            print("HOGE")
             # Set active control tab for thumbnail.
             self.tab_src.setCurrentIndex(0)
+            print("NG")
         
     def toggleTab(self):
+        print("information::toggleTab(self)")
         try:
             # Get the currently selected tab name.
             current_tab = self.tab_src.tabText(self.tab_src.currentIndex())
             
-            if self.language == "ja":
+            if self._language == "ja":
                 if current_tab == u"画像ビューア":
                     self.setViewer()
                 
-            elif self.language == "en":
+            elif self._language == "en":
                 if current_tab == u"Image Viewer":
                     self.setViewer()
         except Exception as e:
             print(str(e))
     
     def updateFile(self):
+        print("information::updateFile(self)")
         try:
             # Get attributes from text boxes.
             self._sop_file.status = str(self.cmb_fil_stts.currentText())
@@ -290,7 +273,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             self._sop_file.lock = int(self.cbx_fil_edit.isChecked())
             
             # Update the file information.
-            self._sop_file.dbUpdate(self._database)
+            self._sop_file.dbUpdate(parent.database)
         except Exception as e:
             print(str(e))
         
@@ -372,6 +355,8 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             return(None)
     
     def imageIsValid(self, img_file_path):
+        print("information::imageIsValid(self)")
+        
         # Initialyze the value.
         img_valid = False
         
@@ -408,12 +393,12 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         try:
             # Get the full path of the image.
             if self._sop_file.filename == "":
-                img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+                img_file_path = os.path.join(os.path.join(parent.source_directory, "images"),"noimage.jpg")
             else:
-                if not os.path.exists(os.path.join(self._root_directory, self._sop_file.filename)):
-                    img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+                if not os.path.exists(os.path.join(parent.root_directory, self._sop_file.filename)):
+                    img_file_path = os.path.join(os.path.join(parent.source_directory, "images"),"noimage.jpg")
                 else:
-                    img_file_path = os.path.join(self._root_directory, self._sop_file.filename)
+                    img_file_path = os.path.join(parent.root_directory, self._sop_file.filename)
             
             # Open the image.
             img_object = open(img_file_path, 'rb')
