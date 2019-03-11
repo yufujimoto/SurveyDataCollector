@@ -365,7 +365,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             selected = self.tre_prj_item.selectedItems()
             if (selected == None or len(selected) == 0): error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
             
-            if self.tab_target.currentInde() == 0:
+            if self.tab_target.currentIndex() == 0:
                 # Exit if the current consolidation is not selected.
                 if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
             elif self.tab_target.currentIndex()==1:
@@ -1753,7 +1753,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshImageInfo()
         except Exception as e:
             print("Error occurs in main::deleteMaterial(self)")
-            print(str(eprint(str(e))
+            print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
@@ -1871,6 +1871,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
         
+        # Exit if the current file is not existed.
+        if self._current_file == None: return(None)
+        
         try:
             # Exit if the none of a file is selected.
             if self.tre_fls.selectedItems() == None: return(None)
@@ -1879,7 +1882,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if not self.current_file.file_type == "image": return(None)
             
             # Check and edit file information.
-            dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self.current_file)
+            dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self._current_file)
             
             # Show the dialog.
             dlg_img_fil.exec_()
@@ -1922,10 +1925,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def importFileCSV(self):
         print("main::importFileCSV(self)")
         
-        try:    
-            # Exit if the root directory is not loaded.
-            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+         # Exit if the root directory is not loaded.
+        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
             
+        try:     
             # Define directories for storing files.
             in_file = QFileDialog.getOpenFileName(self, "ファイルの選択")
             
@@ -3113,6 +3116,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def saveImageAs(self):
         print("main::saveImageAs(self)")
         
+        # Exit if the root directory is not loaded.
+        if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+        
+        # Exit if the tree object is not selected.
+        selected = self.tre_fls.selectedItems()
+        if (selected == None or len(selected) == 0): return(None)
+        
         try:
             # Instantiate the file object of SOP.
             sop_file = self.getCurrentImage()
@@ -3178,6 +3188,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_fls.selectedItems()
+            if (selected == None or len(selected) == 0): return(None)
             
             # Exit if the selected file is locked.
             if not self.cbx_fil_edit.isChecked(): error.ErrorMessageFileLocked(); return(None)

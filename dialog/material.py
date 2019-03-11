@@ -31,6 +31,9 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
         # Initialize the window.
         self.setWindowTitle(self.tr("Material View"))
         
+        self.bbx_mat_res.buttons()[0].setFlat(True)
+        self.bbx_mat_res.buttons()[1].setFlat(True)
+        
         # Initialyze the user interface.
         # Get the proper font size from the display size and set the font size.
         font_size = skin.getFontSize()
@@ -46,6 +49,9 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
         
         # Setup the skin for the dialog.
         if parent.skin == "grey":
+            # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "white")
+            
             # Set the default background and front color.
             back_color = 'background-color: #2C2C2C;'
             font_style_color = 'color: #FFFFFF;'
@@ -53,7 +59,14 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
             
             # Set the default skin for all components.
             self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
-        
+        elif parent.skin == "white":
+            # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "black")
+            
+        # Change the default icons for dialoc button box.
+        self.bbx_mat_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
+        self.bbx_mat_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
+            
         # Setup labels with designated language.
         if parent.language == "ja":
             self.lbl_mat_uuid.setText("UUID :")

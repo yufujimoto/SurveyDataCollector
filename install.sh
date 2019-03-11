@@ -63,7 +63,7 @@ pip2 install soundfile
 
 # Install video processing libraries.
 apt install libavcodec-dev 
-pat install libavformat-dev
+apt install libavformat-dev
 apt install libswscale-dev 
 apt install libv4l-dev
 apt install libxvidcore-dev 

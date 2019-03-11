@@ -151,7 +151,7 @@
     </layout>
    </item>
    <item row="5" column="0">
-    <widget class="QDialogButtonBox" name="btn_con_cancel">
+    <widget class="QDialogButtonBox" name="bbx_con_res">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -205,7 +205,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>btn_con_cancel</sender>
+   <sender>bbx_con_res</sender>
    <signal>accepted()</signal>
    <receiver>ConsolidationDialog</receiver>
    <slot>accept()</slot>
@@ -221,7 +221,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_con_cancel</sender>
+   <sender>bbx_con_res</sender>
    <signal>rejected()</signal>
    <receiver>ConsolidationDialog</receiver>
    <slot>reject()</slot>

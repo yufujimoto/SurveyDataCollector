@@ -46,6 +46,9 @@ class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
         
         # Setup the skin for the dialog.
         if parent.skin == "grey":
+            # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "white")
+            
             # Set the default background and front color.
             back_color = 'background-color: #2C2C2C;'
             font_style_color = 'color: #FFFFFF;'
@@ -53,6 +56,13 @@ class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
             
             # Set the default skin for all components.
             self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+        elif parent.skin == "white":
+            # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "black")
+            
+        # Change the default icons for dialoc button box.
+        self.bbx_con_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
+        self.bbx_con_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
         
         # Setup labels with designated language.
         if parent.language == "ja":
