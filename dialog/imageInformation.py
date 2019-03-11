@@ -92,6 +92,9 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self.setFont(font)
         
         if parent.skin == "grey":
+            # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "white")
+            
             # Set the default background and front color.
             back_color = 'background-color: #2C2C2C;'
             font_style_color = 'color: #FFFFFF;'
@@ -102,8 +105,19 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             
         elif skin == "white":
             # Set the icon path.
+            icon_path = os.path.join(parent.icon_directory, "black")
+            
+            # Set the icon path.
             parent.icon_directory = os.path.join(parent.icon_directory, "black")
         
+        # Change the default icons for dialoc button box.
+        self.box_fil_ope.buttons()[0].setFlat(True)
+        self.box_fil_ope.buttons()[1].setFlat(True)
+
+        self.box_fil_ope.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
+        self.box_fil_ope.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
+        
+        # Connect functions to slots.
         self.btn_fil_update.clicked.connect(self.updateFile)
         self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(parent.icon_directory, 'add_box.png'))))
         self.btn_fil_update.setIconSize(QSize(24,24))

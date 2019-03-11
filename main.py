@@ -488,7 +488,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Select the first entry as the default.
                 self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
-        except dbError as e:
+        except sqlite.DatabaseError as e:
+            print("Error occurs in main::retriveProjectItems(self)")
+            print(staticmethod(e))
             error.ErrorMessageDbConnection(str(e.args[0]))
             return(None)
     
@@ -578,8 +580,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     
                     # Change the current project.
                     self.changeConfig()
-            except dbError as e:
-                error.ErrorMessageDbConnection(details=e.args[0], language=self._language)
+            except sqlite.DatabaseError as e:
+                print("Error occurs inn main::openProject(self)")
+                print(str(e))
+                error.ErrorMessageDbConnection(details=str(e), language=self._language)
                 return(None)
         
         # Finally set the root path to the text box.
@@ -1620,6 +1624,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
+                
+                # Clear current file object.
+                self._current_file = None
         except Exception as e:
             print("Error occurs in main::addMaterial(self)")
             print(str(e))
@@ -1751,6 +1758,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Reflesh the last selection.
             self.refreshMaterialInfo()
             self.refreshImageInfo()
+            self._current_file = None
         except Exception as e:
             print("Error occurs in main::deleteMaterial(self)")
             print(str(e))
@@ -1879,7 +1887,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if self.tre_fls.selectedItems() == None: return(None)
             
             # Exit if the selected file is not image.
-            if not self.current_file.file_type == "image": return(None)
+            if not self._current_file.file_type == "image": return(None)
             
             # Check and edit file information.
             dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self._current_file)

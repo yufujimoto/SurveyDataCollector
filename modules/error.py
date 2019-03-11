@@ -348,3 +348,22 @@ class ErrorMessagePlaySound(ErrorMessage):
         # Execute the query.
         super(ErrorMessagePlaySound, self).printErrorMessage()
         if not show == False: super(ErrorMessagePlaySound, self).showMessageBox()
+
+class ErrorMessageImageProcessing(ErrorMessage):
+    def __init__(self, details=None, show=True, language="en"):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":                
+            self._message = "画像処理に失敗しました。"
+            self._information = "画像処理に失敗しました。エラーの詳細を確認してください。"
+        elif self._language == "en":
+            self._message = "Cannot run the image processing function."
+            self._information = "Cannot run the image processing function. Please check details."
+            
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorMessageImageProcessing, self).printErrorMessage()
+        if not show == False: super(ErrorMessageImageProcessing, self).showMessageBox()
