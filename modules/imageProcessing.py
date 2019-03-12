@@ -553,7 +553,7 @@ def simpleMeanConvert(img_pil_input, height):
         return(None)
 
 def ihsConvert(img_pil_input, height):
-    print("ihsConvert(img, height)")
+    print("ihsConvert(img_pil_input, height)")
     
     try:
         # Convert the original image into single band image.
@@ -588,9 +588,9 @@ def ihsConvert(img_pil_input, height):
             Bdat.append(int(new_b*255.))
         
         # Rewrite the original pixels by new RGB values.
-        img_pil_r.putdata(Rdat)
-        img_pil_g.putdata(Gdat)
-        img_pil_b.putdata(Bdat)
+        img_pil_r_conv = img_pil_r.putdata(Rdat)
+        img_pil_g_conv = img_pil_g.putdata(Gdat)
+        img_pil_b_conv = img_pil_b.putdata(Bdat)
         
         # Generate a RGB image.
         img_pil_output = Image.merge("RGB",(img_pil_r_conv,img_pil_g_conv,img_pil_b_conv))
