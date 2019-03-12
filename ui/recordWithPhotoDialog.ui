@@ -177,12 +177,18 @@
             <property name="text">
              <string>録音する</string>
             </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="btn_rec_stop">
             <property name="text">
              <string>停止する</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

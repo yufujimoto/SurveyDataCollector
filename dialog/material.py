@@ -58,15 +58,36 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
             font_style = font_style_color + font_style_size
             
             # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            self.frame.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            
+            # Set the default skin for text boxes.
+            text_border = 'border-style: outset; border-width: 0.5px; border-color: #4C4C4C;'
+            text_background = "background-color: #6C6C6C;"
+            self.tbx_mat_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_number.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_geo_lat.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_geo_lon.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_geo_alt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_tmp_bgn.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_tmp_mid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_tmp_end.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_mat_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            
         elif parent.skin == "white":
             # Set the icon path.
             icon_path = os.path.join(parent.icon_directory, "black")
-            
-        # Change the default icons for dialoc button box.
+        
+        # Set the dialog button size.
+        dlg_btn_size = QSize(125, 30)
+        self.bbx_mat_res.buttons()[0].setMinimumSize(dlg_btn_size)
+        self.bbx_mat_res.buttons()[1].setMinimumSize(dlg_btn_size)
+        
+        # Set the skin and icon.
         self.bbx_mat_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
         self.bbx_mat_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
-            
+        
         # Setup labels with designated language.
         if parent.language == "ja":
             self.lbl_mat_uuid.setText("UUID :")
@@ -79,6 +100,8 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
             self.lbl_mat_tmp_mid.setText("中間時期 :")
             self.lbl_mat_tmp_end.setText("終了時期 :")
             self.lbl_mat_description.setText("資料の備考 :")
+            self.bbx_mat_res.buttons()[0].setText("OK")
+            self.bbx_mat_res.buttons()[1].setText("キャンセル")
         elif parent.language == "en":
             self.lbl_mat_uuid.setText("UUID :")
             self.lbl_mat_number.setText("Number :")
@@ -90,6 +113,8 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
             self.lbl_mat_tmp_mid.setText("Peak :")
             self.lbl_mat_tmp_end.setText("End :")
             self.lbl_mat_description.setText("Description :")
+            self.bbx_mat_res.buttons()[0].setText("OK")
+            self.bbx_mat_res.buttons()[1].setText("Cancel")
         
         # Set attributes to text boxes.
         self.tbx_mat_uuid.setText(parent._current_material.uuid)

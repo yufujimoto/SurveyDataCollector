@@ -25,11 +25,14 @@ import modules.skin as skin
 import modules.imageProcessing as imageProcessing
 import dialog.imageInformationDialog as imageInformationDialog
 
+# Import image viewer object.
 import viewer.imageViewer as viewer
 
 class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformationDialog):
     @property
     def source_directory(self): return self._source_directory
+    @property
+    def database(self): return self._database
     @property
     def config_file(self): return self._config_file
     @property
@@ -43,6 +46,8 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
+    @database.setter
+    def database(self, value): self._database = value
     @config_file.setter
     def config_file(self, value): self._config_file = value
     @siggraph_directory.setter
@@ -70,6 +75,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self._language = parent.language
         self._source_directory = parent.source_directory
         self._root_directory = parent.root_directory
+        self._database  = parent.database
         
         # Set the source directory which this program located.
         super(imageInformationDialog, self).__init__(parent)
@@ -101,8 +107,21 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             font_style = font_style_color + font_style_size
             
             # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            self.frame.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
             
+            # Set the default skin for text boxes.
+            text_border = 'border-style: outset; border-width: 0.5px; border-color: #4C4C4C;'
+            text_background = "background-color: #6C6C6C;"
+            self.cmb_fil_stts.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_fil_ali.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            
+            self.dte_fil_dt_cre.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.dte_fil_dt_mod.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.cmb_fil_eope.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_fil_ope_app.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_fil_dsc.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_fil_capt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         elif skin == "white":
             # Set the icon path.
             icon_path = os.path.join(parent.icon_directory, "black")
@@ -110,17 +129,51 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             # Set the icon path.
             parent.icon_directory = os.path.join(parent.icon_directory, "black")
         
+        
+        # Add the text label to the tab
+        if self._language == "ja":
+            self.cbx_fil_pub.setText("公開設定")
+            self.cbx_fil_edit.setText("削除可能")
+            self.lab_fil_sta.setText("ステータス")
+            self.lab_fil_ali.setText("別　名 :")
+            self.lab_fil_dt_cr.setText("作成日時 :")
+            self.lab_fil_dt_mod.setText("編集日時 :")
+            self.lab_fil_ope.setText("操　作 :")
+            self.lab_fil_ope_app.setText("操作アプリ :")
+            self.lab_fil_cap.setText("キャプション :")
+            self.lbl_fil_dsc.setText("備　考 :")
+            self.btn_fil_dt_cre_exif.setText("Exifから取得")
+            self.btn_fil_dt_mod_exif.setText("Exifから取得")
+            self.box_fil_ope.buttons()[0].setText("OK")
+            self.box_fil_ope.buttons()[1].setText("キャンセル")
+        elif self._language == "en":
+            self.cbx_fil_pub.setText("Public")
+            self.cbx_fil_edit.setText("Erasable")
+            self.lab_fil_sta.setText("Status")
+            self.lab_fil_ali.setText("Alias :")
+            self.lab_fil_dt_cr.setText("Date of Create :")
+            self.lab_fil_dt_mod.setText("Date of Edit :")
+            self.lab_fil_ope.setText("Operation :")
+            self.lab_fil_ope_app.setText("Application :")
+            self.lab_fil_cap.setText("Caption :")
+            self.lbl_fil_dsc.setText("Description :")
+            self.btn_fil_dt_cre_exif.setText("Get from Exif")
+            self.btn_fil_dt_mod_exif.setText("Get from Exif")
+            self.box_fil_ope.buttons()[0].setText("OK")
+            self.box_fil_ope.buttons()[1].setText("Cancel")
+        
         # Change the default icons for dialoc button box.
         self.box_fil_ope.buttons()[0].setFlat(True)
         self.box_fil_ope.buttons()[1].setFlat(True)
-
+        
+        # Set the dialog button size.
+        dlg_btn_size = QSize(125, 30)
+        self.box_fil_ope.buttons()[0].setMinimumSize(dlg_btn_size)
+        self.box_fil_ope.buttons()[1].setMinimumSize(dlg_btn_size)
+        
+        # Set the skin and icon.
         self.box_fil_ope.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
         self.box_fil_ope.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
-        
-        # Connect functions to slots.
-        self.btn_fil_update.clicked.connect(self.updateFile)
-        self.btn_fil_update.setIcon(QIcon(QPixmap(os.path.join(parent.icon_directory, 'add_box.png'))))
-        self.btn_fil_update.setIconSize(QSize(24,24))
         
         self.btn_fil_dt_cre_exif.clicked.connect(self.getCreateDateByExif)
         self.btn_fil_dt_mod_exif.clicked.connect(self.getModifiedDateByExif)
@@ -174,6 +227,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         # Set the status of the file object and optional values.
         self.cmb_fil_stts.addItem(self._sop_file.status)
         self.cmb_fil_stts.addItem("Original")
+        self.cmb_fil_stts.addItem("Original(RAW)")
         self.cmb_fil_stts.addItem("Removed")
         self.cmb_fil_stts.addItem("Imported")
         self.cmb_fil_stts.addItem("Edited")
@@ -193,34 +247,15 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self.cmb_fil_eope.addItem("Other")
         
         if self._sop_file.file_type == "image":
-            # Add a tab for the thumbnail.
-            self.tab_img_thumb = QWidget()
-            self.tab_img_thumb.setLayoutDirection(Qt.LeftToRight)
-            self.tab_img_thumb.setObjectName("tab_img_thumb")
-            
-            # Add the layout for image viewer.
-            self.lay_img_thumb = QVBoxLayout(self.tab_img_thumb)
-            self.lay_img_thumb.setContentsMargins(0, 0, 0, 0)
-            self.lay_img_thumb.setObjectName("lay_thm")
-            
-            self.lbl_img_thumb = QLabel()
-            self.lbl_img_thumb.setAlignment(Qt.AlignCenter)
-            self.lbl_img_thumb.setObjectName("lbl_img_thumb")
-            
-            self.lay_img_thumb.addWidget(self.lbl_img_thumb)
-            
-            # Add the layout to the tab.
-            self.tab_src.addTab(self.tab_img_thumb, "")
-            
-            # Add the text label to the tab
-            if self._language == "ja":
-                self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"サムネイル")
-            elif self._language == "en":
-                self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"Thumbnail")
-            
+            # Get the path from selected image object.
             img_file_path = os.path.join(parent.root_directory, self._sop_file.filename)
             
             if self.imageIsValid(img_file_path) == True:
+                # Add a tab for the thumbnail.
+                self.tab_img_thumb = QWidget()
+                self.tab_img_thumb.setLayoutDirection(Qt.LeftToRight)
+                self.tab_img_thumb.setObjectName("tab_img_thumb")
+                
                 # Add a tab for the image viewer
                 self.tab_img_view = QWidget()
                 self.tab_img_view.setLayoutDirection(Qt.LeftToRight)
@@ -231,6 +266,20 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
                 self.lay_img_view = QVBoxLayout(self.tab_img_view)
                 self.lay_img_view.setContentsMargins(0, 0, 0, 0)
                 self.lay_img_view.setObjectName("lay_thm")
+                
+                # Add the layout for image viewer.
+                self.lay_img_thumb = QVBoxLayout(self.tab_img_thumb)
+                self.lay_img_thumb.setContentsMargins(0, 0, 0, 0)
+                self.lay_img_thumb.setObjectName("lay_thm")
+                
+                self.lbl_img_thumb = QLabel()
+                self.lbl_img_thumb.setAlignment(Qt.AlignCenter)
+                self.lbl_img_thumb.setObjectName("lbl_img_thumb")
+                
+                self.lay_img_thumb.addWidget(self.lbl_img_thumb)
+                
+                # Add the layout to the tab.
+                self.tab_src.addTab(self.tab_img_thumb, "")
                 
                 # Add the layout to the tab.
                 self.tab_src.addTab(self.tab_img_view, "")
@@ -243,17 +292,24 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
                 
                 # Add the text label to the tab
                 if self._language == "ja":
+                    self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"サムネイル")
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"画像ビューア")
                 elif self._language == "en":
+                    self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_thumb),"Thumbnail")
                     self.tab_src.setTabText(self.tab_src.indexOf(self.tab_img_view),"Image Viewer")
-            
-            # Get the image file.
-            self.showImage()
-            # self.setViewer()
-            print("HOGE")
-            # Set active control tab for thumbnail.
-            self.tab_src.setCurrentIndex(0)
-            print("NG")
+                
+                if parent.skin == "grey":
+                    # Set the icon path.
+                    icon_path = os.path.join(parent.icon_directory, "white")
+                    
+                    # Set the default skin for tabs.
+                    back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
+                    back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
+                    self.tab_src.setStyleSheet(back_color_tab + back_color_tab_act)
+                    
+                
+                # Get the image file.
+                self.showImage()
         
     def toggleTab(self):
         print("information::toggleTab(self)")
@@ -271,26 +327,6 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         except Exception as e:
             print(str(e))
     
-    def updateFile(self):
-        print("information::updateFile(self)")
-        try:
-            # Get attributes from text boxes.
-            self._sop_file.status = str(self.cmb_fil_stts.currentText())
-            self._sop_file.operation = str(self.cmb_fil_eope.currentText())
-            self._sop_file.alias = str(self.tbx_fil_ali.text())                             # Alias
-            self._sop_file.operating_application = str(self.tbx_fil_ope_app.text())         # Operating application
-            self._sop_file.caption = str(self.tbx_fil_capt.text())                          # Caption
-            self._sop_file.description = str(self.tbx_fil_dsc.text())                       # Description
-            self._sop_file.created_date = str(self.dte_fil_dt_cre.text())
-            self._sop_file.modified_date = str(self.dte_fil_dt_mod.text())
-            self._sop_file.public = int(self.cbx_fil_pub.isChecked())
-            self._sop_file.lock = int(self.cbx_fil_edit.isChecked())
-            
-            # Update the file information.
-            self._sop_file.dbUpdate(parent.database)
-        except Exception as e:
-            print(str(e))
-        
     def showImage(self):
         print("imageInformationDialog::showImage(self)")
         

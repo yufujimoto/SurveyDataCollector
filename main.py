@@ -1893,37 +1893,53 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self._current_file)
             
             # Show the dialog.
-            dlg_img_fil.exec_()
+            isAccepted = dlg_img_fil.exec_()
             
-            # Get the tree item index of currently selected.
-            cur_tree_index = self.tre_fls.currentIndex().row()
-            
-            # Refresh image file list.
-            self.refreshImageInfo()
-            
-            if self.tab_target.currentIndex() == 0:
-                if not self._current_consolidation == None:
-                    # Get the uuid of the current consolidation.
-                    con_uuid = self._current_consolidation.uuid
-                    
-                    # Reset the current consolidation.
-                    self._current_consolidation = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=self._database)
-                    
-                    # Set file information of consolidation images.
-                    self.refreshFileList(self._current_consolidation)
-            elif self.tab_target.currentIndex() == 1:
-                if not self._current_consolidation == None:
-                    if not self._current_material == None:
-                        # Get the uuid of the current material.
-                        mat_uuid = self.current_material.uuid
+            if isAccepted == 1:
+                # Get attributes from text boxes.
+                self._current_file.status = str(dlg_img_fil.cmb_fil_stts.currentText())
+                self._current_file.operation = str(dlg_img_fil.cmb_fil_eope.currentText())
+                self._current_file.alias = str(dlg_img_fil.tbx_fil_ali.text())                             # Alias
+                self._current_file.operating_application = str(dlg_img_fil.tbx_fil_ope_app.text())         # Operating application
+                self._current_file.caption = str(dlg_img_fil.tbx_fil_capt.text())                          # Caption
+                self._current_file.description = str(dlg_img_fil.tbx_fil_dsc.text())                       # Description
+                self._current_file.created_date = str(dlg_img_fil.dte_fil_dt_cre.text())
+                self._current_file.modified_date = str(dlg_img_fil.dte_fil_dt_mod.text())
+                self._current_file.public = int(dlg_img_fil.cbx_fil_pub.isChecked())
+                self._current_file.lock = int(dlg_img_fil.cbx_fil_edit.isChecked())
+                
+                # Update the file information.
+                self._current_file.dbUpdate(self._database)
+                
+                # Get the tree item index of currently selected.
+                cur_tree_index = self.tre_fls.currentIndex().row()
+                
+                # Refresh image file list.
+                self.refreshImageInfo()
+                
+                if self.tab_target.currentIndex() == 0:
+                    if not self._current_consolidation == None:
+                        # Get the uuid of the current consolidation.
+                        con_uuid = self._current_consolidation.uuid
                         
                         # Reset the current consolidation.
-                        self._current_material = features.Material(is_new=False, uuid=mat_uuid, dbfile=self._database)
+                        self._current_consolidation = features.Consolidation(is_new=False, uuid=con_uuid, dbfile=self._database)
                         
-                        # Set file information of material images.
-                        self.refreshFileList(self._current_material)
-            
-            self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(cur_tree_index))
+                        # Set file information of consolidation images.
+                        self.refreshFileList(self._current_consolidation)
+                elif self.tab_target.currentIndex() == 1:
+                    if not self._current_consolidation == None:
+                        if not self._current_material == None:
+                            # Get the uuid of the current material.
+                            mat_uuid = self.current_material.uuid
+                            
+                            # Reset the current consolidation.
+                            self._current_material = features.Material(is_new=False, uuid=mat_uuid, dbfile=self._database)
+                            
+                            # Set file information of material images.
+                            self.refreshFileList(self._current_material)
+                
+                self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(cur_tree_index))
         except Exception as e:
             print("Error occurs in main::editImageInformation(self)")
             print(str(e))

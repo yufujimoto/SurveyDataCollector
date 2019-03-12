@@ -322,6 +322,7 @@ def correctRotaion(fl_input):
     print("imageProcessing::correctRotaion(fl_input)")
     
     try:
+        '''
         # save the result
         metadata = ImageMetadata(fl_input)
         metadata.read()
@@ -337,6 +338,7 @@ def correctRotaion(fl_input):
         
         # Return the output file name.
         return(True)
+        '''
     except Exception as e:
         print("Error occurs in imageProcessing::correctRotaion(in_file)")
         print(str(e))

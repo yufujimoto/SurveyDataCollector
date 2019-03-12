@@ -55,11 +55,31 @@ class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
             font_style = font_style_color + font_style_size
             
             # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
+            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            self.frame.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            
+            # Set the default skin for text boxes.
+            text_border = 'border-style: none; border-width: 0.5px; border-color: #4C4C4C;'
+            text_background = "background-color: #6C6C6C;"
+            self.tbx_con_uuid.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_con_name.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_con_geoname.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_con_temporal.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+            self.tbx_con_description.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        
         elif parent.skin == "white":
             # Set the icon path.
             icon_path = os.path.join(parent.icon_directory, "black")
-            
+        
+        # Set the dialog button size.
+        dlg_btn_size = QSize(125, 30)
+        self.bbx_con_res.buttons()[0].setMinimumSize(dlg_btn_size)
+        self.bbx_con_res.buttons()[1].setMinimumSize(dlg_btn_size)
+        
+        # Set the skin and icon.
+        self.bbx_con_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
+        self.bbx_con_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
+        
         # Change the default icons for dialoc button box.
         self.bbx_con_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
         self.bbx_con_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
@@ -71,12 +91,16 @@ class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
             self.lbl_con_tempral.setText("時間識別子 :")
             self.lbl_con_description.setText("統合体の備考 :")
             self.lbl_con_geoname.setText("地理識別子 :")
+            self.bbx_con_res.buttons()[0].setText("OK")
+            self.bbx_con_res.buttons()[1].setText("キャンセル")
         elif parent.language == "en":
             self.lbl_con_uuid.setText("UUID :")
             self.lbl_con_description.setText("Description :")
             self.lbl_con_name.setText("Name :")
             self.lbl_con_geoname.setText("Location:")
             self.lbl_con_tempral.setText("Era/Age:")
+            self.bbx_con_res.buttons()[0].setText("OK")
+            self.bbx_con_res.buttons()[1].setText("Cancel")
         
         # Set attributes to text boxes.
         self.tbx_con_uuid.setText(parent._current_consolidation.uuid)
