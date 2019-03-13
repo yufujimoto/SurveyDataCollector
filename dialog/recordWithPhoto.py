@@ -160,11 +160,31 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             font_style = font_style_color + font_style_size
             
             # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
-            
+            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            self.frm_photo_view.setStyleSheet('border-style: solid; border-width: 0.5px; border-color: #FFFFFF;')
         elif skin == "white":
             # Set the icon path.
             self._icon_directory = os.path.join(self._icon_directory, "black")
+        
+        # Set the dialog button size.
+        dlg_btn_size = QSize(125, 30)
+        self.bbx_rec_pht.buttons()[0].setMinimumSize(dlg_btn_size)
+        self.bbx_rec_pht.buttons()[1].setMinimumSize(dlg_btn_size)
+        
+        # Set the skin and icon.
+        self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
+        self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
+        
+        # Setup labels with designated language.
+        if parent.language == "ja":
+            self.lbl_fl_snd.setText("音声ファイル")
+            self.btn_rec_start.setText("録音開始")
+            self.btn_rec_stop.setText("録音停止")
+            self.lbl_img.setText("画像一覧")
+        elif parent.language == "en":
+            self.lbl_fl_snd.setText("Sound Files")
+            self.btn_rec_start.setText("Rec")
+            self.lbl_img.setText("Stop")
         
         # Initialyze the list view of the thumbnails.
         self.lst_img_icon.setIconSize(QSize(200,200))
@@ -181,8 +201,8 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.btn_rec_stop.setIconSize(QSize(24,24))
         
         # Define the return values.
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
+        self.bbx_rec_pht.accepted.connect(self.accept)
+        self.bbx_rec_pht.rejected.connect(self.reject)
         
         # Create the graphic view item.        
         self.graphicsView = viewer.ImageViewer()
