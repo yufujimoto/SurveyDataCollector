@@ -50,29 +50,6 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QLabel" name="lbl_fl_snd">
-          <property name="text">
-           <string>録音メニュー</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListWidget" name="lst_snd_fls">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>370</width>
-            <height>100</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QGridLayout" name="gridLayout">
           <property name="topMargin">
            <number>0</number>
@@ -193,6 +170,29 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_fl_snd">
+          <property name="text">
+           <string>録音メニュー</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="lst_snd_fls">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>370</width>
+            <height>100</height>
+           </size>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="lbl_img">

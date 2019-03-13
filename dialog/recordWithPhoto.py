@@ -135,45 +135,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         
         # Initialize the window.
         self.setWindowTitle(self.tr("Check Tethered Image"))
-        self.setWindowState(Qt.WindowMaximized)
-        
-        # Initialyze the user interface.
-        # Get the proper font size from the display size and set the font size.
-        font_size = skin.getFontSize()
-        
-        # Make the style sheet.
-        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
-        
-        # Define the font object for Qt.
-        font = QFont()
-        font.setPointSize(font_size)
-        
-        self.setFont(font)
-        
-        if parent.skin == "grey":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "white")
-            
-            # Set the default background and front color.
-            back_color = 'background-color: #2C2C2C;'
-            font_style_color = 'color: #FFFFFF;'
-            font_style = font_style_color + font_style_size
-            
-            # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
-            self.frm_photo_view.setStyleSheet('border-style: solid; border-width: 0.5px; border-color: #FFFFFF;')
-        elif skin == "white":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "black")
-        
-        # Set the dialog button size.
-        dlg_btn_size = QSize(125, 30)
-        self.bbx_rec_pht.buttons()[0].setMinimumSize(dlg_btn_size)
-        self.bbx_rec_pht.buttons()[1].setMinimumSize(dlg_btn_size)
-        
-        # Set the skin and icon.
-        self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
-        self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
+        self.setWindowState(Qt.WindowMaximized)        
         
         # Setup labels with designated language.
         if parent.language == "ja":
@@ -184,7 +146,8 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         elif parent.language == "en":
             self.lbl_fl_snd.setText("Sound Files")
             self.btn_rec_start.setText("Rec")
-            self.lbl_img.setText("Stop")
+            self.btn_rec_stop.setText("Stop")
+            self.lbl_img.setText("Image File List")
         
         # Initialyze the list view of the thumbnails.
         self.lst_img_icon.setIconSize(QSize(200,200))
@@ -221,7 +184,53 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         
         # Get tethered image files.
         self.getImageFiles()
-        self.getSoundFiles()   
+        self.getSoundFiles()
+        
+        # Initialyze the user interface.
+        # Get the proper font size from the display size and set the font size.
+        font_size = skin.getFontSize()
+        
+        # Make the style sheet.
+        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
+        
+        # Define the font object for Qt.
+        font = QFont()
+        font.setPointSize(font_size)
+        
+        self.setFont(font)
+        
+        if parent.skin == "grey":
+            # Set the icon path.
+            self._icon_directory = os.path.join(self._icon_directory, "white")
+            
+            # Set the default background and front color.
+            back_color = 'background-color: #2C2C2C;'
+            font_style_color = 'color: #FFFFFF;'
+            font_style = font_style_color + font_style_size
+            
+            # Set the default skin for all components.
+            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
+            #self.frm_photo_view.setStyleSheet('border-style: solid; border-width: 0.5px; border-color: #FFFFFF;')
+            self.graphicsView.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
+            
+            self.lst_snd_fls.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
+            self.lst_img_icon.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
+        elif skin == "white":
+            # Set the icon path.
+            self._icon_directory = os.path.join(self._icon_directory, "black")
+        
+        # Set the dialog button size.
+        dlg_btn_size = QSize(125, 30)
+        self.bbx_rec_pht.buttons()[0].setMinimumSize(dlg_btn_size)
+        self.bbx_rec_pht.buttons()[1].setMinimumSize(dlg_btn_size)
+        
+        # Set the skin and icon.
+        self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
+        self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
+        
+        # Change the icon color red to black.
+        self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'record.png'))))
+        self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'pause.png'))))
         
     def startRecording(self):
         print("recordWithPhoto::startRecording(self)")
