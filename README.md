@@ -75,8 +75,8 @@ In addition to above softwares, this system requires python libraries as below:
 
 ## Additional Libraries
 
-    +	cartopy
-    +	flickrapi
+    + cartopy
+    + flickrapi
 
  Most of these libraries can be installed by using "pip" or "easy_install" commands for python. But some libraries are not provided
  officially. These libraries should be installed from GitHub. 
