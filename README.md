@@ -19,27 +19,33 @@ This tethered shooting system requires following softwares. These are easily ins
 In addition to above softwares, this system requires python libraries as below:
 
  [GUI libraries]
+
     + PyQt5
     + Queue
     + pyqtgraph
 
  [Generic libraries]
+
     + sys, stat, os, shutil, subprocess, pipes, getopt, xml, operator, math, getopt
       argparse, optparse, uuid, time, math, tempfile, logging, mimetypes, lxml, datetime, dateutil
 
  [DataBase Management System libraries]
+
     + sqlite3
 
  [Sound libraries]
+
     + sounddevice, soundfile
 
  [Image processing libraries]
+
     + gphoto2, PIL, cv2, imutils, numpy, pyexiv2, six, rawkit, pexif, exifread, colorcorrect, colorsys
 
  [Sound managing libraries] 
     + sounddevice, soundfile
 
  [Additional Libraries]
+
     +	cartopy
     +	flickrapi
 
