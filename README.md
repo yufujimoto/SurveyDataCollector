@@ -75,6 +75,7 @@ In addition to above softwares, this system requires python libraries as below:
     + exifread
 
  [Sound managing libraries] 
+
     + sounddevice
     + soundfile
 
