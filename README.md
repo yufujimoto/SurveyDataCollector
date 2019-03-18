@@ -1,11 +1,5 @@
 # Summary
- This tethered shooting system provides various kinds of digital archiving tasks: Taking photo, recording and database managing.
- In addion to these tasks, this system provides other extra tools for simplified image processing, optical character recognition,
- exporting data. These functions are implemented by thanks to open source software and/or libraries listed below.
- The database schema of this system is comforming to ISO 19109, which is the international standard based on the idea of Object
- Oriented GIS (OOGIS). This standard is complecated, and it is not easy to understand and/or implement as a independent system.
- Because of this reason, The author of this system previously proposed "The Simple Object Profile (SOP)", which is simple and
- versatile implementation of the ISO 19109. This system implements the SOP on the one hand. 
+ The Survey Data Collector (SDC) is a digital archiving system for various kinds of cultural and/or natural assets. This system based on the “Simple Object Profile”, which is a well structured information management model in comforming to ISO 19100 series, the International Standards for Geographic Information System (GIS).
 
 # Requirements
 This tethered shooting system requires following softwares. These are easily installed by the "apt-get" command.
