@@ -16,65 +16,30 @@
 
 # In addition to above softwares, this system requires python libraries as below:
  [GUI libraries]
-    + PyQt5
-
- [Python Libraries]
-    +	argparse
-    +	cartopy
-    +	colorcorrect.util
-    +	colorsys
-    +	cv2
-    +	datetime
-    +	dateutil.parser
-    +	exifread
-    +	flickrapi
-    +	getopt
-    +	gphoto2
-    +	imutils
-    +	logging
-    +	lxml
-    +	math
-    +	mimetypes
-    +	numpy
-    +	operator
-    +	optparse
-    +	os
-    +	pexif
-    +	PIL
-    +	pipes
-    +	pyexiv2
-    +	PyQt5
-    +	pyqtgraph
-    +	Queue
-    +	rawkit
-    +	shutil
-    +	six
-    +	sounddevice
-    +	soundfile
-    +	sqlite3
-    +	stat
-    +	subprocess
-    +	sys
-    +	tempfile
-    +	time
-    +	uuid
-    +	xml
+    + PyQt5, Queue, pyqtgraph
 
  [Generic libraries]
-    + sys, stat, os, shutil, subprocess, pipes, getopt,
-      argparse, optparse, uuid, time, math, tempfile, logging,
+    + sys, stat, os, shutil, subprocess, pipes, getopt, xml, operator, math, getopt
+      argparse, optparse, uuid, time, math, tempfile, logging, mimetypes, lxml, datetime, dateutil
 
  [DataBase Management System libraries]
     + sqlite3
 
+ [Sound libraries]
+    + sounddevice, soundfile
+
  [Image processing libraries]
-    + PIL, cv2, imutils, numpy, pyexiv2
-    
- Most of these libraries can be installed by using "pip" or "easy_install" commands for python. But some libraries are not provided
- officially. These libraries should be installed from GitHub. 
+    + gphoto2, PIL, cv2, imutils, numpy, pyexiv2, six, rawkit, pexif, exifread, colorcorrect, colorsys
 
  [Sound managing libraries] 
-    + Queue, sounddevice, soundfile
+    + sounddevice, soundfile
+
+ [Additional Libraries]
+    +	cartopy
+    +	flickrapi
+
+ Most of these libraries can be installed by using "pip" or "easy_install" commands for python. But some libraries are not provided
+ officially. These libraries should be installed from GitHub. 
 
 # General Functions
 ## Image Processing Tools
