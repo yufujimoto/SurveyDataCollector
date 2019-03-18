@@ -26,8 +26,29 @@ In addition to above softwares, this system requires python libraries as below:
 
  [Generic libraries]
 
-    + sys, stat, os, shutil, subprocess, pipes, getopt, xml, operator, math, getopt
-      argparse, optparse, uuid, time, math, tempfile, logging, mimetypes, lxml, datetime, dateutil
+    + os
+    + sys
+    + stat
+    + mimetypes
+    + tempfile
+    + shutil
+    + subprocess
+    + pipes
+    + getopt
+    + argparse
+    + optparse
+    + operator
+    + uuid
+    + math
+    + logging
+    + xml
+    + lxml
+
+ [Temporal data handling libraries]
+
+    + time
+    + datetime
+    + dateutil
 
  [DataBase Management System libraries]
 
@@ -35,14 +56,27 @@ In addition to above softwares, this system requires python libraries as below:
 
  [Sound libraries]
 
-    + sounddevice, soundfile
+    + sounddevice
+    + soundfile
 
  [Image processing libraries]
 
-    + gphoto2, PIL, cv2, imutils, numpy, pyexiv2, six, rawkit, pexif, exifread, colorcorrect, colorsys
+    + PIL
+    + cv2
+    + numpy
+    + six
+    + gphoto2
+    + rawkit
+    + imutils
+    + colorcorrect
+    + colorsys
+    + pyexiv2
+    + pexif
+    + exifread
 
  [Sound managing libraries] 
-    + sounddevice, soundfile
+    + sounddevice
+    + soundfile
 
  [Additional Libraries]
 
