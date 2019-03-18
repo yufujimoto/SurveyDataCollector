@@ -7,7 +7,9 @@
  Because of this reason, The author of this system previously proposed "The Simple Object Profile (SOP)", which is simple and
  versatile implementation of the ISO 19109. This system implements the SOP on the one hand. 
 
-# This tethered shooting system requires following softwares. These are easily installed by the "apt-get" command.
+# Requirements
+This tethered shooting system requires following softwares. These are easily installed by the "apt-get" command.
+
     + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
     + dcraw         : The open source software handling RAW images on this system.
     + gimp          : The open source photo retouch software under GPL providing advanced image editing.
