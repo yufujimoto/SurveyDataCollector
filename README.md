@@ -18,13 +18,13 @@ This tethered shooting system requires following softwares. These are easily ins
 
 In addition to above softwares, this system requires python libraries as below:
 
- [GUI libraries]
+## GUI libraries
 
     + PyQt5
     + Queue
     + pyqtgraph
 
- [Generic libraries]
+## Generic libraries
 
     + os
     + sys
@@ -44,22 +44,22 @@ In addition to above softwares, this system requires python libraries as below:
     + xml
     + lxml
 
- [Temporal data handling libraries]
+## Temporal data handling libraries
 
     + time
     + datetime
     + dateutil
 
- [DataBase Management System libraries]
+## DataBase Management System libraries
 
     + sqlite3
 
- [Sound libraries]
+## Sound libraries
 
     + sounddevice
     + soundfile
 
- [Image processing libraries]
+## Image processing libraries
 
     + PIL
     + cv2
@@ -74,12 +74,12 @@ In addition to above softwares, this system requires python libraries as below:
     + pexif
     + exifread
 
- [Sound managing libraries] 
+## Sound managing libraries
 
     + sounddevice
     + soundfile
 
- [Additional Libraries]
+## Additional Libraries
 
     +	cartopy
     +	flickrapi
@@ -89,6 +89,7 @@ In addition to above softwares, this system requires python libraries as below:
 
 # General Functions
 ## Image Processing Tools
+
     + Rotation           : A generic function.
     + Automatic Cropping : A contour function provided by OpenCV. The function automalicaly remove mergines.
     + Auto Enhancing     : A CLAHE (Contrast Limited Adaptive Histogram Equalization) Algolithm provided by OpenCV.
