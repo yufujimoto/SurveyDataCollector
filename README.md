@@ -16,9 +16,12 @@ This tethered shooting system requires following softwares. These are easily ins
     + rawtherapee   : The open source RAW image processing software.
     + Sqlite        : The open source light weight DataBase Management System.
 
-# In addition to above softwares, this system requires python libraries as below:
+In addition to above softwares, this system requires python libraries as below:
+
  [GUI libraries]
-    + PyQt5, Queue, pyqtgraph
+    + PyQt5
+    + Queue
+    + pyqtgraph
 
  [Generic libraries]
     + sys, stat, os, shutil, subprocess, pipes, getopt, xml, operator, math, getopt
