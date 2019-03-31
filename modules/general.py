@@ -4,9 +4,11 @@
 # Import general libraries.
 import sys, os, time, pyexiv2
 import sqlite3 as sqlite
+import xml.etree.cElementTree as ET
 
 from mimetypes import MimeTypes
 
+# Import custom modules
 import modules.error as error
 
 # Import PyQt5 libraries for generating the GUI application.
@@ -20,6 +22,36 @@ LAB_CON_JA = u"統合体"
 LAB_MAT_JA = u"資料"
 LAB_CON_EN = u"Consolidation"
 LAB_MAT_EN = u"Material"
+
+def changeConfig(parent):
+        print("main::changeConfig(self)")
+        
+        try:
+            # Get the root node of the configuration file.
+            xml_config = ET.parse(parent.config_file).getroot()
+            
+            # Replace current settings by new values.
+            for xml_child in xml_config:
+                # Configurations for User Interface.
+                if xml_child.tag == "theme":
+                    xml_child.find("language").text = parent.language    # Language settings.
+                    xml_child.find("skin").text = parent.skin            # Skin settings.
+                if xml_child.tag == "project":
+                    xml_child.find("root").text = parent.root_directory  # Current project.
+                if xml_child.tag == "tools":
+                    xml_child.find("awb").text = parent.awb_algo  # Auto white balance algorithm.
+                    xml_child.find("psp").text = parent.psp_algo  # Pansharpen algorithm
+            
+            # Create a new tree object by new entries.
+            tree = ET.ElementTree(xml_config)
+            
+            # Save the new configuration.
+            tree.write(parent.config_file)
+        except Exception as e:
+            print("Error occured in main::changeConfig(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
 
 def pyDateTimeToQDateTime(value):
     print("general::pyDateTimeToqDateTime(value)")
@@ -67,17 +99,7 @@ def askNewProject(parent):
             )
         
         # Create the directory of consolidation
-        if not reply == QMessageBox.Yes:
-            # Initialyze  global vaiables.
-            parent._root_directory = prev_root_directory
-            parent._table_directory = prev_table_directory
-            parent._consolidation_directory = prev_consolidation_directory
-            parent._database = prev_database
-            parent._current_consolidation = prev_consolidation
-            parent._current_material  = prev_material
-            
-            return(None)
-        elif reply == QMessageBox.Yes:
+        if reply == QMessageBox.Yes:
             # Create the consolidation directory and the table directory.
             os.mkdir(parent._consolidation_directory)
             os.mkdir(parent._table_directory)
@@ -85,7 +107,8 @@ def askNewProject(parent):
             # Create new tables which defined by Simple Object Profile(SOP).
             createTables(parent._database)
             
-            return(True)
+            # Returns True. 
+            return(True)    
         else:
             raise
     except Exception as e:
@@ -253,7 +276,7 @@ def createTables(dbfile):
         # Define the create table query for additional attribute class.
         createTableAdditionalAttribute(dbfile)
     except Exception as e:
-        print("Error occurs in general::createTables(dbfile)")
+        print("Error occured in general::createTables(dbfile)")
         print(str(e))
         
         # Return Nothing..
@@ -276,7 +299,7 @@ def createTableConsolidation(dbfile):
         # Execute SQL create.
         executeSql(dbfile, sql_create)
     except Exception as e:
-        print("Error occurs in general::createTableConsolidation(dbfile)")
+        print("Error occured in general::createTableConsolidation(dbfile)")
         print(str(e))
         
         # Return Nothing
@@ -306,7 +329,7 @@ def createTableMaterial(dbfile):
         # Execute SQL create.
         executeSql(dbfile, sql_create)
     except Exception as e:
-        print("Error occurs in general::createTableMaterial(dbfile)")
+        print("Error occured in general::createTableMaterial(dbfile)")
         print(str(e))
         
         # Retrun nothing.
@@ -343,7 +366,7 @@ def createTableFile(dbfile):
         # Execute SQL create.
         executeSql(dbfile, sql_create)
     except Exception as e:
-        print("Error occurs in general::createTables(dbfile)")
+        print("Error occured in general::createTables(dbfile)")
         print(str(e))
         
         # Return Nothing.
@@ -368,7 +391,7 @@ def createTableAdditionalAttribute(dbfile):
         # Execute SQL create.
         executeSql(dbfile, sql_create)
     except Exception as e:
-        print("Error occurs in general::createTables(dbfile)")
+        print("Error occured in general::createTables(dbfile)")
         print(str(e))
         
         # Return Nothing.
@@ -398,7 +421,7 @@ def checkTableExist(dbfile, table_name):
             else:
                 return(False)
     except Exception as e:
-        print("Error occurs in general::checkTableExist(dbfile, table_name)")
+        print("Error occured in general::checkTableExist(dbfile, table_name)")
         print(str(e))
         
         # Return nothing.
@@ -420,7 +443,7 @@ def checkConsolidationTableFields(dbfile):
         # Check fields.
         checkFieldsExists(dbfile, "consolidation", con_fields)
     except Exception as e:
-        print("Error occurs in general::checkConsolidationTableFields(dbfile)")
+        print("Error occured in general::checkConsolidationTableFields(dbfile)")
         print(str(e))
         
         # Return nothing.
@@ -446,7 +469,7 @@ def checkMaterialTableFields(dbfile):
         # Check fields.
         checkFieldsExists(dbfile, "material", mat_fields)
     except Exception as e:
-        print("Error occurs in general::checkMaterialTableFields(dbfile)")
+        print("Error occured in general::checkMaterialTableFields(dbfile)")
         print(str(e))
         
         # Return nothing.
@@ -478,7 +501,7 @@ def checkFileTableFields(dbfile):
         # Check fields.
         checkFieldsExists(dbfile, "file", fil_fields)
     except Exception as e:
-        print("Error occurs in general::checkFileTableFields(dbfile)")
+        print("Error occured in general::checkFileTableFields(dbfile)")
         print(str(e))
         
         # Return nothing.
@@ -501,7 +524,7 @@ def checkAdditionalAttributeTableFields(dbfile):
         # Check fields.
         checkFieldsExists(dbfile, "additional_attribute", add_fields)
     except Exception as e:
-        print("Error occurs in general::checkAdditionalAttributeTableFields(dbfile)")
+        print("Error occured in general::checkAdditionalAttributeTableFields(dbfile)")
         print(str(e))
         
         # Return nothing.
@@ -542,7 +565,7 @@ def checkFieldsExists(dbfile, table_name, fields):
             # Commit the result of the query.
             conn.commit()
     except Error as e:
-        print("Error occurs in general::checkFieldsExists(dbfile, table_name, fields)")
+        print("Error occured in general::checkFieldsExists(dbfile, table_name, fields)")
         print(str(e))
         
         # Returns nothing.
@@ -582,7 +605,7 @@ def createDirectories(item_path, isConsolidation):
         if isConsolidation:
             os.mkdir(os.path.join(sop_dir_root, "Materials"))
     except Exception as e:
-        print("Error occurs in general::checkAdditionalAttributeTableFields(dbfile)")
+        print("Error occured in general::checkAdditionalAttributeTableFields(dbfile)")
         print(str(e))
         
         return(None)
@@ -622,7 +645,7 @@ def getMimeType(path):
         
         return(mime_type)
     except Exception as e:
-        print("Error occurs in general::getMimeType(path)")
+        print("Error occured in general::getMimeType(path)")
         print(str(e))
         
         return(None)
@@ -644,7 +667,7 @@ def copyExif(org_file, dst_file):
         meta_org.copy(meta_dst)
         meta_dst.write()
     except Exception as e:
-        print("Error occurs in general::copyExif(org_file, dst_file)")
+        print("Error occured in general::copyExif(org_file, dst_file)")
         print(str(e))
         
         return(None)

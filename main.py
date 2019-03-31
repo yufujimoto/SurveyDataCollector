@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
+import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, gc
 import xml.etree.cElementTree as ET
 
 from os.path import expanduser
@@ -36,6 +36,7 @@ import modules.flickr_upload as flickr
 
 # Import GUI window.
 import dialog.mainWindow as mainWindow
+import dialog.configuration as configurationDialog
 import dialog.consolidation as consolidationDialog
 import dialog.material as materialDialog
 import dialog.checkTetheredImage as checkTetheredImageDialog
@@ -98,6 +99,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     @property
     def current_camera(self): return self._current_camera
     @property
+    def awb_algo(self): return self._awb_algo
+    @property
+    def psp_algo(self): return self._psp_algo
+    @property
     def language(self): return self._language
     @property
     def skin(self): return self._skin
@@ -146,6 +151,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def current_file(self, value): self._current_file = value
     @current_camera.setter
     def current_camera(self, value): self._current_camera = value
+    @awb_algo.setter
+    def awb_algo(self, value): self._awb_algo = value
+    @psp_algo.setter
+    def psp_algo(self, value): self._psp_algo = value
     @language.setter
     def language(self, value): self._language = value
     @skin.setter
@@ -156,6 +165,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def flickr_secret(self, value): self._flickr_secret = value
     
     def __init__(self, parent=None):
+        # Clear memory
+        gc.collect()
+        
         # Make this class as the super class and initialyze the class.
         super(mainPanel, self).__init__(parent)
         self.setupUi(self)
@@ -194,6 +206,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.detectCamera()
         self.addGeographiData()
         
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
+        # Set default algorithms.
+        self._awb_algo = "retinex_adjusted"
+        self._psp_algo = "ihsConvert"
+        
         # Initialyze the temporal directory.
         if not os.path.exists(self._temporal_directory):
             # Create the temporal directory if not exists.
@@ -222,6 +242,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             project = ET.SubElement(root, "project")
             ET.SubElement(project, "root").text = ""
             
+            # Create the tool node
+            tools = ET.SubElement(root, "tools")
+            
+            ET.SubElement(tools, "awb").text = self._awb_algo
+            ET.SubElement(tools, "psp").text = self._psp_algo
+            
             tree = ET.ElementTree(root)
             tree.write(self._config_file)
             
@@ -235,6 +261,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if xml_child.tag == "theme":
                     self._language = xml_child.find("language").text
                     self._skin = xml_child.find("skin").text
+                if xml_child.tag == "tools":
+                    self._awb_algo = xml_child.find("awb").text
+                    self._psp_algo = xml_child.find("psp").text
                 if xml_child.tag == "project":
                     if not xml_child.find("root").text == "":
                         xml_root = xml_child.find("root").text
@@ -268,42 +297,28 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # General operation
     # ==========================
-    def changeConfig(self):
-        print("main::changeConfig(self)")
+    def openConfigDialog(self):
+        print("main::openConfigDialog(self)")
         
-        try:
-            xml_config = ET.parse(self._config_file).getroot()
-                
-            for xml_child in xml_config:
-                if xml_child.tag == "theme":
-                    xml_child.find("language").text = self._language
-                    xml_child.find("skin").text = self._skin
-                if xml_child.tag == "project":
-                    xml_child.find("root").text = self._root_directory
-                    
-            tree = ET.ElementTree(xml_config)
-            tree.write(self._config_file)
-        except Exception as e:
-            print("Error occurs in main::changeConfig(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
-        
+        self.dialogConfig = configurationDialog.configurationDialog(self)
+        self.dialogConfig.exec_()
+    
     def setSkin(self, lang, theme):
         print("main::setSkin(self, lang, theme)")
         
         try:
+            # Reset values.
             self._language = lang
             self._skin = theme
-                    
-            # Set skin.
+            
+            # Apply the new skin.
             skin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
             skin.setMainWindowButtonText(self)
             
             # Set the tool tips with the specific language.
             skin.setMainWindowToolTips(self)
         except Exception as e:
-            print("Error occurs in main::setSkin(self, lang, theme)")
+            print("Error occured in main::setSkin(self, lang, theme)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -319,14 +334,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             skin.setMainWindowButtonText(self)
             skin.setMainWindowToolTips(self)
             
-            # Set the initial image to thumbnail viewer.
-            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-            self.showImage(img_file_path)
-            
             # Update the current config.
-            self.changeConfig()
+            general.changeConfig(self)
         except Exception as e:
-            print("Error Occurs in main::setLangEn(self)")
+            print("Error occured in main::setLangEn(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -342,20 +353,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             skin.setMainWindowButtonText(self)
             skin.setMainWindowToolTips(self)
             
-            # Set the initial image to thumbnail viewer.
-            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-            self.showImage(img_file_path)
-            
             # Update the current config.
-            self.changeConfig()
+            general.changeConfig(self)
         except Exception as e:
-            print("Error Occurs in main::setLangEn(self)")
+            print("Error occured in main::setLangEn(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-            
+    
     def importExternalData(self):
         print("main::importExternalData(self)")
+        
+        # Set the dialog tile message.
+        msg_title = ""
+        
+        if self._language == "ja":
+            msg_title = "ファイルの選択"
+        elif self._language == "en":
+            msg_title = "Select files to import"
         
         try: 
             # Exit if the root directory is not loaded.
@@ -376,7 +391,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
             
             # Define directories for storing files.
-            in_dir = QFileDialog.getOpenFileNames(self, "ファイルの選択")
+            in_dir = QFileDialog.getOpenFileNames(self, msg_title)
             
             # Initialyze the uuid for the consolidation and the mateselfrial.
             sop_object = None
@@ -417,7 +432,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Refresh the file list.
             self.refreshFileList(sop_object)
         except Exception as e:
-            print("Error occurs in main::importExternalData(self)")
+            print("Error occured in main::importExternalData(self)")
+            print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
@@ -489,23 +505,30 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Select the first entry as the default.
                 self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
         except sqlite.DatabaseError as e:
-            print("Error occurs in main::retriveProjectItems(self)")
+            print("Error occured in main::retriveProjectItems(self)")
             print(staticmethod(e))
             error.ErrorMessageDbConnection(str(e.args[0]))
             return(None)
     
     def getTheRootDirectory(self):
         print("main::getTheRootDirectory(self)")
-        
+        print(1)
+        # Set the dialog title message.
+        msg_dialog = ""
+        if self._language == "en":
+            msg_dialog = "Select the project directory"
+        elif self._language == "ja":
+            msg_dialog = "プロジェクトディレクトリの選択"
+        print(2)
         try:
             # Initialyze the tree view.
             self.tre_prj_item.clear()
-            
+            print(3)
             # Reflesh the last selection.
             self.refreshConsolidationInfo()
             self.refreshMaterialInfo()
             self.refreshImageInfo()
-            
+            print(4)
             # Get the current directories and save as previous entries.
             prev_root_directory = self._root_directory
             prev_table_directory = self._table_directory
@@ -513,10 +536,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             prev_database = self._database
             prev_consolidation = self._current_consolidation
             prev_material = self._current_material
-            
+            print(5)
             # Define directories for storing files.
-            self._root_directory = QFileDialog.getExistingDirectory(self, "Select the project directory")
-            
+            self._root_directory = QFileDialog.getExistingDirectory(self, msg_dialog)
+            print(6)
             # Return nothing and exit this process if direcotry is not selected.
             if not os.path.exists(self.root_directory):
                 self._root_directory = prev_root_directory
@@ -525,27 +548,41 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self._database = prev_database
                 self._current_consolidation = prev_consolidation
                 self._current_material = prev_material
-                
+                print(7)
+                # Exit this process.
                 return(None)
-            
+            print(8)
             # Some essential directories are created under the root directory if they are not existed.
             self._table_directory = os.path.join(self._root_directory, "Table")
             self._consolidation_directory = os.path.join(self._root_directory, "Consolidation")
-            
+            print(9)
             # Reset the current consolidation and the current material.
             self._current_consolidation = None
             self._current_material = None
-            
+            print(10)
             # Define the DB file.
             self._database = os.path.join(self._table_directory, "project.db")
-            
+            print(11)
             # Check Flickr API Key File.
             self.checkFlickrKey()
-            
+            print(12)
             # Show the project creation dialog if the path is not existed.
-            if not os.path.exists(self._database): general.askNewProject(self)
+            if not os.path.exists(self._database):
+                createNewProject = general.askNewProject(self)
+                if createNewProject == None:
+                    # Set initial settings by previously loaded.
+                    self._root_directory = prev_root_directory
+                    self._table_directory = prev_table_directory
+                    self._consolidation_directory = prev_consolidation_directory
+                    self._database = prev_database
+                    self._current_consolidation = prev_consolidation
+                    self._current_material  = prev_material
+                    print(13)
+                    # Exit this process.
+                    return(None)
             
             # Open the project.
+            print(14)
             self.openProject()
         except Exception as e:
             print("main::getTheRootDirectory(self)")
@@ -579,9 +616,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     self.retriveProjectItems()
                     
                     # Change the current project.
-                    self.changeConfig()
+                    general.changeConfig(self)
             except sqlite.DatabaseError as e:
-                print("Error occurs inn main::openProject(self)")
+                print("Error occured inn main::openProject(self)")
                 print(str(e))
                 error.ErrorMessageDbConnection(details=str(e), language=self._language)
                 return(None)
@@ -625,7 +662,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Returns nothing.
                 return(None)
         except Exception as e:
-            print("Error occurs in main::showImage(self)")
+            print("Error occured in main::showImage(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -651,7 +688,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 else:
                     self.refreshConsolidationInfo()
         except Exception as e:
-            print("Error occurs in main::toggleCurrentObjectTab(self)")
+            print("Error occured in main::toggleCurrentObjectTab(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -705,7 +742,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Set attributes of the consolidation and the material to the input boxes.
                 self.setConsolidationInfo(self._current_consolidation)
-                self.setMaterialInfo(self._current_material)
+                self.setMaterialInfo()
                 
                 # Set active control tab for consolidation.
                 self.tab_target.setCurrentIndex(1)
@@ -713,7 +750,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
         except Exception as e:
-            print("Error occurs in main::toggleCurrentTreeObject(self)")
+            print("Error occured in main::toggleCurrentTreeObject(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -753,7 +790,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Refresh the file list.
             if not sop_object == None: self.refreshFileList(sop_object)
         except Exception as e:
-            print("Error occurs in main::toggleShowFileMode(self)")
+            print("Error occured in main::toggleShowFileMode(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -768,11 +805,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Get images from the given class.
             images = sop_object.images
             sounds = sop_object.sounds
+            texts = sop_object.texts
             
             if not images == None and len(images) > 0:
                 for image in images: self.setFileInfo(image)
             if not sounds == None and len(sounds) > 0:
                 for sound in sounds: self.setFileInfo(sound)
+            if not texts == None and len(texts) > 0:
+                for text in texts: self.setFileInfo(text)
                 
             # Refresh the tree view.
             self.tre_fls.resizeColumnToContents(0)
@@ -783,7 +823,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
             self.tre_fls.show()
         except Exception as e:
-            print("Error occurs in mainPanel::refreshFileList")
+            print("Error occured in mainPanel::refreshFileList")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -895,7 +935,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Refresh the tree view.
             self.retriveProjectItems()
         except Exception as e:
-            print("Error occurs in main::importConsolidationCSV(self)")
+            print("Error occured in main::importConsolidationCSV(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -995,7 +1035,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Writet the attribute lines.
                     output_csv.writelines(con_generic_values.lstrip(",") + con_additional_values + "\n")
         except Exception as e:
-            print("Error occurs in main::exportConsolidationCSV(self)")
+            print("Error occured in main::exportConsolidationCSV(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1051,7 +1091,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Set file information of material images.
                 self.refreshFileList(self._current_consolidation)
         except Exception as e:
-            print("Error occurs in main::addConsolidation(self)")
+            print("Error occured in main::addConsolidation(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1103,7 +1143,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Set file information of material images.
                 self.refreshFileList(self._current_consolidation)
         except Exception as e:
-            print("Error occurs in main::updateConsolidation(self)")
+            print("Error occured in main::updateConsolidation(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1164,7 +1204,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshMaterialInfo()
             self.refreshImageInfo()
         except Exception as e:
-            print("Error occurs in main::deleteConsolidation(self)")
+            print("Error occured in main::deleteConsolidation(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1212,7 +1252,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tbx_con_temporal.setText("")
             self.tbx_con_description.setText("")
         except Exception as e:
-            print("Error occurs in main::refreshConsolidationInfo(self)")
+            print("Error occured in main::refreshConsolidationInfo(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1429,7 +1469,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Refresh the tree view.
             self.retriveProjectItems()
         except Exception as e:
-            print("Error occurs in main::importMaterialCSV(self)")
+            print("Error occured in main::importMaterialCSV(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1542,7 +1582,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Writet the attribute lines.
                     output_csv.writelines(mat_generic_values.lstrip(",") + mat_additional_values + "\n")
         except Exception as e:
-            print("Error occurs in main::exportMaterialCSV(self)")
+            print("Error occured in main::exportMaterialCSV(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1620,7 +1660,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.tre_prj_item.setCurrentItem(tree_item_new_material)
                 
                 # Set the new values.
-                self.setMaterialInfo(self._current_material)
+                self.setMaterialInfo()
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
@@ -1628,7 +1668,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Clear current file object.
                 self._current_file = None
         except Exception as e:
-            print("Error occurs in main::addMaterial(self)")
+            print("Error occured in main::addMaterial(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1684,12 +1724,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self.tre_prj_item.resizeColumnToContents(1)
                 
                 # Set the new values.
-                self.setMaterialInfo(self._current_material)
+                self.setMaterialInfo()
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
         except Exception as e:
-            print("Error occurs in main::updateMaterial(self)")
+            print("Error occured in main::updateMaterial(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1760,34 +1800,34 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshImageInfo()
             self._current_file = None
         except Exception as e:
-            print("Error occurs in main::deleteMaterial(self)")
+            print("Error occured in main::deleteMaterial(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
-    def setMaterialInfo(self, material):
-        print("main::setMaterialInfo(self, material)")
+    def setMaterialInfo(self):
+        print("main::setMaterialInfo(self)")
         
         try:
             # Initialyze the material info.
             self.refreshMaterialInfo()
             
             # Set attributes to text boxes.
-            self.tbx_mat_uuid.setText(material.uuid)
-            self.tbx_mat_number.setText(material.material_number)
-            self.tbx_mat_name.setText(material.name)
-            self.tbx_mat_tmp_bgn.setText(material.estimated_period_beginning)
-            self.tbx_mat_tmp_mid.setText(material.estimated_period_peak)
-            self.tbx_mat_tmp_end.setText(material.estimated_period_ending)
-            self.tbx_mat_geo_lat.setText(str(material.latitude))
-            self.tbx_mat_geo_lon.setText(str(material.longitude))
-            self.tbx_mat_geo_alt.setText(str(material.altitude))
-            self.tbx_mat_description.setText(material.description)
+            self.tbx_mat_uuid.setText(self._current_material.uuid)
+            self.tbx_mat_number.setText(self._current_material.material_number)
+            self.tbx_mat_name.setText(self._current_material.name)
+            self.tbx_mat_tmp_bgn.setText(self._current_material.estimated_period_beginning)
+            self.tbx_mat_tmp_mid.setText(self._current_material.estimated_period_peak)
+            self.tbx_mat_tmp_end.setText(self._current_material.estimated_period_ending)
+            self.tbx_mat_geo_lat.setText(str(self._current_material.latitude))
+            self.tbx_mat_geo_lon.setText(str(self._current_material.longitude))
+            self.tbx_mat_geo_alt.setText(str(self._current_material.altitude))
+            self.tbx_mat_description.setText(self._current_material.description)
             
             # Returns the value.
             return(True)
         except Exception as e:
-            print("Error occors in main::setMaterialInfo(self, material)")
+            print("Error occors in main::setMaterialInfo(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -1841,37 +1881,40 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     fil_uuid = selected[0].text(0)
                     
                     # Instantiate the file object of SOP.
-                    self.current_file = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
+                    self._current_file = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
                     
                     # Get the image properties from the instance.
-                    if self.current_file.public == "1":
+                    if self._current_file.public == "1":
                         self.cbx_fil_pub.setChecked(True)
                     else:
                         self.cbx_fil_pub.setChecked(False)
                     
-                    if self.current_file.lock == "1":
+                    if self._current_file.lock == "1":
                         self.cbx_fil_edit.setChecked(False)
                         self.cbx_fil_edit.setDisabled(True)
                     else:
                         self.cbx_fil_edit.setChecked(True)
                         self.cbx_fil_edit.setDisabled(False)
                     
-                    if self.current_file.file_type == "image":
+                    if self._current_file.file_type == "image":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(0)
-                        self.getImageFileInfo(self.current_file)
-                    if self.current_file.file_type == "audio":
+                        self.getImageFileInfo(self._current_file)
+                    if self._current_file.file_type == "audio":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(1)
-                        self.getSoundFileInfo(self.current_file)
-                        
+                        self.getSoundFileInfo(self._current_file)
+                    if self._current_file.file_type == "text":
+                        # Set active control tab for material.
+                        self.tab_src.setCurrentIndex(2)
+                        self.getTextFileInfo(self._current_file)    
                 else:
                     print("main::getCurrentFile(self)")
         except Exception as e:
-            print("Error occurs in main::getCurrentFile(self)")
+            print("Error occured in main::getCurrentFile(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
+            return(None)    
     
     def editImageInformation(self):
         print("main::editImageInformation(self)")
@@ -1941,7 +1984,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(cur_tree_index))
         except Exception as e:
-            print("Error occurs in main::editImageInformation(self)")
+            print("Error occured in main::editImageInformation(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2237,9 +2280,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-    
+        
     def getImageFileInfo(self, sop_image):
-        print("main::getImageFileInfo(self)")
+        print("main::getImageFileInfo(self, sop_text)")
         
         try:
             # Clear.
@@ -2272,7 +2315,39 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_img_prop.resizeColumnToContents(1)
             
         except Exception as e:
-            print("Error occurs in main::getImageFileInfo(self)")
+            print("Error occured in main::getImageFileInfo(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    def getSoundFileInfo(self, sop_sound):
+        print("main::getSoundFileInfo(self, sop_sound)")
+    
+    def getTextFileInfo(self, sop_text):
+        print("main::getTextFileInfo(self, sop_text)")
+        try:
+            # Get the file path of the text.
+            if not sop_text.filename == "":
+                txt_file_path = os.path.join(self._root_directory, sop_text.filename)
+                
+                # Read the text file and show contexts on the text browser.
+                if os.path.exists(txt_file_path):
+                    # Open the text file.
+                    txt_file_stream = open(txt_file_path, "r")
+                    
+                    # Show text contents.
+                    self.textBrowser.setText(txt_file_stream.read())
+                    
+                    # Close the text file object.
+                    txt_file_stream.close()
+                else:
+                    # Set empty text to the text browser.
+                    self.textBrowser.setText("")
+            else:
+                # Set empty text to the text browser.
+                self.textBrowser.setText("")
+        except Exception as e:
+            print("Error occured in main::getTextFileInfo(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2323,14 +2398,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     skin.setDefaultFileText(tre_fls_item, status="removed", skin=self._skin)
             else:
                 # Update the tree view.
-                print("7")
                 tre_fls_item = QTreeWidgetItem(self.tre_fls)
-                print("8")
+                
                 tre_fls_item.setText(0, sop_object.uuid)
                 tre_fls_item.setText(1, sop_object.alias)
                 tre_fls_item.setText(2, sop_object.file_type)
         except Exception as e:
-            print("Error occurs in setFileInfo(self, sop_object)")
+            print("Error occured in setFileInfo(self, sop_object)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2353,7 +2427,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Update the file information.
                 cur_file.dbUpdate(self._database)
         except Exception as e:
-            print("Error occurs in updateFile(self)")
+            print("Error occured in updateFile(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2381,8 +2455,96 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.cbx_fil_pub.setChecked(False)
             self.cbx_fil_edit.setChecked(True)
             self.cbx_fil_edit.setDisabled(False)
+            
+            # Clear the text brower content.
+            self.textBrowser.setText("")
         except Exception as e:
-            print("Error occurs in main::refreshImageInfo(self)")
+            print("Error occured in main::refreshImageInfo(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    def deleteSelectedFile(self):
+        print("main::deleteSelectedFile(self)")
+        
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_fls.selectedItems()
+            if (selected == None or len(selected) == 0): return(None)
+            
+            # Exit if the selected file is locked.
+            if not self.cbx_fil_edit.isChecked(): error.ErrorMessageFileLocked(); return(None)
+            
+            # Confirm deletion.
+            if self._language == "ja":
+                reply = QMessageBox.question(
+                        self, 
+                        'ファイルの削除', 
+                        '選択されたファイルを本当に削除しますか？', 
+                        QMessageBox.Yes, 
+                        QMessageBox.No
+                )
+            elif self._language == "en":
+                reply = QMessageBox.question(
+                        self, 
+                        'Delete the selected file.', 
+                        'Would you delete the selected file?', 
+                        QMessageBox.Yes, 
+                        QMessageBox.No
+                )
+            
+            # Confirm deleting the consolidation.
+            if not reply == QMessageBox.Yes: return(None)
+            
+            # Instantiate the file object of SOP.
+            self.getCurrentFile()
+            if self.current_file == None: return(None)
+            
+            # Get the time for closing GIMP.
+            time_delete = datetime.datetime.utcnow().isoformat()
+            
+            self.current_file.alias = "Already Removed."
+            self.current_file.modified_date = time_delete
+            self.current_file.status = "Removed"
+            self.current_file.lock = True
+            self.current_file.public = False
+            self.current_file.operation = "Removing"
+            self.current_file.operating_application = "Survey Data Collector"
+            self.current_file.caption = "Removed"
+            
+            # Get the image path.
+            fil_path = os.path.join(self._root_directory, sop_file.filename)
+            
+            if os.path.exists(fil_path):
+                # Delete the selected file.
+                os.remove(fil_path)
+                
+                # Update DB table.
+                self.current_file.filename = ""
+                
+                # Initialyze the image file name.
+                self.current_file.dbUpdate(self._database)
+            else:
+                # Initialyze the image file name.
+                self.current_file.filename = ""
+                
+                # Update DB table.
+                self.current_file.dbUpdate(self._database)
+            
+            # Refresh the image file list.
+            sop_object = None
+            if self.current_file.material == "":
+                sop_object = features.Consolidation(is_new=False, uuid=self.current_file.consolidation, dbfile=self._database)
+            else:
+                sop_object = features.Material(is_new=False, uuid=self.current_file.material, dbfile=self._database)
+            
+            # Refresh the image file list.
+            self.refreshFileList(sop_object)
+        except Exception as e:
+            print("Error occured in main::deleteSelectedFile(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2390,9 +2552,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Sound Play
     # ==========================
-    def getSoundFileInfo(self, sop_sound):
-        print("main::getSoundFileInfo(self, sop_sound)")
-        
     def soundPlay(self):
         print("main::soundPlay(self)")
         
@@ -2427,7 +2586,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     error.ErrorMessagePlaySound(language=self._language)
                     return(None)
         except Exception as e:
-            print("Error occurs in main::soundPlay(self)")
+            print("Error occured in main::soundPlay(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2440,70 +2599,23 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Image processing tools
     # ==========================
-    def getCurrentImage(self):
-        print("main::getCurrentImage(self)")
-        
-        try:
-            # Exit if the root directory is not loaded.
-            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-        
-            selected = self.tre_fls.selectedItems()
-            
-            if not (selected == None or len(selected) <= 0):
-                if not len(selected) == 0:
-                    # Get the uuid of the selected file.
-                    fil_uuid = selected[0].text(0)
-                    
-                    # Instantiate the file object of SOP.
-                    sop_file = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
-                    
-                    if sop_file.file_type == "image":
-                        # Set active control tab for material.
-                        self.tab_src.setCurrentIndex(0)
-                        self.getImageFileInfo(sop_file)
-                                                
-                        # Get the image path.
-                        return(sop_file)
-                    else:
-                        print(sop_file.file_type)
-                        # Create error messages.
-                        error_title = "画像編集エラー"
-                        error_msg = "選択中のファイルは画像ファイルではありません。"
-                        error_info = "編集可能な画像ファイルを選択してください。"
-                        error_icon = QMessageBox.Critical
-                        error_detailed = str(e)
-                        
-                        # Handle error.
-                        general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-                        
-                        # Returns nothing.
-                        return(None)
-                else:
-                    error.errorTreeItemNotSelected("self.tre_fls.selectedItems() == 0")
-                    return(None)
-        except Exception as e:
-            print("Error occurs in main::getCurrentImage(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
-    
     def openWithGimp(self):
         print("main::openWithGimp(self)")
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
-            if sop_file == None:
+            if self._current_file == None:
                 return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Get the image path.
-                img_path = os.path.join(self._root_directory, sop_file.filename)
+                img_path = os.path.join(self._root_directory, self._current_file.filename)
                 
                 if os.path.exists(img_path):
                     # Chec the extension of the file.
@@ -2539,8 +2651,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         
                         # Instantiate the File class.
                         img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                        img_file.material = sop_file.material
-                        img_file.consolidation = sop_file.consolidation
+                        img_file.material = self._current_file.material
+                        img_file.consolidation = self._current_file.consolidation
                         img_file.filename = general.getRelativePath(new_file, "Consolidation")
                         img_file.created_date = time_open
                         img_file.modified_date = time_close
@@ -2549,7 +2661,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         img_file.status = "Edited"
                         img_file.lock = False
                         img_file.public = False
-                        img_file.source = sop_file.uuid
+                        img_file.source = self._current_file.uuid
                         img_file.operation = "Editing on GIMP"
                         img_file.operating_application = "GIMP"
                         img_file.caption = "Edited by GIMP"
@@ -2571,7 +2683,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Returns nothing.
                 return(None)
         except Exception as e:
-            print("Error occurs in main::openWithGimp(self)")
+            print("Error occured in main::openWithGimp(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2608,21 +2720,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -2657,8 +2769,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -2667,7 +2779,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "Rotating " + str(angle) + " degree"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Rotated(" + str(angle) + " degree)"
@@ -2684,7 +2796,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Refresh the image file list.
                 self.refreshFileList(sop_object)
         except Exception as e:
-            print("Error occurs in main::rotateImage(self, angle)")
+            print("Error occured in main::rotateImage(self, angle)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2694,21 +2806,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -2742,8 +2854,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -2752,7 +2864,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "Grayscaling"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Grayscale version"
@@ -2772,7 +2884,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::makeMonoImage(self, angle)")
+            print("Error occured in main::makeMonoImage(self, angle)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2782,21 +2894,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -2820,16 +2932,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 new_file = os.path.join(out_dir, new_uuid+".jpg")
                 
                 # Adjust the white balance.
-                awd_algo = "retinex_adjusted"
-                '''awd_algo = "stretch"
-                awd_algo = "gray_world"
-                awd_algo = "max_white"
-                awd_algo = "retinex"
-                awd_algo = "stdev_luminance"
-                awd_algo = "stdev_grey_world"
-                awd_algo = "luminance_weighted"
-                awd_algo = "automatic" '''
-                imageProcessing.autoWhiteBalance(img_path, new_file, method = awd_algo)
+                imageProcessing.autoWhiteBalance(img_path, new_file, method = self._awb_algo)
                 
                 # Copy exif information.
                 general.copyExif(img_path, new_file)
@@ -2839,8 +2942,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -2849,12 +2952,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "White balance adjusting"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "White balance adjusted"
-                img_file.description = "Make Auto White Balance with " + awd_algo +" by this system."
+                img_file.description = "Make Auto White Balance with " + self._awb_algo +" by this system."
                 
+                # Insert the new entry to the database.
                 img_file.dbInsert(self._database)
                 
                 # Initialize the SOP object.
@@ -2869,7 +2973,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::adjustWhiteBalance(self)")
+            print("Error occured in main::adjustWhiteBalance(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2879,7 +2983,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            sop_file = self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
             if sop_file == None: return(None)
@@ -2957,7 +3061,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::enhanceImage(self)")
+            print("Error occured in main::enhanceImage(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2967,7 +3071,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            sop_file = self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
             if sop_file == None: return(None)
@@ -3043,7 +3147,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::extractContour(self)")
+            print("Error occured in main::extractContour(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3053,21 +3157,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -3103,8 +3207,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -3113,7 +3217,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "Color inverting"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Color inverted version"
@@ -3132,7 +3236,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::negativeToPositive(self)")
+            print("Error occured in main::negativeToPositive(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3149,7 +3253,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            sop_file = self.getCurrentFile()
+            
+            # Check the file type.
+            print(sop_file._file_type)
             
             # Set the default output file name.
             fil_out = sop_file.uuid + ".jpg"
@@ -3201,83 +3308,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             else:
                 error.ErrorMessageEditImageFile()
         except Exception as e:
-            print("Error occurs in main::negativeToPositive(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
-    
-    def deleteSelectedImage(self):
-        print("main::deleteSelectedImage(self)")
-        
-        try:
-            # Exit if the root directory is not loaded.
-            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-            
-            # Exit if the tree object is not selected.
-            selected = self.tre_fls.selectedItems()
-            if (selected == None or len(selected) == 0): return(None)
-            
-            # Exit if the selected file is locked.
-            if not self.cbx_fil_edit.isChecked(): error.ErrorMessageFileLocked(); return(None)
-            
-            # Confirm deletion.
-            reply = QMessageBox.question(
-                    self, 
-                    '画像の削除', 
-                    '選択されたファイルを本当に削除しますか？', 
-                    QMessageBox.Yes, 
-                    QMessageBox.No
-                )
-            
-            # Confirm deleting the consolidation.
-            if not reply == QMessageBox.Yes: return(None)
-            
-            # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
-            
-            if sop_file == None: return(None)
-            
-            # Get the time for closing GIMP.
-            time_delete = datetime.datetime.utcnow().isoformat()
-            
-            sop_file.alias = "Already Removed."
-            sop_file.modified_date = time_delete
-            sop_file.status = "Removed"
-            sop_file.lock = True
-            sop_file.public = False
-            sop_file.operation = "Removing"
-            sop_file.operating_application = "Survey Data Collector"
-            sop_file.caption = "Removed"
-            
-            # Get the image path.
-            fil_path = os.path.join(self._root_directory, sop_file.filename)
-            
-            if os.path.exists(fil_path):
-                # Delete the selected file.
-                os.remove(fil_path)
-                
-                # Update DB table.
-                sop_file.filename = ""
-                
-                # Initialyze the image file name.
-                sop_file.dbUpdate(self._database)
-            else:
-                # Initialyze the image file name.
-                sop_file.filename = ""
-                
-                # Update DB table.
-                sop_file.dbUpdate(self._database)
-            
-            # Refresh the image file list.
-            sop_object = None
-            if sop_file.material == "":
-                sop_object = features.Consolidation(is_new=False, uuid=sop_file.consolidation, dbfile=self._database)
-            else:
-                sop_object = features.Material(is_new=False, uuid=sop_file.material, dbfile=self._database)
-            # Refresh the image file list.
-            self.refreshFileList(sop_object)
-        except Exception as e:
-            print("Error occurs in main::deleteSelectedImage(self)")
+            print("Error occured in main::negativeToPositive(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3291,35 +3322,35 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             thm_path = None
             
             # Instantiate the file object of SOP.
-            sop_file = self.getCurrentImage()
+            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Exit if the selected file is not image.
-            if not sop_file.file_type == "image": return(None)
+            if not self._current_file.file_type == "image": return(None)
             
             # Get the image path.
-            img_file = os.path.join(self._root_directory, sop_file.filename)
+            img_file = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if the selected file is not exists.
             if not os.path.exists(img_file): error.ErrorMessageFileNotExist(); return(None)
             
             # Get the current object from the selected tab index.
-            if sop_file.material == "":
+            if self._current_file.material == "":
                 # Get the item path of the selected consolidaiton.
-                item_path = os.path.join(self._consolidation_directory, sop_file.consolidation)
+                item_path = os.path.join(self._consolidation_directory, self._current_file.consolidation)
                 img_path = os.path.join(item_path, "Images")
                 thm_path = os.path.join(img_path, "Thumbs")
             else:
-                con_path = os.path.join(self._consolidation_directory, sop_file.consolidation)
-                item_path = os.path.join(os.path.join(con_path, "Materials"), sop_file.material)
+                con_path = os.path.join(self._consolidation_directory, self._current_file.consolidation)
+                item_path = os.path.join(os.path.join(con_path, "Materials"), self._current_file.material)
                 img_path = os.path.join(item_path, "Images")
                 thm_path = os.path.join(img_path, "Thumbs")
             
             # Set active control tab for file.
             self.tab_src.setCurrentIndex(0)
-            self.getImageFileInfo(sop_file)
+            self.getImageFileInfo(self._current_file)
             
             # Chec the extension of the file.
             filename = os.path.splitext(os.path.basename(img_file))[0]
@@ -3347,13 +3378,16 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             new_file = os.path.join(out_dir, new_uuid + ".jpg")
             
             # Make a thumbnail.
-            imageProcessing.makeThumbnail(img_file, thm_file, 400)
+            thumb = imageProcessing.makeThumbnail(img_file, thm_file, 400)
+            if thumb == None: print("Error occured in thumbnail generation."); raise
             
             # Colorize.
-            imageProcessing.colorize(self._siggraph_directory, thm_file, col_file)
+            col = imageProcessing.colorize(self._siggraph_directory, thm_file, col_file)
+            if col == None: print("Error occured in colorize generation."); raise
             
             # Make pansharpened image.
-            imageProcessing.pansharpen(col_file, img_file, new_file)
+            psp = imageProcessing.pansharpen(col_file, img_file, new_file, self._psp_algo)
+            if psp == None: print("Error occured in pansharpening."); raise
             
             # Copy the exif information.
             general.copyExif(img_file, new_file)
@@ -3363,8 +3397,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Instantiate the File class.
             img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-            img_file.material = sop_file.material
-            img_file.consolidation = sop_file.consolidation
+            img_file.material = self._current_file.material
+            img_file.consolidation = self._current_file.consolidation
             img_file.filename = general.getRelativePath(new_file, "Consolidation")
             img_file.created_date = time_open
             img_file.modified_date = time_close
@@ -3373,7 +3407,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             img_file.status = "Edited"
             img_file.lock = False
             img_file.public = False
-            img_file.source = sop_file.uuid
+            img_file.source = self._current_file.uuid
             img_file.operation = "Colorlizing"
             img_file.operating_application = "siggraph 2016 Colorization"
             img_file.caption = "Colorlized by machine learning"
@@ -3392,7 +3426,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.refreshFileList(sop_object)
             
         except Exception as e:
-            print("Error occurs in main::colorlize(self, angle)")
+            print("Error occured in main::colorlize(self, angle)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3420,7 +3454,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.cbx_cam_cpt.clear()
             self.cbx_cam_met.clear()
         except Exception as e:
-            print("Error occurs in main::refreshCameraParameters(self)")
+            print("Error occured in main::refreshCameraParameters(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3474,7 +3508,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 print("Camera success fully detected.")
         except Exception as e:
-            print("Error occurs in main::detectCamera(self)")
+            print("Error occured in main::detectCamera(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)
@@ -3494,7 +3528,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 cbx.addItem(opt_txt)
         except Exception as e:
-            print("Error occurs in main::detectCamera(self)")
+            print("Error occured in main::detectCamera(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)
@@ -3521,7 +3555,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Exit if the current consolidation is not selected.
                 if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
         except Exception as e:
-            print("Error occurs in main::recordWithPhoto(self)")
+            print("Error occured in main::recordWithPhoto(self)")
             print(str(e))
             return(None)
         
@@ -3578,7 +3612,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             snd_path = os.path.join(item_path, "Sounds")
             img_path = os.path.join(os.path.join(item_path, "Images"),"Main")
         except Exception as e:
-            print("Error occurs in main::recordWithPhoto(self)")
+            print("Error occured in main::recordWithPhoto(self)")
             print(str(e))
             return(None)
         
@@ -3816,7 +3850,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self._current_material = sop_object
                 self.refreshFileList(self._current_material)
         except Exception as e:
-            print("Error occurs in main::tetheredShooting(self)")
+            print("Error occured in main::tetheredShooting(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3866,7 +3900,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 keyfile.close()
         except Exception as e:
-            print("Error occurs in main::checkFlickrKey(self)")
+            print("Error occured in main::checkFlickrKey(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -3893,7 +3927,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 keyfile = open(keyfile_path,"w")
                 keyfile.write(self._flickr_apikey + "," + self._flickr_secret)
         except Exception as e:
-            print("Error occurs in main::regFlickrKey(self)")
+            print("Error occured in main::regFlickrKey(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -4350,7 +4384,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 output_xml.write("\t</consolidation>\n")
             output_xml.write("</dataset>")
         except Exception as e:
-            print("Error Occurs in exportAsXML(self)")
+            print("Error occured in exportAsXML(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -4434,7 +4468,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             output_html.close()
         except Exception as e:
-            print("Error occurs in exportAsHtml(self)")
+            print("Error occured in exportAsHtml(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)

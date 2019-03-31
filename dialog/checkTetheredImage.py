@@ -168,7 +168,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                     img_item = QListWidgetItem(img_raw)
                     self.lst_fls.addItem(img_raw)
         except Exception as e:
-            print("Error occurs in CheckImageDialog::getImageFiles(self)")
+            print("Error occured in CheckImageDialog::getImageFiles(self)")
             print(str(e))
     
     def getImageFileInfo(self):
@@ -212,7 +212,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 self.tre_img_info.clearSelection()
                 self.tre_img_info.clear()
         except Exception as e:
-            print("Error occurs in CheckImageDialog::getImageFileInfo(self)")
+            print("Error occured in CheckImageDialog::getImageFileInfo(self)")
             print(str(e))
             
     def showImage(self):
@@ -268,5 +268,5 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
             else:
                 return(None)
         except Exception as e:
-                print("Error occurs in CheckImageDialog::showImage(self)")
+                print("Error occured in CheckImageDialog::showImage(self)")
                 print(str(e))

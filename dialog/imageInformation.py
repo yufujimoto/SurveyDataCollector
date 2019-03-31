@@ -374,7 +374,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
                 # Returns nothing.
                 return(None)
         except Exception as e:
-            print("Error occurs in imageInformationDialog::showImage(self)")
+            print("Error occured in imageInformationDialog::showImage(self)")
             
             # Show the error message.
             error.ErrorMessageUnknown(details=str(e))
@@ -399,7 +399,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             self.graphicsView.setFile(img_file_path)
             
         except Exception as e:
-            print("Error occurs in imageInformationDialog::setViewer(self)")
+            print("Error occured in imageInformationDialog::setViewer(self)")
             print(str(e))
             
             return(None)
@@ -478,7 +478,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
                     break
             
         except Exception as e:
-            print("Error occurs in imageProcessing::getMetaInfo(img_input)")
+            print("Error occured in imageProcessing::getMetaInfo(img_input)")
             print(str(e))
             
             return(None)

@@ -367,3 +367,20 @@ class ErrorMessageImageProcessing(ErrorMessage):
         # Execute the query.
         super(ErrorMessageImageProcessing, self).printErrorMessage()
         if not show == False: super(ErrorMessageImageProcessing, self).showMessageBox()
+        
+class ErrorCurrentFeature(ErrorMessage):
+    def __init__(self, information=None, details=None, show=True, language="en"):
+        # Initialize the super class.
+        ErrorMessage.__init__(self, language)
+        
+        if self._language == "ja":                
+            self._message = "フィーチャーの操作に失敗しました。"
+        elif self._language == "en":
+            self._message = "Error occured in feature operation."
+            
+        self._icon = QMessageBox.Critical
+        self._details = details
+        
+        # Execute the query.
+        super(ErrorCurrentFeature, self).printErrorMessage()
+        if not show == False: super(ErrorCurrentFeature, self).showMessageBox()

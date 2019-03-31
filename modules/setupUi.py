@@ -57,6 +57,8 @@ def activate(ui_main):
     ui_main.act_reg_flickr.triggered.connect(ui_main.regFlickrKey)
     ui_main.act_exp_flickr.triggered.connect(ui_main.uploadToFlickr)
     
+    ui_main.act_conf.triggered.connect(ui_main.openConfigDialog)
+    
     ui_main.act_lan_en.triggered.connect(ui_main.setLangEn)
     ui_main.act_lan_ja.triggered.connect(ui_main.setLangJa)
     
@@ -95,7 +97,7 @@ def activate(ui_main):
     ui_main.btn_open_gimp.clicked.connect(ui_main.openWithGimp)       # Activate the buttons for opening GIMP.
     ui_main.btn_img_cnt.clicked.connect(ui_main.extractContour)       # Activate the image proccessing tool button of cropping.
     ui_main.btn_img_inv.clicked.connect(ui_main.negativeToPositive)   # Activate the image processing tool button for inverting.
-    ui_main.btn_img_del.clicked.connect(ui_main.deleteSelectedImage)  # Activate the image processing tool button for deleting.
+    ui_main.btn_img_del.clicked.connect(ui_main.deleteSelectedFile)  # Activate the image processing tool button for deleting.
     ui_main.btn_img_rot_r.clicked.connect(ui_main.rotateImageRight)   # Activate the image processing tool button for rotating clockwise.
     ui_main.btn_img_rot_l.clicked.connect(ui_main.rotateImageLeft)    # Activating the image processing tool button for rotating anti-clockwise.
     ui_main.btn_img_rot_u.clicked.connect(ui_main.rotateImageInvert)  # Activating the image processing tool button for ratating 180 degree.

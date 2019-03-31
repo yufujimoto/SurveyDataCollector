@@ -2275,7 +2275,7 @@
                  </item>
                 </layout>
                </widget>
-               <widget class="QWidget" name="tab">
+               <widget class="QWidget" name="tab_src_txt">
                 <attribute name="title">
                  <string>テキスト</string>
                 </attribute>
@@ -2405,6 +2405,7 @@
     </widget>
     <addaction name="men_lang"/>
     <addaction name="act_reg_flickr"/>
+    <addaction name="act_conf"/>
    </widget>
    <addaction name="men_prj"/>
    <addaction name="men_dat"/>
@@ -2539,6 +2540,11 @@
   <action name="act_lan_ja">
    <property name="text">
     <string>日本語</string>
+   </property>
+  </action>
+  <action name="act_conf">
+   <property name="text">
+    <string>環境設定</string>
    </property>
   </action>
  </widget>

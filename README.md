@@ -2,12 +2,12 @@
  The Survey Data Collector (SDC) is a digital archiving system for various kinds of cultural and/or natural assets. This system based on the “Simple Object Profile”, which is a well structured information management model in comforming to ISO 19100 series, the International Standards for Geographic Information System (GIS).
 
 # Requirements
-This tethered shooting system requires following softwares. These are easily installed by the "apt-get" command.
+The SDC is developed by Python. It means SDC would be run on Windows and Mac platform. However, in some essential function of tethered shooting and colorlization wouldn't work on Windows and Mac. These problems will be improved in the future update. In current situations, Linux is strongly recommended.
+The SDC requires following softwares. These are easily installed by the "apt" command.
 
     + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
     + dcraw         : The open source software handling RAW images on this system.
     + gimp          : The open source photo retouch software under GPL providing advanced image editing.
-    + rawtherapee   : The open source RAW image processing software.
     + Sqlite        : The open source light weight DataBase Management System.
 
 In addition to above softwares, this system requires python libraries as below:
@@ -22,6 +22,7 @@ In addition to above softwares, this system requires python libraries as below:
 
     + os
     + sys
+    + gc
     + stat
     + mimetypes
     + tempfile

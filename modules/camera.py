@@ -122,7 +122,7 @@ class Camera(object):
             
             return(True)
         except Exception as e:
-            print("Error occurs in Camera::setCamera(name, addr)")
+            print("Error occured in Camera::setCamera(name, addr)")
             print(str(e))
             
             return(None)
@@ -185,7 +185,7 @@ class Camera(object):
             else:
                 return(result)
         except Exception as e:
-            print("Error occurs in Camera::getCameraConfig(cam_parameter)")
+            print("Error occured in Camera::getCameraConfig(cam_parameter)")
             print(str(e))
             
             return(None)
@@ -208,7 +208,7 @@ def setCamera(cam_name):
         
         return(True)
     except Exception as e:
-        print("Error occurs in Camera::setCamera(name, addr)")
+        print("Error occured in Camera::setCamera(name, addr)")
         print(str(e))
         
         return(None)
@@ -237,7 +237,7 @@ def detectCamera():
             
         return(cams)
     except Exception as e:
-        print("Error occurs in Camera::detectCamera()")
+        print("Error occured in Camera::detectCamera()")
         print(str(e))
     
 def getCameraConfig(cam_parameter):
@@ -298,7 +298,7 @@ def getCameraConfig(cam_parameter):
         else:
             return(result)
     except Exception as e:
-        print("Error occurs in Camera::getCameraConfig(cam_parameter)")
+        print("Error occured in Camera::getCameraConfig(cam_parameter)")
         print(str(e))
         
         return(None)
@@ -320,7 +320,7 @@ def takePhoto(output):
         
         return(result)
     except Exception as e:
-        print("Error occurs in Camera::takePhoto(output)")
+        print("Error occured in Camera::takePhoto(output)")
         print(str(e))
         
         return(None)
