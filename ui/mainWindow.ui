@@ -20,7 +20,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</normaloff>../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</iconset>
+    <normaloff>../../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</normaloff>../../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png</iconset>
   </property>
   <widget class="QWidget" name="frm_main">
    <layout class="QHBoxLayout" name="frm_main_lay">
@@ -2293,7 +2293,17 @@
                 <attribute name="title">
                  <string>空間データ</string>
                 </attribute>
-                <layout class="QVBoxLayout" name="tab_src_geo_lay"/>
+                <layout class="QVBoxLayout" name="tab_src_geo_lay">
+                 <item>
+                  <widget class="QWebView" name="web_map">
+                   <property name="url">
+                    <url>
+                     <string>about:blank</string>
+                    </url>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </widget>
              </item>
@@ -2314,7 +2324,7 @@
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>33</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -2396,15 +2406,6 @@
     <property name="title">
      <string>設定</string>
     </property>
-    <widget class="QMenu" name="men_lang">
-     <property name="title">
-      <string>言語</string>
-     </property>
-     <addaction name="act_lan_en"/>
-     <addaction name="act_lan_ja"/>
-    </widget>
-    <addaction name="men_lang"/>
-    <addaction name="act_reg_flickr"/>
     <addaction name="act_conf"/>
    </widget>
    <addaction name="men_prj"/>
@@ -2548,6 +2549,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebView</class>
+   <extends>QWidget</extends>
+   <header>QtWebKitWidgets/QWebView</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>btn_cam_detect</tabstop>
   <tabstop>cbx_cam_size</tabstop>

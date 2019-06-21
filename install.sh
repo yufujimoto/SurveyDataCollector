@@ -13,6 +13,8 @@ apt install python-dev
 apt install build-essential 
 apt install pkg-config
 apt install imutils
+apt install libqt5webkit5-dev
+apt install python-pyqt5.qtwebkit
 
 # Install general libraries.
 apt install python-dateutil

@@ -85,7 +85,7 @@ def setMainWindowButtonText(parent):
         parent.men_exp.setTitle("エクスポート")
         parent.men_exp_csv.setTitle("CSV File")
         parent.men_conf.setTitle("設定")
-        parent.men_lang.setTitle("言語")
+        parent.act_conf.setText("環境設定")
         parent.actionCreate_New_Project.setText("Create New Project")
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("開く")
@@ -169,6 +169,7 @@ def setMainWindowButtonText(parent):
         parent.btn_snd_play.setText("Play")
         parent.btn_snd_stop.setText("Stop")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_txt), "テキスト")
+        parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_geo), "空間データ")
     elif parent.language == "en":
         parent.men_prj.setTitle("Project")
         parent.men_prj_exp.setTitle("Export")
@@ -179,7 +180,7 @@ def setMainWindowButtonText(parent):
         parent.men_exp.setTitle("Export")
         parent.men_exp_csv.setTitle("CSV File")
         parent.men_conf.setTitle("Configuration")
-        parent.men_lang.setTitle("Language")
+        parent.act_conf.setText("Preference")
         parent.actionCreate_New_Project.setText("Create New Project")
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("Open")
@@ -256,13 +257,14 @@ def setMainWindowButtonText(parent):
         parent.cbx_fil_edit.setText("Removable")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_img), "Image")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_snd), "Sound")
-        parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_txt), "Text")
         parent.btn_snd_play.setText("Play")
         parent.btn_snd_stop.setText("Stop")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_preview), "Preview")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_prop), "Property")
         parent.tre_img_prop.headerItem().setText(0, "Property")
         parent.tre_img_prop.headerItem().setText(1, "Value")
+        parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_txt), "Text")
+        parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_geo), "Spatial Data")
         
 def setMainWindowToolTips(parent):
     if parent.language == "ja":
@@ -306,6 +308,8 @@ def setMainWindowIcons(parent, icon_path):
     
     parent.tab_src.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'collections.png')))
     parent.tab_src.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'sounds.png')))
+    parent.tab_src.setTabIcon(2, getIconFromPath(os.path.join(icon_path, 'create.png')))
+    parent.tab_src.setTabIcon(3, getIconFromPath(os.path.join(icon_path, 'place.png')))
     
     parent.btn_con_add.setIcon(getIconFromPath(os.path.join(icon_path, 'add_box.png')))
     parent.btn_con_add.setIconSize(qicon_size)
@@ -562,6 +566,5 @@ def applyMainWindowSkin(parent, icon_path, skin="grey"):
         parent.btn_mat_take.setFont(font)
         parent.btn_mat_update.setFont(font)
         parent.btn_open_gimp.setFont(font)
-
     
     

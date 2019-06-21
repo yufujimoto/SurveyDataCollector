@@ -12,11 +12,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtWebKitWidgets import *
 
 # Import GIS libraries for showing geographic data.
 import numpy as np
-import pyqtgraph as pg
-import cartopy.crs as ccrs
 
 # Import DB libraries
 import sqlite3 as sqlite
@@ -28,10 +27,11 @@ import modules.general as general
 import modules.features as features
 import modules.media as sop_media
 import modules.error as error
-import modules.setupUi as setupUi
-import modules.skin as skin
+import modules.setupMainUi as setupMainUi
+import modules.setupMainSkin as setupMainSkin
 import modules.imageProcessing as imageProcessing
 import modules.writeHtml as htmlWriter
+import modules.geospatial as geospatial
 import modules.flickr_upload as flickr
 
 # Import GUI window.
@@ -64,6 +64,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def config_file(self): return self._config_file
     @property
     def siggraph_directory(self): return self._siggraph_directory
+    @property
+    def map_directory(self): return self._map_directory
     @property
     def icon_directory(self): return self._icon_directory
     @property
@@ -110,6 +112,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def flickr_apikey(self): return self._flickr_apikey
     @property
     def flickr_secret(self): return self._flickr_secret
+    @property
+    def map_tile(self): return self._map_tile
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
@@ -117,6 +121,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def config_file(self, value): self._config_file = value
     @siggraph_directory.setter
     def siggraph_directory(self, value): self._siggraph_directory = value
+    @map_directory.setter
+    def map_directory(self, value): self._map_directory = value
     @icon_directory.setter
     def icon_directory(self, value): self._icon_directory = value
     @temporal_directory.setter
@@ -163,6 +169,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def flickr_apikey(self, value): self._flickr_apikey = value
     @flickr_secret.setter
     def flickr_secret(self, value): self._flickr_secret = value
+    @map_tile.setter
+    def map_tile(self, value): self._map_tile = value
     
     def __init__(self, parent=None):
         # Clear memory
@@ -176,7 +184,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
         
         # Activate modules.
-        setupUi.activate(self)
+        setupMainUi.activate(self)
         
         # Define paths
         self._root_directory = None
@@ -187,6 +195,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._config_file = os.path.join(self._source_directory, "config.xml")
         self._lib_directory = os.path.join(self._source_directory, "lib")
         self._siggraph_directory = os.path.join(expanduser("~"),"siggraph")
+        self._map_directory = os.path.join(self._source_directory, "map")
         self._temporal_directory = os.path.join(self._source_directory, "temp")
         self._icon_directory = os.path.join(self._source_directory, "icon")
         
@@ -202,9 +211,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         self._current_file = None
         self._current_camera = None
         
+        # Initialize the flickr API keys.
+        self._flickr_apikey = None
+        self._flickr_secret = None
+        
+        # Initialize the map tile source.
+        self._map_tile = None
+        
         # Detect the camera automatically.
         self.detectCamera()
-        self.addGeographiData()
         
         # Set the initial image to thumbnail viewer.
         img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
@@ -223,6 +238,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             shutil.rmtree(self._temporal_directory)
             os.mkdir(self._temporal_directory)
         
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
         # Check whether configutation exists or not. And create the configuration if not exists.
         if not os.path.exists(self._config_file):
             # Create the root node.
@@ -237,6 +256,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Set the default settings.
             self._language = "en"
             self._skin = "grey"
+            self._map_tile = "OpenStreetMap"
             
             # Create the project node.
             project = ET.SubElement(root, "project")
@@ -247,13 +267,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             ET.SubElement(tools, "awb").text = self._awb_algo
             ET.SubElement(tools, "psp").text = self._psp_algo
+            ET.SubElement(tools, "maptile").text = self._map_tile
             
             tree = ET.ElementTree(root)
             tree.write(self._config_file)
             
-            # Set the initial image to thumbnail viewer.
-            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-            self.showImage(img_file_path)
         else:
             xml_config = ET.parse(self._config_file).getroot()
             
@@ -264,6 +282,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if xml_child.tag == "tools":
                     self._awb_algo = xml_child.find("awb").text
                     self._psp_algo = xml_child.find("psp").text
+                    self._map_tile = xml_child.find("maptile").text
                 if xml_child.tag == "project":
                     if not xml_child.find("root").text == "":
                         xml_root = xml_child.find("root").text
@@ -287,21 +306,72 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             
                             # Open the previous project.
                             self.openProject()
-                        else:
-                            # Set the initial image to thumbnail viewer.
-                            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-                            self.showImage(img_file_path)
+        # Set up map viewer
+        geospatial.writeHtml(self)
+        self.web_map.setUrl(QUrl("file:///" + os.path.join(self._map_directory,"location.html")))
+        
         # Set the default skin.
         self.setSkin(lang=self._language, theme=self._skin)
         
     # ==========================
     # General operation
     # ==========================
+    
+    def writeConfig(self):
+        try:
+            # Create the root node.
+            root = ET.Element("config")
+            
+            # Create the theme node.
+            theme = ET.SubElement(root, "theme")
+            ET.SubElement(theme, "language").text = self._language
+            ET.SubElement(theme, "skin").text = self._skin
+            
+            # Create the project node.
+            project = ET.SubElement(root, "project")
+            ET.SubElement(project, "root").text = ""
+            
+            # Create the tool node
+            tools = ET.SubElement(root, "tools")
+            
+            ET.SubElement(tools, "awb").text = self._awb_algo
+            ET.SubElement(tools, "psp").text = self._psp_algo
+            
+            tree = ET.ElementTree(root)
+            tree.write(self._config_file)
+        except Exception as e:
+            print("Error occured in main::showImage(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
     def openConfigDialog(self):
         print("main::openConfigDialog(self)")
         
-        self.dialogConfig = configurationDialog.configurationDialog(self)
-        self.dialogConfig.exec_()
+        self.dialog_Config = configurationDialog.configurationDialog(self)
+        
+        if self.dialog_Config.exec_() == True:
+            lang = self.dialog_Config.cbx_lang.currentText()
+            if lang == u"日本語":
+                self._language = "ja"
+            elif lang == "English":
+                self._language = "en"
+            
+            self._skin = self.dialog_Config.cbx_skin.currentText().lower()
+            self._awb_algo = self.dialog_Config.cbx_tool_awb.currentText()
+            self._psp_algo = self.dialog_Config.cbx_tool_psp.currentText()
+            self._map_tile = self.dialog_Config.cbx_map_tile.currentText()
+            self._flickr_apikey = self.dialog_Config.txt_flc_api.text()
+            self._flickr_secret = self.dialog_Config.txt_flc_sec.text()
+            
+            self.setSkin(lang=self._language, theme=self._skin)
+            
+            # Set up map viewer
+            geospatial.writeHtml(self)
+            self.web_map.setUrl(QUrl("file:///" + os.path.join(self._map_directory,"location.html")))
+            
+            # Change the current project.
+            general.changeConfig(self)
     
     def setSkin(self, lang, theme):
         print("main::setSkin(self, lang, theme)")
@@ -312,11 +382,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self._skin = theme
             
             # Apply the new skin.
-            skin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
-            skin.setMainWindowButtonText(self)
+            setupMainSkin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
+            setupMainSkin.setMainWindowButtonText(self)
             
             # Set the tool tips with the specific language.
-            skin.setMainWindowToolTips(self)
+            setupMainSkin.setMainWindowToolTips(self)
         except Exception as e:
             print("Error occured in main::setSkin(self, lang, theme)")
             print(str(e))
@@ -331,8 +401,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self._language = "en"
             
             # Set the default skin.
-            skin.setMainWindowButtonText(self)
-            skin.setMainWindowToolTips(self)
+            setupMainSkin.setMainWindowButtonText(self)
+            setupMainSkin.setMainWindowToolTips(self)
             
             # Update the current config.
             general.changeConfig(self)
@@ -350,8 +420,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self._language = "ja"
             
             # Set the default skin.
-            skin.setMainWindowButtonText(self)
-            skin.setMainWindowToolTips(self)
+            setupMainSkin.setMainWindowButtonText(self)
+            setupMainSkin.setMainWindowToolTips(self)
             
             # Update the current config.
             general.changeConfig(self)
@@ -512,23 +582,23 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def getTheRootDirectory(self):
         print("main::getTheRootDirectory(self)")
-        print(1)
+        
         # Set the dialog title message.
         msg_dialog = ""
         if self._language == "en":
             msg_dialog = "Select the project directory"
         elif self._language == "ja":
             msg_dialog = "プロジェクトディレクトリの選択"
-        print(2)
+        
         try:
             # Initialyze the tree view.
             self.tre_prj_item.clear()
-            print(3)
+            
             # Reflesh the last selection.
             self.refreshConsolidationInfo()
             self.refreshMaterialInfo()
             self.refreshImageInfo()
-            print(4)
+            
             # Get the current directories and save as previous entries.
             prev_root_directory = self._root_directory
             prev_table_directory = self._table_directory
@@ -536,10 +606,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             prev_database = self._database
             prev_consolidation = self._current_consolidation
             prev_material = self._current_material
-            print(5)
+            
             # Define directories for storing files.
             self._root_directory = QFileDialog.getExistingDirectory(self, msg_dialog)
-            print(6)
+            
             # Return nothing and exit this process if direcotry is not selected.
             if not os.path.exists(self.root_directory):
                 self._root_directory = prev_root_directory
@@ -548,24 +618,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self._database = prev_database
                 self._current_consolidation = prev_consolidation
                 self._current_material = prev_material
-                print(7)
+                
                 # Exit this process.
                 return(None)
-            print(8)
+            
             # Some essential directories are created under the root directory if they are not existed.
             self._table_directory = os.path.join(self._root_directory, "Table")
             self._consolidation_directory = os.path.join(self._root_directory, "Consolidation")
-            print(9)
+            
             # Reset the current consolidation and the current material.
             self._current_consolidation = None
             self._current_material = None
-            print(10)
+            
             # Define the DB file.
             self._database = os.path.join(self._table_directory, "project.db")
-            print(11)
+            
             # Check Flickr API Key File.
             self.checkFlickrKey()
-            print(12)
+            
             # Show the project creation dialog if the path is not existed.
             if not os.path.exists(self._database):
                 createNewProject = general.askNewProject(self)
@@ -577,12 +647,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     self._database = prev_database
                     self._current_consolidation = prev_consolidation
                     self._current_material  = prev_material
-                    print(13)
+                    
                     # Exit this process.
                     return(None)
             
             # Open the project.
-            print(14)
             self.openProject()
         except Exception as e:
             print("main::getTheRootDirectory(self)")
@@ -1233,7 +1302,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Change text color for text boxes.
-            skin.setDefaultConsolidationText(self, status="default", skin=self._skin)
+            setupMainSkin.setDefaultConsolidationText(self, status="default", skin=self._skin)
             
             # Refresh preview image.
             self.refreshImageInfo()
@@ -1837,7 +1906,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Change text color for text boxes.
-            skin.setDefaultMaterialText(self, status="default", skin=self._skin)
+            setupMainSkin.setDefaultMaterialText(self, status="default", skin=self._skin)
             
             # Refresh preview image.
             self.refreshImageInfo()
@@ -2384,7 +2453,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tre_fls_item.setText(1, sop_object.alias)
                     tre_fls_item.setText(2, sop_object.file_type)
                     
-                    skin.setDefaultFileText(tre_fls_item, status="original", skin=self._skin)
+                    setupMainSkin.setDefaultFileText(tre_fls_item, status="original", skin=self._skin)
             elif fil_status == "Removed":
                 if self.cbx_fil_deleted.isChecked() == True:
                     
@@ -2395,7 +2464,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tre_fls_item.setText(1, sop_object.alias)
                     tre_fls_item.setText(2, sop_object.file_type)
                     
-                    skin.setDefaultFileText(tre_fls_item, status="removed", skin=self._skin)
+                    setupMainSkin.setDefaultFileText(tre_fls_item, status="removed", skin=self._skin)
             else:
                 # Update the tree view.
                 tre_fls_item = QTreeWidgetItem(self.tre_fls)
@@ -2578,7 +2647,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     sd.play(data, fs)
                     
                     # Connect to the stop button.
-                    skin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
+                    setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
                     self.btn_snd_stop.clicked.connect(self.soundStop)
                 else:
                     
@@ -2593,7 +2662,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     def soundStop(self):
         print("main::soundStop(self)")
-        skin.setStopButtonIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
+        setupMainSkin.setStopButtonIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
         sd.stop()
     
     # ==========================
@@ -3854,26 +3923,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-    
-    def addGeographiData(self):
-        ## Create an empty plot curve to be filled later, set its pen
-        p1 = self.plt_geo.plot()
-        
-        '''
-        ax = self.plt_geo.getPlotItem().axes(projection=ccrs.PlateCarree())
-        ax.coastlines()
-        
-        
-        ## Add in some extra graphics
-        rect = QGraphicsRectItem(QRectF(0, 0, 1, 5e-11))
-        rect.setPen(pg.mkPen(100, 200, 100))
-        self.plt_geo.addItem(rect)
-        
-        self.plt_geo.setLabel('left', 'Latitude', units='Degree')
-        self.plt_geo.setLabel('bottom', 'Longitude', units='Degree')
-        self.plt_geo.setXRange(0, 100)
-        self.plt_geo.setYRange(0, 100)
-        '''
     
     # ==========================
     # Flickr operation

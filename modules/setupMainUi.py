@@ -11,8 +11,6 @@ from PyQt5.QtCore import *
 
 # Import GIS libraries for showing geographic data.
 import numpy as np
-import pyqtgraph as pg
-import cartopy.crs as ccrs
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../viewer')
 import viewer.imageViewer as viewer
@@ -37,11 +35,6 @@ def activate(ui_main):
     spl_fl.addWidget(ui_main.frm_fil_info_right)
     ui_main.frm_fil_info_lay.addWidget(spl_fl)
     ui_main.setLayout(ui_main.frm_fil_info_lay)
-    
-    # giving the plots names allows us to link their axes together
-    ui_main.plt_geo = pg.PlotWidget(name='plt_geo') 
-    ui_main.plt_geo.setAspectLocked(lock=True, ratio=1)
-    ui_main.tab_src_geo_lay.addWidget(ui_main.plt_geo)
     
     # Activate actions on the menu bar.
     ui_main.bar_menu.setNativeMenuBar(False)
