@@ -8,6 +8,7 @@ The SDC requires following softwares. These are easily installed by the "apt" co
     + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
     + Sqlite        : The open source light weight DataBase Management System.
 
+# Requirements of Python Libraries
 In addition to above softwares, this system requires python libraries as below:
 
 ## GUI libraries
@@ -15,6 +16,7 @@ In addition to above softwares, this system requires python libraries as below:
     + PyQt5
     + Queue
     + pyqtgraph
+    + PyQt5 Webkit
 
 ## Generic libraries
 
@@ -67,14 +69,8 @@ In addition to above softwares, this system requires python libraries as below:
     + pexif
     + exifread
 
-## Sound managing libraries
-
-    + sounddevice
-    + soundfile
-
 ## Additional Libraries
 
-    + cartopy
     + flickrapi
 
  Most of these libraries can be installed by using "pip" or "easy_install" commands for python. But some libraries are not provided
