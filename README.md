@@ -5,8 +5,8 @@
 The SDC is developed by Python. It means SDC would be run on Windows and Mac platform. However, in some essential function of tethered shooting and colorlization wouldn't work on Windows and Mac. These problems will be improved in the future update. In current situations, Linux is strongly recommended.
 The SDC requires following softwares. These are easily installed by the "apt" command.
 
-    + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
-    + Sqlite        : The open source light weight DataBase Management System.
+    + gphoto2       : The open source software under GPL v2 or later, which provides tethered shooting function on this system.
+    + Sqlite        : The open source light weight DataBase Management System published under public domain.
 
 # Requirements of Python Libraries
 In addition to above softwares, this system requires python libraries as below:
@@ -16,7 +16,6 @@ In addition to above softwares, this system requires python libraries as below:
     + PyQt5
     + Queue
     + pyqtgraph
-    + PyQt5 Webkit
 
 ## Generic libraries
 
