@@ -6,8 +6,6 @@ The SDC is developed by Python. It means SDC would be run on Windows and Mac pla
 The SDC requires following softwares. These are easily installed by the "apt" command.
 
     + gphoto2       : The open source software under GPL, which provides tethered shooting function on this system.
-    + dcraw         : The open source software handling RAW images on this system.
-    + gimp          : The open source photo retouch software under GPL providing advanced image editing.
     + Sqlite        : The open source light weight DataBase Management System.
 
 In addition to above softwares, this system requires python libraries as below:
@@ -81,6 +79,12 @@ In addition to above softwares, this system requires python libraries as below:
 
  Most of these libraries can be installed by using "pip" or "easy_install" commands for python. But some libraries are not provided
  officially. These libraries should be installed from GitHub. 
+
+# Reccomendations
+The SDC dynamically linked to other softwares so that users can edit precisely with specific softwares. Representative softwares are listed below. SDC would work even though you wouldn't install these softwares.
+
+    + dcraw         : The open source software handling RAW images on this system.
+    + gimp          : The open source photo retouch software under GPL Ver.3 providing advanced image editing.
 
 # General Functions
 ## Image Processing Tools
