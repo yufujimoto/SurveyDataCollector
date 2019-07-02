@@ -61,6 +61,8 @@ def setConfigWindowButtonText(parent):
     if parent.language == "ja":
         # Main menue
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_general), "一般")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_geoinfo), "地理情報")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_network), "ネットワーク")
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "カメラ接続")
         
         
@@ -80,6 +82,8 @@ def setConfigWindowButtonText(parent):
     elif parent.language == "en":
         # Main menue
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_general), "General")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_geoinfo), "Geographic Information")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_network), "Network Settings")
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "Camera Connection")
         
         parent.gbx_general.setTitle("Theme")
@@ -101,7 +105,9 @@ def setConfigWindowIcons(parent, icon_path):
     qicon_size = QSize(icon_size, icon_size)
         
     parent.tab_conf_main.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'apps.png')))
-    parent.tab_conf_main.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'insert_photo.png')))
+    parent.tab_conf_main.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'place.png')))
+    parent.tab_conf_main.setTabIcon(2, getIconFromPath(os.path.join(icon_path, 'network.png')))
+    parent.tab_conf_main.setTabIcon(3, getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
     
     # Set the skin and icon.
     parent.bbx_conf_res.buttons()[0].setIcon(getIconFromPath(os.path.join(icon_path, 'check.png')))
@@ -162,9 +168,12 @@ def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
         parent.cbx_skin.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_tool_awb.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_tool_psp.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
-        parent.cbx_map_tile.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        
         parent.txt_flc_api.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.txt_flc_sec.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        
+        parent.cbx_map_tile.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.txt_proxy.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
         parent.cbx_cam_size.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_cam_iso.setStyleSheet(font_style_color + font_style_size + text_border + text_background)

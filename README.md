@@ -68,6 +68,10 @@ In addition to above softwares, this system requires python libraries as below:
     + pexif
     + exifread
 
+## Geospatial libraries
+
+    + geocoder
+
 ## Additional Libraries
 
     + flickrapi

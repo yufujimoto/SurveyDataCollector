@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>761</width>
-    <height>532</height>
+    <height>542</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>542</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
@@ -26,7 +32,7 @@
       <item>
        <widget class="QTabWidget" name="tab_conf_main">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab_general">
          <attribute name="title">
@@ -43,10 +49,16 @@
               <layout class="QHBoxLayout" name="hlay_theme_lang">
                <item>
                 <widget class="QLabel" name="lbl_lang">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>30</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>150</width>
-                   <height>16777215</height>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -77,10 +89,16 @@
               <layout class="QHBoxLayout" name="hlay_theme_skin">
                <item>
                 <widget class="QLabel" name="lbl_skin">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>30</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>150</width>
-                   <height>16777215</height>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -120,10 +138,16 @@
               <layout class="QHBoxLayout" name="hlay_tool_awb">
                <item>
                 <widget class="QLabel" name="lbl_tool_awb">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>30</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>150</width>
-                   <height>16777215</height>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -189,10 +213,16 @@
               <layout class="QHBoxLayout" name="hlay_tool_psp">
                <item>
                 <widget class="QLabel" name="lbl_tool_psp">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>30</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>150</width>
-                   <height>16777215</height>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -228,9 +258,86 @@
            </widget>
           </item>
           <item>
+           <widget class="QGroupBox" name="gbx_flickr">
+            <property name="title">
+             <string>flickrの設定</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="hlay_flc_api">
+               <item>
+                <widget class="QLabel" name="lbl_flc_api">
+                 <property name="minimumSize">
+                  <size>
+                   <width>150</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>API KEY : </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="txt_flc_api"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="hlay_flc_sec">
+               <item>
+                <widget class="QLabel" name="lbl_flc_sec">
+                 <property name="minimumSize">
+                  <size>
+                   <width>150</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>150</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Secret : </string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="txt_flc_sec"/>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_geoinfo">
+         <attribute name="title">
+          <string>地理情報</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
            <widget class="QGroupBox" name="gbx_geospatial">
             <property name="title">
              <string>地理情報</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
@@ -240,7 +347,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>150</width>
-                   <height>16777215</height>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -287,75 +394,87 @@
                </item>
               </layout>
              </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_12"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+             </item>
             </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_network">
+         <attribute name="title">
+          <string>ネットワーク</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <widget class="QGroupBox" name="gbx_flickr">
-            <property name="title">
-             <string>flickrの設定</string>
+           <layout class="QVBoxLayout" name="verticalLayout_13">
+            <property name="topMargin">
+             <number>10</number>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <item>
-              <layout class="QHBoxLayout" name="hlay_flc_api">
-               <item>
-                <widget class="QLabel" name="lbl_flc_api">
-                 <property name="minimumSize">
-                  <size>
-                   <width>150</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>150</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>API KEY : </string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="txt_flc_api"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlay_flc_sec">
-               <item>
-                <widget class="QLabel" name="lbl_flc_sec">
-                 <property name="minimumSize">
-                  <size>
-                   <width>150</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>150</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>Secret : </string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="txt_flc_sec"/>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
+            <item>
+             <widget class="QRadioButton" name="rbtn_no_proxy">
+              <property name="text">
+               <string>NO PRO&amp;XY</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rbtn_proxy">
+              <property name="text">
+               <string>HTTP PROXY</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="lbl_proxy">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Proxy: </string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="txt_proxy"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <property name="topMargin">
+             <number>250</number>
+            </property>
+           </layout>
           </item>
          </layout>
         </widget>

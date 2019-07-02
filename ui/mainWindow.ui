@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
-    <height>804</height>
+    <width>1046</width>
+    <height>890</height>
    </rect>
   </property>
   <property name="font">
@@ -574,7 +574,7 @@
            <property name="spacing">
             <number>0</number>
            </property>
-           <item row="0" column="0">
+           <item row="0" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_uuid">
              <property name="spacing">
               <number>5</number>
@@ -637,7 +637,7 @@
              </item>
             </layout>
            </item>
-           <item row="5" column="0">
+           <item row="5" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_ctrl">
              <property name="spacing">
               <number>2</number>
@@ -762,7 +762,7 @@
              </item>
             </layout>
            </item>
-           <item row="3" column="0">
+           <item row="3" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_tmp">
              <property name="spacing">
               <number>5</number>
@@ -819,7 +819,7 @@
              </item>
             </layout>
            </item>
-           <item row="4" column="0">
+           <item row="4" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_dsc">
              <property name="spacing">
               <number>5</number>
@@ -876,7 +876,7 @@
              </item>
             </layout>
            </item>
-           <item row="1" column="0">
+           <item row="1" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_nam">
              <property name="spacing">
               <number>5</number>
@@ -933,7 +933,7 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
+           <item row="2" column="1">
             <layout class="QHBoxLayout" name="lay_h_con_geo">
              <property name="spacing">
               <number>5</number>
@@ -1896,7 +1896,7 @@
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>3</number>
                </property>
                <property name="iconSize">
                 <size>
@@ -2247,7 +2247,7 @@
                   <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>0</number>
+                  <number>10</number>
                  </property>
                  <property name="rightMargin">
                   <number>0</number>
@@ -2255,6 +2255,9 @@
                  <property name="bottomMargin">
                   <number>0</number>
                  </property>
+                 <item>
+                  <widget class="QVideoWidget" name="mlt_player" native="true"/>
+                 </item>
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_12">
                    <item>
@@ -2295,10 +2298,26 @@
                 </attribute>
                 <layout class="QVBoxLayout" name="tab_src_geo_lay">
                  <item>
-                  <widget class="QWebView" name="web_map">
+                  <widget class="QPushButton" name="btn_geo_coding">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>ジオコーディング</string>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWebView" name="geo_view">
                    <property name="url">
                     <url>
-                     <string>about:blank</string>
+                     <string>https://www.google.com/?gws_rd=ssl</string>
                     </url>
                    </property>
                   </widget>
@@ -2323,8 +2342,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
-     <height>24</height>
+     <width>1046</width>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="men_prj">
@@ -2554,6 +2573,12 @@
    <class>QWebView</class>
    <extends>QWidget</extends>
    <header>QtWebKitWidgets/QWebView</header>
+  </customwidget>
+  <customwidget>
+   <class>QVideoWidget</class>
+   <extends>QWidget</extends>
+   <header>PyQt5.QtMultimediaWidgets</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>

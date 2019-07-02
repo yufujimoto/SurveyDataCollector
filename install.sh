@@ -15,6 +15,7 @@ apt install pkg-config
 apt install imutils
 apt install libqt5webkit5-dev
 apt install python-pyqt5.qtwebkit
+apt install python-pyqt5.qtmultimedia
 
 # Install general libraries.
 apt install python-dateutil
@@ -81,10 +82,12 @@ apt install sqlite
 apt install sqlitebrowser
 
 # Install gis tools.
+
 apt install libgeos-dev
 apt install libproj-dev
-pip2 install pyqtgraph
-pip2 install cartopy
+pip2 install geopy
+pip2 install geocoder
+pip2 install geodaisy
 
 # Install torch into home directory.
 apt install torch-trepl

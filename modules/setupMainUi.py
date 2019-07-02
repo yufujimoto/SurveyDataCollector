@@ -63,6 +63,7 @@ def activate(ui_main):
     ui_main.tab_src.setCurrentIndex(0)     # Initialyze the tab icons for source media tabs.
     
     ui_main.tab_target.currentChanged.connect(ui_main.toggleCurrentObjectTab)
+    ui_main.tab_src.currentChanged.connect(ui_main.toggleCurrentSourceTab)
     
     # Initialyze objects for consolidation
     ui_main.btn_con_add.clicked.connect(ui_main.addConsolidation)         # Activate the adding a consolidation button.
@@ -99,6 +100,9 @@ def activate(ui_main):
     ui_main.btn_img_sav.clicked.connect(ui_main.saveImageAs)          # Activating the image processing tool button for export the selected image.
     ui_main.btn_img_awb.clicked.connect(ui_main.adjustWhiteBalance)   # Activating the image processing tool button for adjusting image white balance.
     ui_main.btn_img_col.clicked.connect(ui_main.colorlize)            # Activating the image processing tool button for adjusting image white balance.
+    
+    # Activate the map functions.
+    ui_main.btn_geo_coding.clicked.connect(ui_main.addGeometryByGeocoding)
     
     # Activate the extra functions.
     ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation) # Activate the editing the file informatin button.

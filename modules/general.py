@@ -41,7 +41,10 @@ def changeConfig(parent):
                 if xml_child.tag == "tools":
                     xml_child.find("awb").text = parent.awb_algo  # Auto white balance algorithm.
                     xml_child.find("psp").text = parent.psp_algo  # Pansharpen algorithm
-            
+                if xml_child.tag == "geoinfo":
+                    xml_child.find("maptile").text = parent.map_tile
+                if xml_child.tag == "network":
+                    xml_child.find("proxy").text = parent.proxy
             # Create a new tree object by new entries.
             tree = ET.ElementTree(xml_config)
             
@@ -587,6 +590,7 @@ def createDirectories(item_path, isConsolidation):
         sop_dir_img = os.path.join(sop_dir_root, "Images")
         sop_dir_snd = os.path.join(sop_dir_root, "Sounds")
         sop_dir_mov = os.path.join(sop_dir_root, "Movies")
+        sop_dir_geo = os.path.join(sop_dir_root, "Geometries")
         sop_dir_lnk = os.path.join(sop_dir_root, "Linkages")
         
         # Make directories for each medium.
@@ -594,12 +598,17 @@ def createDirectories(item_path, isConsolidation):
         os.mkdir(sop_dir_img)
         os.mkdir(sop_dir_snd)
         os.mkdir(sop_dir_mov)
+        os.mkdir(sop_dir_geo)
         os.mkdir(sop_dir_lnk)
         
         # Make directories for images.
         os.mkdir(os.path.join(sop_dir_img, "Main"))
         os.mkdir(os.path.join(sop_dir_img, "Raw"))
         os.mkdir(os.path.join(sop_dir_img, "Thumbs"))
+        
+        open(os.path.join(sop_dir_geo, "markers.txt", "w")).close()
+        open(os.path.join(sop_dir_geo, "lines.txt", "w")).close()
+        open(os.path.join(sop_dir_geo, "polygons.txt", "w")).close()
         
         # In case consolidation, create a directory for materials.
         if isConsolidation:

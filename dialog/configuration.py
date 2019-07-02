@@ -29,11 +29,15 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
     def language(self): return self._language
     @property
     def skin(self): return self._skin
+    @property
+    def proxy(self): return self._proxy
     
     @language.setter
     def language(self, value): self._language = value
     @skin.setter
     def skin(self, value): self._skin = value
+    @proxy.setter
+    def proxy(self, value): self._proxy = value
     
     def __init__(self, parent=None):
         try:
@@ -96,6 +100,23 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             elif parent.psp_algo == "simpleMeanConvert": self.cbx_tool_psp.setCurrentIndex(1)
             elif parent.psp_algo == "broveyConvert": self.cbx_tool_psp.setCurrentIndex(2)
             
+            if parent.map_tile == "OpenStreetMap": self.cbx_map_tile.setCurrentIndex(0)
+            elif parent.map_tile == "Google Streets": self.cbx_map_tile.setCurrentIndex(1)
+            elif parent.map_tile == "Google Hybrid": self.cbx_map_tile.setCurrentIndex(2)
+            elif parent.map_tile == "Google Satellite": self.cbx_map_tile.setCurrentIndex(3)
+            elif parent.map_tile == "Google Terrain": self.cbx_map_tile.setCurrentIndex(4)
+            elif parent.map_tile == u"地理院タイル": self.cbx_map_tile.setCurrentIndex(5)
+            
+            self._proxy = parent.proxy
+            
+            self.rbtn_proxy.clicked.connect(self.proxySettingsTrue)
+            self.rbtn_no_proxy.clicked.connect(self.proxySettingsFalse)
+            
+            if parent.proxy == "No Proxy":
+                self.proxySettingsFalse()
+            else:
+                self.proxySettingsTrue()
+                        
             # Set Flickr API and Secret Key.
             self.txt_flc_api.setText(parent.flickr_apikey)
             self.txt_flc_sec.setText(parent.flickr_secret)
@@ -107,7 +128,7 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             print(str(e))
     
     def refreshCameraParameters(self):
-        print("main::refreshCameraParameters(self)")
+        print("configuration::refreshCameraParameters(self)")
         
         try:            
             # Clear comboboxes for camera parameters.
@@ -137,6 +158,36 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             
             # Set the tool tips with the specific language.
             #setupConfigSkin.setMainWindowToolTips(self)
+        except Exception as e:
+            print("Error occured in configuration::setSkin(self, icon_path)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    
+    def proxySettingsTrue(self):
+        print("configuration::toggleProxySettingsTrue(self)")
+        
+        try:
+            self.rbtn_proxy.setChecked(True)
+            
+            self.txt_proxy.setEnabled(True)
+            self.txt_proxy.setText(self._proxy)
+        except Exception as e:
+            print("Error occured in configuration::setSkin(self, icon_path)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+        
+    def proxySettingsFalse(self):
+        print("configuration::toggleProxySettingsFalse(self)")
+        
+        try:
+            self.rbtn_no_proxy.setChecked(True)
+            
+            self.txt_proxy.setEnabled(False)
+            self.txt_proxy.setText("No Proxy")
+            
         except Exception as e:
             print("Error occured in configuration::setSkin(self, icon_path)")
             print(str(e))

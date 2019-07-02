@@ -140,6 +140,8 @@ class Consolidation(SimpleObject):
     @property
     def texts(self): return self._texts
     @property
+    def geometries(self): return self._geometries
+    @property
     def additionalAttributes(self): return self._additionalAttributes
     @property
     def description(self): return self._description
@@ -156,6 +158,8 @@ class Consolidation(SimpleObject):
     def sounds(self, value): self._sounds = value
     @texts.setter
     def texts(self, value): self._texts = value
+    @geometries.setter
+    def geometries(self, value): self._geometries = value
     @additionalAttributes.setter
     def additionalAttributes(self, value): self._additionalAttributes = value
     @description.setter
@@ -173,6 +177,7 @@ class Consolidation(SimpleObject):
             self._images = list()
             self._sounds = list()
             self._texts = list()
+            self._geometries = list()
             self._additionalAttributes = list()
             self._description = None
             self._objectPath = None
@@ -209,6 +214,7 @@ class Consolidation(SimpleObject):
                 self._images = self._getFileList(dbfile, "image")
                 self._sounds = self._getFileList(dbfile, "audio")
                 self._texts = self._getFileList(dbfile, "text")
+                self._geometries = self._getFileList(dbfile, "geometry")
                 self._additionalAttributes = self._getAdditionalAttributes(dbfile)
                 self._description = entry[4]
             else:
@@ -258,6 +264,11 @@ class Consolidation(SimpleObject):
             if not self._texts == None:
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbInsert(dbfile)
+            
+            # Insert texts of the Consolidation.
+            if not self._geometries == None:
+                if not len(self._geometries) <= 0:
+                    for geometry in self._geometries: geometry.dbInsert(dbfile)
             
             # Insert additional attributes.
             if not self._additionalAttributes == None:
@@ -310,6 +321,11 @@ class Consolidation(SimpleObject):
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbUpdate(dbfile)
             
+            # Update text of the Consolidation.
+            if not self._geometries == None:
+                if not len(self._geometries) <= 0:
+                    for geometry in self._geometries: geometry.dbUpdate(dbfile)
+        
             # Update additional attributes.
             if not self._additionalAttributes == None:
                 if not len(self._additionalAttributes) <= 0:
