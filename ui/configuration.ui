@@ -32,7 +32,7 @@
       <item>
        <widget class="QTabWidget" name="tab_conf_main">
         <property name="currentIndex">
-         <number>2</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="tab_general">
          <attribute name="title">
@@ -395,15 +395,6 @@
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_12"/>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_4"/>
-             </item>
-             <item>
               <layout class="QHBoxLayout" name="horizontalLayout_5"/>
              </item>
             </layout>
@@ -417,12 +408,21 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_13">
-            <property name="topMargin">
-             <number>10</number>
+           <layout class="QFormLayout" name="formLayout_2">
+            <property name="labelAlignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
-            <item>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item row="0" column="0">
              <widget class="QRadioButton" name="rbtn_no_proxy">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>NO PRO&amp;XY</string>
               </property>
@@ -431,28 +431,30 @@
               </property>
              </widget>
             </item>
-            <item>
+            <item row="1" column="0">
              <widget class="QRadioButton" name="rbtn_proxy">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
-               <string>HTTP PROXY</string>
+               <string>HTTP PROX&amp;Y</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
+            <item row="2" column="0">
              <widget class="QLabel" name="lbl_proxy">
               <property name="minimumSize">
                <size>
-                <width>150</width>
+                <width>100</width>
                 <height>30</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>150</width>
+                <width>100</width>
                 <height>30</height>
                </size>
               </property>
@@ -464,16 +466,9 @@
               </property>
              </widget>
             </item>
-            <item>
+            <item row="2" column="1">
              <widget class="QLineEdit" name="txt_proxy"/>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <property name="topMargin">
-             <number>250</number>
-            </property>
            </layout>
           </item>
          </layout>

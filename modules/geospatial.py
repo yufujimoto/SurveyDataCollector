@@ -2,6 +2,7 @@
 # coding: UTF-8
 
 import os, sys, geocoder
+import modules.error as error
 
 class mapObject(object):
     @property
@@ -44,58 +45,68 @@ class mapObject(object):
         self._map_events = events
     
     def publishMap(self, output, zoom=15):
-        saveAs = open(output, 'w')
+        print("geospatial::mapTile::publishMap(self, output, zoom=15)")
         
-        saveAs.write("<!DOCTYPE html>\n")
-        saveAs.write("<html>\n")
-        saveAs.write("\t<head>\n")
-        saveAs.write("\t\t<title>%s</title>\n" % self._map_title)
-        saveAs.write("\t\t<meta charset='utf-8' />\n")
-        saveAs.write("\t\t<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n")
-        saveAs.write("\t\t<link rel='stylesheet' href='%s' />\n" % self._map_style)
-        saveAs.write("\t\t<script src='%s'></script>\n" % self._map_source)
-        
-        events = self._map_events
-        if events != None and len(events) > 0:
-            for event in events:
-                saveAs.write("\t\t<script src='%s'></script>\n" % event.script_source)
-        
-        saveAs.write("\t\t<style>body {padding: 0; margin: 0} html, body, #map {height: 100%; width: 100%;}</style>\n")
-        saveAs.write("\t</head>\n")
-        saveAs.write("\t<body>\n")
-        saveAs.write("\t\t<div id='map'></div>\n")
-        
-        tileSettings = self._map_tile.createHtmlTileSettings(zoom)
-        
-        saveAs.write("\t\t<script>\n")
-        saveAs.write(tileSettings)
-        saveAs.write("\t\t</script>\n")
-        
-        markers = self._map_markers
-        if markers != None and len(markers) > 0:
-            for marker in markers:
+        try:
+            saveAs = open(output, 'w')
+            
+            saveAs.write("<!DOCTYPE html>\n")
+            saveAs.write("<html>\n")
+            saveAs.write("\t<head>\n")
+            saveAs.write("\t\t<title>%s</title>\n" % self._map_title)
+            saveAs.write("\t\t<meta charset='utf-8' />\n")
+            saveAs.write("\t\t<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n")
+            saveAs.write("\t\t<link rel='stylesheet' href='%s' />\n" % self._map_style)
+            saveAs.write("\t\t<script src='%s'></script>\n" % self._map_source)
+            
+            events = self._map_events
+            if events != None and len(events) > 0:
+                for event in events:
+                    saveAs.write("\t\t<script src='%s'></script>\n" % event.script_source)
+            
+            saveAs.write("\t\t<style>body {padding: 0; margin: 0} html, body, #map {height: 100%; width: 100%;}</style>\n")
+            saveAs.write("\t</head>\n")
+            saveAs.write("\t<body>\n")
+            saveAs.write("\t\t<div id='map'></div>\n")
+            
+            tileSettings = self._map_tile.createHtmlTileSettings(zoom)
+            
+            saveAs.write("\t\t<script>\n")
+            saveAs.write(tileSettings)
+            saveAs.write("\t\t</script>\n")
+            
+            markers = self._map_markers
+            if markers != None and len(markers) > 0:
+                for marker in markers:
+                    saveAs.write("\t\t<script>\n")
+                    saveAs.write("%s\n" % marker.createMarker())
+                    saveAs.write("\t\t</script>\n")
+                
+            lines = self._map_lines
+            if lines != None and len(lines) > 0:
                 saveAs.write("\t\t<script>\n")
-                saveAs.write("%s\n" % marker.createMarker())
                 saveAs.write("\t\t</script>\n")
             
-        lines = self._map_lines
-        if lines != None and len(lines) > 0:
-            saveAs.write("\t\t<script>\n")
-            saveAs.write("\t\t</script>\n")
-        
-        polys = self._map_polygons
-        if polys != None and len(polys) > 0:
-            saveAs.write("\t\t<script>\n")
-            saveAs.write("\t\t</script>\n")
-        
-        if events != None and len(events) > 0:
-            for event in events:
+            polys = self._map_polygons
+            if polys != None and len(polys) > 0:
                 saveAs.write("\t\t<script>\n")
-                saveAs.write("%s\n" % event.createJsMapEvent())
                 saveAs.write("\t\t</script>\n")
-        
-        saveAs.write("\t</body>\n")
-        saveAs.write("</html>\n")
+            
+            if events != None and len(events) > 0:
+                for event in events:
+                    saveAs.write("\t\t<script>\n")
+                    saveAs.write("%s\n" % event.createJsMapEvent())
+                    saveAs.write("\t\t</script>\n")
+            
+            saveAs.write("\t</body>\n")
+            saveAs.write("</html>\n")
+            saveAs.close()
+            print("OK")
+        except Exception as e:
+            print("Error occured in publishMap(self, output, zoom=15)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
 
 class mapTile(object):
     @property
@@ -142,24 +153,32 @@ class mapTile(object):
         self._tile_subdomains = sub
     
     def createHtmlTileSettings(self, zoom):
-        # Define the map object and its center.
-        lat_center = self._tile_center[0]
-        lon_center = self._tile_center[1]
+        print("geospatial::mapTile::createHtmlTileSettings(self)")
         
-        txt_map = "\t\t\tvar map = L.map('map');\n" 
-        
-        # Set the tile layer with specific attributes.
-        src = self._tile_src
-        attr = self._tile_attribution
-        minz = self._tile_minZoom
-        maxz = self._tile_maxZoom
-        sub = self._tile_subdomains
-        
-        txt_lay = '\t\t\tL.tileLayer("%s", {attribution: "%s",minZoom: %s, maxZoom: %s, subdomains: %s}).addTo(map);\n' % (src, attr, minz, maxz, sub)
-        txt_set = '\t\t\tmap.setView([%s, %s], %s);\n' % (lat_center, lon_center, zoom)
-        
-        # Return the value.
-        return(txt_map + txt_lay + txt_set)
+        try:
+            # Define the map object and its center.
+            lat_center = self._tile_center[0]
+            lon_center = self._tile_center[1]
+            
+            txt_map = "\t\t\tvar map = L.map('map');\n" 
+            
+            # Set the tile layer with specific attributes.
+            src = self._tile_src
+            attr = self._tile_attribution
+            minz = self._tile_minZoom
+            maxz = self._tile_maxZoom
+            sub = self._tile_subdomains
+            
+            txt_lay = '\t\t\tL.tileLayer("%s", {attribution: "%s",minZoom: %s, maxZoom: %s, subdomains: %s}).addTo(map);\n' % (src, attr, minz, maxz, sub)
+            txt_set = '\t\t\tmap.setView([%s, %s], %s);\n' % (lat_center, lon_center, zoom)
+            
+            # Return the value.
+            return(txt_map + txt_lay + txt_set)
+        except Exception as e:
+            print("Error occured in geospatial::mapTile::createHtmlTileSettings(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
 
 class mapEvent(object):
     @property
@@ -182,9 +201,17 @@ class mapEvent(object):
         self._script_function = func
     
     def createJsMapEvent(self):
-        txt_event = "\t\t\tmap.on('%s', %s);" % (self._script_event, self._script_function)
-        return(txt_event)
-
+        print("geospatial::mapEvent::createJsMapEvent(self)")
+        
+        try:
+            txt_event = "\t\t\tmap.on('%s', %s);" % (self._script_event, self._script_function)
+            return(txt_event)
+        except Exception as e:
+            print("Error occured in geospatial::mapEvent::createJsMapEvent(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
 class mapMarker(object):
     @property
     def geometry(self): return self._geometry
@@ -201,64 +228,97 @@ class mapMarker(object):
         self._description = desc
     
     def createMarker(self):
-        txt_marker = "\t\t\tL.marker(%s).addTo(map);" % self._geometry
-        return(txt_marker)
+        print("geospatial::mapMarker::createMarker(self)")
+        
+        try:
+            txt_marker = "\t\t\tL.marker(%s).addTo(map);" % self._geometry
+            return(txt_marker)
+        except Exception as e:
+            print("Error occured in geospatial::mapMarker::createMarker(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
 
 
 def writeHtml(parent, output, map_zoom = 2, map_center = [32.6759094,129.4209844], markers = None):
-    print("geospatial::writeHtml")
+    print("geospatial::writeHtml(parent, output, map_zoom = 2, map_center = [32.6759094,129.4209844], markers = None)")
     
-    if parent.map_tile == "OpenStreetMap":      # OpenStreetMap
-        src = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attr =  "Map data &copy; <a href='https://www.openstreetmap.org/'>OpenStreetMap</a>contributors, <a href='https://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>"
-        minz = 0
-        maxz = 19
-        sub = "'abc'"
-    elif parent.map_tile == "Google Streets":   # Google Streets
-        src = "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-        attr =  "Google Streets"
-        minz = 0
-        maxz = 20
-        sub = "['mt0','mt1','mt2','mt3']"
-    elif parent.map_tile == "Google Hybrid":    # Google Hybrid
-        src = "http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
-        attr =  "Google Hybrid"
-        minz = 0
-        maxz = 20
-        sub = "['mt0','mt1','mt2','mt3']"
-    elif parent.map_tile == "Google Satellite": # Google Satellite
-        src = "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-        attr =  "Google Satellite"
-        minz = 0
-        maxz = 20
-        sub = "['mt0','mt1','mt2','mt3']"
-    elif parent.map_tile == "Google Terrain":   # Google Terrain
-        src = "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
-        attr =  "Google Terrain"
-        minz = 0
-        maxz = 20
-        sub = "['mt0','mt1','mt2','mt3']"
-    elif parent.map_tile == u"地理院タイル":
-        src = "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
-        attr =  u"地理院タイル"
-        minz = 0
-        maxz = 18
-    else:
-        src = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attr =  "Map data &copy; <a href='https://www.openstreetmap.org/'>OpenStreetMap</a>contributors, <a href='https://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>"
-        minz = 0
-        maxz = 19
-        sub = "'abc'"
-    
-    newEvent = mapEvent(src='lib/copyToClipboard.js', event='click', func='copyCoord')
-    newTile = mapTile(name = '', src = src, cntr = map_center, attr = attr, minz = minz, maxz = maxz, sub = sub)
-    newMap = mapObject(title = 'Get Coordinates from the Map', tile=newTile, markers = markers, events = [newEvent])
-    
-    newMap.publishMap(output, zoom = map_zoom)
+    try:
+        if parent.map_tile == "OpenStreetMap":      # OpenStreetMap
+            src = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attr =  "Map data &copy; <a href='https://www.openstreetmap.org/'>OpenStreetMap</a>contributors, <a href='https://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>"
+            minz = 0
+            maxz = 19
+            sub = "'abc'"
+        elif parent.map_tile == "Google Streets":   # Google Streets
+            src = "http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+            attr =  "Google Streets"
+            minz = 0
+            maxz = 20
+            sub = "['mt0','mt1','mt2','mt3']"
+        elif parent.map_tile == "Google Hybrid":    # Google Hybrid
+            src = "http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
+            attr =  "Google Hybrid"
+            minz = 0
+            maxz = 20
+            sub = "['mt0','mt1','mt2','mt3']"
+        elif parent.map_tile == "Google Satellite": # Google Satellite
+            src = "http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+            attr =  "Google Satellite"
+            minz = 0
+            maxz = 20
+            sub = "['mt0','mt1','mt2','mt3']"
+        elif parent.map_tile == "Google Terrain":   # Google Terrain
+            src = "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+            attr =  "Google Terrain"
+            minz = 0
+            maxz = 20
+            sub = "['mt0','mt1','mt2','mt3']"
+        elif parent.map_tile == u"地理院タイル":
+            src = "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+            attr =  u"地理院タイル"
+            minz = 0
+            maxz = 18
+        else:
+            src = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attr =  "Map data &copy; <a href='https://www.openstreetmap.org/'>OpenStreetMap</a>contributors, <a href='https://creativecommons.org/licenses/by-sa/2.0/'>CC-BY-SA</a>, Imagery © <a href='https://www.mapbox.com/'>Mapbox</a>"
+            minz = 0
+            maxz = 19
+            sub = "'abc'"
+        
+        # Generate the click event to get geographic coordinates from the map.
+        newEvent = mapEvent(src='lib/copyToClipboard.js', event='click', func='copyCoord')
+        
+        # Generate the background map tile from the given map server.
+        newTile = mapTile(name = '', src = src, cntr = map_center, attr = attr, minz = minz, maxz = maxz, sub = sub)
+        
+        # Generate the map objects.
+        newMap = mapObject(title = 'Get Coordinates from the Map', tile=newTile, markers = markers, events = [newEvent])
+        
+        # Publish map for leaflet.
+        newMap.publishMap(output, zoom = map_zoom)
+        
+    except Exception as e:
+        print("Error occured in main::createMapByLocationName(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
+        return(None)    
 
 def geoCoding(geoname, proxies=None):
-    g = geocoder.arcgis(geoname, proxies=proxies)
-    return(g.latlng)
+    print("geospatial::geoCoding(geoname, proxies=None)")
+    
+    try:
+        if not proxies == None:
+            g = geocoder.arcgis(geoname, proxies=proxies)
+        else:
+            g = geocoder.arcgis(geoname)
+        
+        return(g.latlng)
+    except Exception as e:
+        print("Error occured in geospatial::geoCoding(geoname, proxies=None)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
     
     
     

@@ -16,6 +16,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWebKit import *
 from PyQt5.QtWebKitWidgets import *
 from PyQt5.QtNetwork import *
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 # Import GIS libraries for showing geographic data.
 import numpy as np
@@ -193,134 +195,33 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Activate modules.
         setupMainUi.activate(self)
         
-        # Define paths
-        self._root_directory = None
-        self._table_directory = None
-        self._consolidation_directory = None
-        self._database = None
+        # Initialyze the source paths.
         self._source_directory = os.path.dirname(os.path.abspath(__file__))
         self._config_file = os.path.join(self._source_directory, "config.xml")
         self._lib_directory = os.path.join(self._source_directory, "lib")
-        self._siggraph_directory = os.path.join(expanduser("~"),"siggraph")
+        self._siggraph_directory = os.path.join(os.path.expanduser("~"),"siggraph")
         self._map_directory = os.path.join(self._source_directory, "map")
         self._temporal_directory = os.path.join(self._source_directory, "temp")
         self._icon_directory = os.path.join(self._source_directory, "icon")
         
-        # Define the default extensions.
-        self._qt_image = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
-        self._image_extensions = [".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG", ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"]
-        self._raw_image_extensions = [".RAW", ".ARW"]
-        self._sound_extensions = [".WAV"]
-        
-        # Difine the current objects
-        self._current_consolidation = None
-        self._current_material = None
-        self._current_file = None
-        self._current_camera = None
-        
-        # Initialize the flickr API keys.
-        self._flickr_apikey = None
-        self._flickr_secret = None
-        
-        # Initialize the map tile source.
-        # Set the default settings.
-        self._language = "en"
-        self._skin = "grey"
-        self._map_tile = "OpenStreetMap"
-        self._proxy = "No Proxy"
-        
-        # Set default algorithms.
-        self._awb_algo = "retinex_adjusted"
-        self._psp_algo = "ihsConvert"
-        
-        # Detect the camera automatically.
-        self.detectCamera()
-        
-        # Set the initial image to thumbnail viewer.
-        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-        self.showImage(img_file_path)
-        
-        # Initialyze the temporal directory.
-        if not os.path.exists(self._temporal_directory):
-            # Create the temporal directory if not exists.
-            os.mkdir(self._temporal_directory)
-        else:
-            # Delete the existing temporal directory before create.
-            shutil.rmtree(self._temporal_directory)
-            os.mkdir(self._temporal_directory)
+        # Initialyze properties.
+        general.initAll(self)
         
         # Check whether configutation exists or not. And create the configuration if not exists.
         if not os.path.exists(self._config_file):
-            # Create the root node.
-            root = ET.Element("config")
-            
-            # Create the theme node.
-            theme = ET.SubElement(root, "theme")
-            
-            ET.SubElement(theme, "language").text = self._language
-            ET.SubElement(theme, "skin").text = self._skin
-            
-            # Create the project node.
-            project = ET.SubElement(root, "project")
-            ET.SubElement(project, "root").text = ""
-            
-            # Create the tool node
-            tools = ET.SubElement(root, "tools")
-            
-            ET.SubElement(tools, "awb").text = self._awb_algo
-            ET.SubElement(tools, "psp").text = self._psp_algo
-            
-            # Create the tool node
-            geoInfo = ET.SubElement(root, "geoinfo")
-            ET.SubElement(geoInfo, "maptile").text = self._map_tile
-            
-            # Create the network node.
-            network = ET.SubElement(root, "network")
-            ET.SubElement(network, "proxy").text = self._proxy
-            
-            tree = ET.ElementTree(root)
-            tree.write(self._config_file)
-            
+            general.initConfig(self)
         else:
-            xml_config = ET.parse(self._config_file).getroot()
-            
-            for xml_child in xml_config:
-                if xml_child.tag == "theme":
-                    self._language = xml_child.find("language").text
-                    self._skin = xml_child.find("skin").text
-                if xml_child.tag == "tools":
-                    self._awb_algo = xml_child.find("awb").text
-                    self._psp_algo = xml_child.find("psp").text
-                if xml_child.tag == "geoinfo":
-                    self._map_tile = xml_child.find("maptile").text
-                if xml_child.tag == "network":
-                    self._proxy = xml_child.find("proxy").text
-                if xml_child.tag == "project":
-                    if not xml_child.find("root").text == "":
-                        xml_root = xml_child.find("root").text
-                        
-                        if xml_root and os.path.exists(xml_root):
-                            self._root_directory = xml_child.find("root").text
-                            
-                            # Some essential directories are created under the root directory if they are not existed.
-                            self._table_directory = os.path.join(self._root_directory, "Table")
-                            self._consolidation_directory = os.path.join(self._root_directory, "Consolidation")
-                            
-                            # Reset the current consolidation and the current material.
-                            self._current_consolidation = None
-                            self._current_material = None
-                            
-                            # Define the DB file.
-                            self._database = os.path.join(self._table_directory, "project.db")
-                            
-                            # Check Flickr API Key File.
-                            self.checkFlickrKey()
-                            
-                            # Open the previous project.
-                            self.openProject()
+            if not general.loadConfig(self, self._config_file) == None:
+                # Open the previous project.
+                self.openProject()
+                
+                # Initialyze the proxy setting
+                self.setProxy()
+            else:
+                general.initAll(self)
         
-        if not self._proxy == None:
-            self.setProxy(self._proxy)
+        # Detect the camera automatically.
+        self.detectCamera()
         
         # Initialyze the map viewer
         self.setDefaultMap()
@@ -328,44 +229,65 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Set the default skin.
         self.setSkin(lang=self._language, theme=self._skin)
         
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+        self.showImage(img_file_path)
+        
     # ==========================
     # General operation
     # ==========================  
     def openConfigDialog(self):
         print("main::openConfigDialog(self)")
         
-        self.dialog_Config = configurationDialog.configurationDialog(self)
-        
-        if self.dialog_Config.exec_() == True:
-            lang = self.dialog_Config.cbx_lang.currentText()
-            if lang == u"日本語":
-                self._language = "ja"
-            elif lang == "English":
-                self._language = "en"
+        try:
+            # Initialize the configuration dialog.
+            self.dialog_Config = configurationDialog.configurationDialog(self)
             
-            self._skin = self.dialog_Config.cbx_skin.currentText().lower()
-            self._awb_algo = self.dialog_Config.cbx_tool_awb.currentText()
-            self._psp_algo = self.dialog_Config.cbx_tool_psp.currentText()
-            self._map_tile = self.dialog_Config.cbx_map_tile.currentText()
-            self._flickr_apikey = self.dialog_Config.txt_flc_api.text()
-            self._flickr_secret = self.dialog_Config.txt_flc_sec.text()
-            self._proxy = self.dialog_Config.txt_proxy.text()
-            
-            print(self.dialog_Config.txt_proxy.text())
-            
-            self.setSkin(lang=self._language, theme=self._skin)
-            
-            self.setDefaultMap()
-            
-            # Change the current project.
-            general.changeConfig(self)
-    
-    def setProxy(self,  proxy):
-        print("main::setProxy(self, proxy)")
+            # Open the configuration dialog.
+            if self.dialog_Config.exec_() == True:
+                # Apply language setting.
+                lang = self.dialog_Config.cbx_lang.currentText()
+                if lang == u"日本語":
+                    self._language = "ja"
+                elif lang == "English":
+                    self._language = "en"
+                
+                # Apply theme of the UI
+                self._skin = self.dialog_Config.cbx_skin.currentText().lower()  
+                self.setSkin(lang=self._language, theme=self._skin)
+                
+                # Apply auto white balance algorithm
+                self._awb_algo = self.dialog_Config.cbx_tool_awb.currentText()
+                
+                # Apply pansharpening algorithm
+                self._psp_algo = self.dialog_Config.cbx_tool_psp.currentText()  
+                
+                # Apply map tile source.
+                self._map_tile = self.dialog_Config.cbx_map_tile.currentText() 
+                self.setDefaultMap()
+                
+                # Apply proxy setting.
+                self._proxy = self.dialog_Config.txt_proxy.text()
+                self.setProxy()
+                
+                # Apply Flickr setting.
+                self._flickr_apikey = self.dialog_Config.txt_flc_api.text()
+                self._flickr_secret = self.dialog_Config.txt_flc_sec.text()
+                
+                # Save the current setting.
+                general.changeConfig(self)
+        except Exception as e:
+            print("Error occured in main::setSkin(self, lang, theme)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+
+    def setProxy(self):
+        print("main::setProxy(self)")
         
         try:
-            if not proxy == "No Proxy":
-                proxy_url = QUrl(proxy)
+            if not self._proxy == "No Proxy":
+                proxy_url = QUrl(self._proxy)
                 
                 if unicode(proxy_url.scheme()).startswith('http'):
                     protocol = QNetworkProxy.HttpProxy
@@ -377,8 +299,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         proxy_url.host(),
                         proxy_url.port(),
                         proxy_url.userName(),
-                        proxy_url.password()))
-            self._proxy = proxy
+                        proxy_url.password())
+                    )
         except Exception as e:
             self._proxy = "No Proxy"
             print("Error occured in main::setSkin(self, lang, theme)")
@@ -416,9 +338,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Set the default skin.
             setupMainSkin.setMainWindowButtonText(self)
             setupMainSkin.setMainWindowToolTips(self)
-            
-            # Update the current config.
-            general.changeConfig(self)
         except Exception as e:
             print("Error occured in main::setLangEn(self)")
             print(str(e))
@@ -435,9 +354,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Set the default skin.
             setupMainSkin.setMainWindowButtonText(self)
             setupMainSkin.setMainWindowToolTips(self)
-            
-            # Update the current config.
-            general.changeConfig(self)
         except Exception as e:
             print("Error occured in main::setLangEn(self)")
             print(str(e))
@@ -696,9 +612,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     
                     # Reconstruct the tree view for project items. 
                     self.retriveProjectItems()
-                    
-                    # Change the current project.
-                    general.changeConfig(self)
             except sqlite.DatabaseError as e:
                 print("Error occured inn main::openProject(self)")
                 print(str(e))
@@ -851,6 +764,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         # Exit if the root directory is not loaded.
         if self._root_directory == None: return(None)
+        
         # Get the item of the material.
         selected = self.tre_prj_item.selectedItems()
         
@@ -859,7 +773,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             if self.tab_src.currentIndex() == 3:
-                if not self._current_file == None: self.refreshMap()
+                self.refreshMap()
         except Exception as e:
             print("Error occured in main::toggleCurrentSource(self)")
             print(str(e))
@@ -923,7 +837,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 for text in texts: self.setFileInfo(text)
             if not geometries == None and len(geometries) > 0:
                 for geometry in geometries: self.setFileInfo(geometry)
-                
+            
             # Refresh the tree view.
             self.tre_fls.resizeColumnToContents(0)
             self.tre_fls.resizeColumnToContents(1)
@@ -1838,6 +1752,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
+                
+                # Refresh map with given coordinates.
+                self.refreshMap()
         except Exception as e:
             print("Error occured in main::updateMaterial(self)")
             print(str(e))
@@ -2014,6 +1931,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(1)
                         self.getSoundFileInfo(self._current_file)
+                        self.openMultimediaFile()
                     if self._current_file.file_type == "text":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(2)
@@ -2675,49 +2593,58 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Sound Play
     # ==========================
-    def soundPlay(self):
-        print("main::soundPlay(self)")
+    def openMultimediaFile(self):
+        print("main::openMultimediaFile(self)")
         
-        # Handle the selected SOP file object.
-        selected = self.tre_fls.selectedItems()
-        print("ok1")
         try:
-            if len(selected) > 0:
+            if not self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+                setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+                fileName = os.path.join(self._root_directory, self._current_file.filename)
                 
-                fil_uuid = selected[0].text(0)
-                
-                # Instantiate the SOP File object by selected uuid.
-                fil_object = features.File(is_new=False, uuid=fil_uuid, dbfile=self._database)
-                
-                if fil_object.file_type == "audio":
-                    print(fil_object.file_type)
-                    # Get the path to the sound path.
-                    snd_path = os.path.join(self._root_directory, fil_object.filename)
-                    
-                    # Set data and samplig rate.
-                    data, fs = sf.read(snd_path, dtype='float32')
-                    
-                    # Start playing.
-                    sd.play(data, fs)
-                    
-                    # Connect to the stop button.
-                    setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
-                    self.btn_snd_stop.clicked.connect(self.soundStop)
-                else:
-                    
-                    # Create error messages.
-                    error.ErrorMessagePlaySound(language=self._language)
-                    return(None)
+                if fileName != '':
+                    if self._current_file.file_type == "audio":
+                        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
+                        self.mlt_btn_play.setEnabled(True)
+            else:
+                setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
         except Exception as e:
-            print("Error occured in main::soundPlay(self)")
+            print("Error occured in main::openMultimediaFile(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
-    def soundStop(self):
-        print("main::soundStop(self)")
-        setupMainSkin.setStopButtonIcon(icon_path=self._icon_directory, btn_stop=self.btn_snd_play, skin=self._skin)
-        sd.stop()
+    def playMedia(self):
+        print("main::playMedia(self)")
+        
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            self.mediaPlayer.pause()
+        else:
+            self.mediaPlayer.play()
+    
+    def mediaStateChanged(self, state):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+        else:
+            setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+
+    def positionChanged(self, position):
+        self.mlt_sld_play.setValue(position)
+
+    def durationChanged(self, duration):
+        self.mlt_sld_play.setRange(0, duration)
+
+    def setPosition(self, position):
+        self.mediaPlayer.setPosition(position)
+
+    def handleError(self):
+        self.mlt_btn_play.setEnabled(False)
+        
+        e = self.mediaPlayer.errorString()
+        
+        print("Error occured in main::openMultimediaFile(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
     
     # ==========================
     # Map processing tools
@@ -2734,44 +2661,70 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             if self.tab_target.currentIndex() == 0:
-                con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
-                geo_dir = os.path.join(con_dir, "Geometries")
-                
-                wkt_path = os.path.join(self._root_directory, self._current_file.filename)
-                output = self.publishMap(wkt_path)
-                
-                # Check whether the geometry directory is exists or not.
-                if not os.path.exists(geo_dir):
-                    # Create a directory for storing geometries.
-                    os.mkdir(geo_dir)
-                    
-                    # Set the default map.
+                if not self._current_file == None:
+                    if self._current_file.file_type == "geometry":
+                        con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
+                        geo_dir = os.path.join(con_dir, "Geometries")
+                        
+                        wkt_path = os.path.join(self._root_directory, self._current_file.filename)
+                        output = self.publishMap(wkt_path)
+                        
+                        # Check whether the geometry directory is exists or not.
+                        if not os.path.exists(geo_dir):
+                            # Create a directory for storing geometries.
+                            os.mkdir(geo_dir)
+                            
+                            # Set the default map.
+                            self.setDefaultMap()
+                            
+                            # Exit this proces
+                            return(None)
+                            
+                        # Check whether the output file is exists or not.
+                        if not os.path.exists(output):
+                            # Set the default map.
+                            self.setDefaultMap()
+                            
+                            # Exit this proces
+                            return(None)
+                        
+                        # Load a map.
+                        self.geo_view.setUrl(QUrl("file:///" + output))
+                    else:
+                        self.setDefaultMap()
+                else:
                     self.setDefaultMap()
-                    
-                    # Exit this proces
-                    return(None)
-                    
-                # Check whether the output file is exists or not.
-                if not os.path.exists(output):
-                    # Set the default map.
-                    self.setDefaultMap()
-                    
-                    # Exit this proces
-                    return(None)
+            elif self.tab_target.currentIndex() == 1:
+                lat = self._current_material.latitude
+                lon = self._current_material.longitude
                 
-                # Load a map.
-                self.geo_view.setUrl(QUrl("file:///" + output))
-            elif self.tab_target.currentIndex() == 0:
+                if not (lat == "" or lat == None):
+                    if not (lon == "" or lon == None):
+                        marker = geospatial.mapMarker(geom=[lat, lon])
+                        location = os.path.join(self._map_directory,"location.html")
+                        geospatial.writeHtml(self, output = location, map_zoom = 15, map_center = [lat, lon], markers = [marker])
+                        self.geo_view.setUrl(QUrl("file:///" + location))
+                    else:
+                        self.setDefaultMap()
+                else:
+                    self.setDefaultMap()
+            else:
                 location = os.path.join(self._map_directory,"location.html")
                 geospatial.writeHtml(self, location)
                 self.geo_view.setUrl(QUrl("file:///" + location))
         except Exception as e:
-            print("Error occured in main::toggleCurrentSource(self)")
+            print("Error occured in main::refreshMap(self)")
             print(str(e))
+            
+            # Set the default map.
+            self.setDefaultMap()
+            
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
     def publishMap(self, wkt_path):
+        print("publishMap(self, wkt_path)")
+        
         dbl_Markers = []
         map_Markers = []
         markers = open(wkt_path, "r")
@@ -2794,7 +2747,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         return(map_path)
         
-    def createMapByLocationName(self, geo_uuid, item_path):
+    def createMapByLocationName(self, geo_uuid, item_path, geo_name):
+        print("main::createMapByLocationName(self, geo_uuid, item_path)")
         try:
             # Generate the GUID for the consolidation
             geo_dir = os.path.join(item_path, 'Geometries')
@@ -2806,20 +2760,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 shutil.copytree(geo_lib, os.path.join(geo_dir,"lib"))
             
             wkt_path = os.path.join(geo_dir, geo_uuid + ".wkt")
-            if not os.path.exists(wkt_path):
+            
+            if not self._proxy == "No Proxy":
                 proxy = {'https': self._proxy}
-                
-                geoname = self.tbx_con_geoname.text()
-                latlon = geospatial.geoCoding(geoname, proxy)
-                
-                latitude = latlon[0]
-                longitude = latlon[1]
-                
-                wkt_pt = "POINT (%s %s)\n" % (latitude, longitude)
-                
-                marker = open(wkt_path, "w")
-                marker.write(wkt_pt)
-                marker.close()
+                latlon = geospatial.geoCoding(geo_name, proxy)
+            else:
+                latlon = geospatial.geoCoding(geo_name)
+            
+            latitude = latlon[0]
+            longitude = latlon[1]
+            
+            wkt_pt = "POINT (%s %s)\n" % (latitude, longitude)
+            
+            marker = open(wkt_path, "w")
+            marker.write(wkt_pt)
+            marker.close()
             
             self.publishMap(wkt_path)
             
@@ -2845,6 +2800,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         item_path = None
         con_uuid = ""
         mat_uuid = ""
+        geo_name = ""
+        
+        # Get the geoname from the text box.
+        geo_name = self.tbx_con_geoname.text()
         
         try:
             # Get item path of the current object.
@@ -2863,7 +2822,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 item_path = os.path.join(self._consolidation_directory, sop_object.uuid)
             
             elif self.tab_target.currentIndex() == 1:
-                # Exit if the current consolidation is not selected.
+                # Exit if the current material is not selected.
                 if self._current_material == None: error.ErrorMessageCurrentObject(language=self._language); return(None)
                 
                 # Get the current object.
@@ -2880,36 +2839,59 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Check whether current object has images.
             if sop_object.geometries == None: sop_object.geometries = list()
             
-            geo_uuid = str(uuid.uuid4())
-            geo_path = self.createMapByLocationName(geo_uuid, item_path)
-            
             # Get the current date and time.
             now = datetime.datetime.utcnow().isoformat()
             
-            if os.path.exists(geo_path):
-                # Instantiate the File class.
-                wkt_file = features.File(is_new=True, uuid=geo_uuid, dbfile=None)
-                wkt_file.material = mat_uuid
-                wkt_file.consolidation = con_uuid
-                wkt_file.filename = general.getRelativePath(geo_path, "Consolidation")
-                wkt_file.created_date = now
-                wkt_file.modified_date = now
-                wkt_file.file_type = "geometry"
-                wkt_file.alias = "Geocoded"
-                wkt_file.status = "Automatically Generated"
-                wkt_file.lock = False
-                wkt_file.public = False
-                wkt_file.source = "Nothing"
-                wkt_file.operation = "Geocoding"
-                wkt_file.operating_application = "Survey Data Collector"
-                wkt_file.caption = "Geocoded Location"
-                wkt_file.description = ""
+            # Find the file of geometry which is acquired by geocoded.
+            geo_uuid = None
+            for geometry in sop_object.geometries:
+                if geometry.operation == "Geocoding":
+                    # Get the uuid from the existing object.
+                    geo_uuid = geometry.uuid
+                    
+                    # Update the existing file.
+                    geo_path = self.createMapByLocationName(geo_uuid, item_path, geo_name)
+                    
+                    # Instantiate the File class.
+                    wkt_file = features.File(is_new=False, uuid=geo_uuid, dbfile=self._database)
+                    wkt_file.modified_date = now
+                    
+                    # Update the file information
+                    wkt_file.dbUpdate(self._database)
+            # If geocoded is existed geocoded file is updated else new file is created.        
+            if geo_uuid == None:
+                # Generate new UUID.
+                geo_uuid = str(uuid.uuid4())
                 
-                # Execute the SQL script.
-                wkt_file.dbInsert(self._database)
+                # Create a wkt file and its corresponding leaflet file.
+                geo_path = self.createMapByLocationName(geo_uuid, item_path, geo_name)
                 
-                # Add the image to the object.
-                sop_object.geometries.insert(0, wkt_file)
+                if os.path.exists(geo_path):
+                    # Instantiate the File class.
+                    wkt_file = features.File(is_new=True, uuid=geo_uuid, dbfile=None)
+                    wkt_file.material = mat_uuid
+                    wkt_file.consolidation = con_uuid
+                    wkt_file.filename = general.getRelativePath(geo_path, "Consolidation")
+                    wkt_file.created_date = now
+                    wkt_file.modified_date = now
+                    wkt_file.file_type = "geometry"
+                    wkt_file.alias = "Geocoded"
+                    wkt_file.status = "Automatically Generated"
+                    wkt_file.lock = False
+                    wkt_file.public = False
+                    wkt_file.source = "Nothing"
+                    wkt_file.operation = "Geocoding"
+                    wkt_file.operating_application = "Survey Data Collector"
+                    wkt_file.caption = "Geocoded Location"
+                    wkt_file.description = ""
+                    
+                    # Execute the SQL script.
+                    wkt_file.dbInsert(self._database)
+                    
+                    # Add the image to the object.
+                    sop_object.geometries.insert(0, wkt_file)
+            # Refresh the map
+            self.refreshMap()
             
             # Refresh the file list.
             if sop_object.__class__.__name__ == "Consolidation":
@@ -2921,6 +2903,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         except Exception as e:
             print("Error occured in main::addGeometryByGeocoding(self)")
             print(str(e))
+            
+            # Set the default map.
+            self.setDefaultMap()
+            
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     

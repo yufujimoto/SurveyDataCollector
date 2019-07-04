@@ -73,6 +73,19 @@ def setStopButtonIcon(icon_path, btn_stop, skin):
     btn_stop.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
     btn_stop.setIconSize(qicon_size)
 
+def setPauseButtonIcon(icon_path, btn_stop, skin):
+    icon_size = getIconSize()
+    qicon_size = QSize(icon_size, icon_size)
+    
+    if skin == "grey":
+        # Set the icon path.
+        icon_path = os.path.join(icon_path, "white")
+    elif skin == "white":
+        icon_path = os.path.join(icon_path, "black")
+    
+    btn_stop.setIcon(getIconFromPath(os.path.join(icon_path, 'pause.png')))
+    btn_stop.setIconSize(qicon_size)
+    
 def setMainWindowButtonText(parent):
     if parent.language == "ja":
         # Main menue
@@ -166,10 +179,11 @@ def setMainWindowButtonText(parent):
         parent.tre_img_prop.headerItem().setText(0, "プロパティ")
         parent.tre_img_prop.headerItem().setText(1, "値")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_snd), "音声")
-        parent.btn_snd_play.setText("Play")
-        parent.btn_snd_stop.setText("Stop")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_txt), "テキスト")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_geo), "空間データ")
+        parent.btn_geo_coding.setText("ジオコーディング")
+        parent.btn_map_reload.setText("再読込")
+        
     elif parent.language == "en":
         parent.men_prj.setTitle("Project")
         parent.men_prj_exp.setTitle("Export")
@@ -257,14 +271,14 @@ def setMainWindowButtonText(parent):
         parent.cbx_fil_edit.setText("Removable")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_img), "Image")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_snd), "Sound")
-        parent.btn_snd_play.setText("Play")
-        parent.btn_snd_stop.setText("Stop")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_preview), "Preview")
         parent.tab_img_info.setTabText(parent.tab_img_info.indexOf(parent.tab_img_prop), "Property")
         parent.tre_img_prop.headerItem().setText(0, "Property")
         parent.tre_img_prop.headerItem().setText(1, "Value")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_txt), "Text")
         parent.tab_src.setTabText(parent.tab_src.indexOf(parent.tab_src_geo), "Spatial Data")
+        parent.btn_geo_coding.setText("Geocoding")
+        parent.btn_map_reload.setText("Reload")
         
 def setMainWindowToolTips(parent):
     if parent.language == "ja":
@@ -386,11 +400,8 @@ def setMainWindowIcons(parent, icon_path):
     parent.btn_cam_detect.setIcon(getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
     parent.btn_cam_detect.setIconSize(qicon_size)
     
-    parent.btn_snd_play.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
-    parent.btn_snd_play.setIconSize(qicon_size)
-    
-    parent.btn_snd_stop.setIcon(getIconFromPath(os.path.join(icon_path, 'pause.png')))
-    parent.btn_snd_stop.setIconSize(qicon_size)
+    parent.mlt_btn_play.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
+    parent.mlt_btn_play.setIconSize(qicon_size)
 
 def setDefaultConsolidationText(parent, status, skin="grey"):
     print("skin::setDefaultConsolidationText(parent, status, skin='grey')")

@@ -8,6 +8,8 @@ import sys, os, subprocess
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 # Import GIS libraries for showing geographic data.
 import numpy as np
@@ -88,23 +90,41 @@ def activate(ui_main):
     ui_main.cbx_fil_deleted.clicked.connect(ui_main.toggleShowFileMode)
     
     # Activate the image processing functions.
-    ui_main.btn_open_gimp.clicked.connect(ui_main.openWithGimp)       # Activate the buttons for opening GIMP.
-    ui_main.btn_img_cnt.clicked.connect(ui_main.extractContour)       # Activate the image proccessing tool button of cropping.
-    ui_main.btn_img_inv.clicked.connect(ui_main.negativeToPositive)   # Activate the image processing tool button for inverting.
-    ui_main.btn_img_del.clicked.connect(ui_main.deleteSelectedFile)  # Activate the image processing tool button for deleting.
-    ui_main.btn_img_rot_r.clicked.connect(ui_main.rotateImageRight)   # Activate the image processing tool button for rotating clockwise.
-    ui_main.btn_img_rot_l.clicked.connect(ui_main.rotateImageLeft)    # Activating the image processing tool button for rotating anti-clockwise.
-    ui_main.btn_img_rot_u.clicked.connect(ui_main.rotateImageInvert)  # Activating the image processing tool button for ratating 180 degree.
-    ui_main.btn_img_mno.clicked.connect(ui_main.makeMonoImage)        # Activating the image processing tool button for making monochrome image.
-    ui_main.btn_img_enh.clicked.connect(ui_main.enhanceImage)         # Activating the image processing tool button for enhancing.
-    ui_main.btn_img_sav.clicked.connect(ui_main.saveImageAs)          # Activating the image processing tool button for export the selected image.
-    ui_main.btn_img_awb.clicked.connect(ui_main.adjustWhiteBalance)   # Activating the image processing tool button for adjusting image white balance.
-    ui_main.btn_img_col.clicked.connect(ui_main.colorlize)            # Activating the image processing tool button for adjusting image white balance.
+    ui_main.btn_open_gimp.clicked.connect(ui_main.openWithGimp)         # Activate the buttons for opening GIMP.
+    ui_main.btn_img_cnt.clicked.connect(ui_main.extractContour)         # Activate the image proccessing tool button of cropping.
+    ui_main.btn_img_inv.clicked.connect(ui_main.negativeToPositive)     # Activate the image processing tool button for inverting.
+    ui_main.btn_img_del.clicked.connect(ui_main.deleteSelectedFile)     # Activate the image processing tool button for deleting.
+    ui_main.btn_img_rot_r.clicked.connect(ui_main.rotateImageRight)     # Activate the image processing tool button for rotating clockwise.
+    ui_main.btn_img_rot_l.clicked.connect(ui_main.rotateImageLeft)      # Activating the image processing tool button for rotating anti-clockwise.
+    ui_main.btn_img_rot_u.clicked.connect(ui_main.rotateImageInvert)    # Activating the image processing tool button for ratating 180 degree.
+    ui_main.btn_img_mno.clicked.connect(ui_main.makeMonoImage)          # Activating the image processing tool button for making monochrome image.
+    ui_main.btn_img_enh.clicked.connect(ui_main.enhanceImage)           # Activating the image processing tool button for enhancing.
+    ui_main.btn_img_sav.clicked.connect(ui_main.saveImageAs)            # Activating the image processing tool button for export the selected image.
+    ui_main.btn_img_awb.clicked.connect(ui_main.adjustWhiteBalance)     # Activating the image processing tool button for adjusting image white balance.
+    ui_main.btn_img_col.clicked.connect(ui_main.colorlize)              # Activating the image processing tool button for adjusting image white balance.
     
     # Activate the map functions.
     ui_main.btn_geo_coding.clicked.connect(ui_main.addGeometryByGeocoding)
+    ui_main.btn_map_reload.clicked.connect(ui_main.refreshMap)
     
     # Activate the extra functions.
-    ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation) # Activate the editing the file informatin button.
-    ui_main.btn_cam_detect.clicked.connect(ui_main.detectCamera)      # Activate detecting a connected camera button.
-    ui_main.btn_snd_play.clicked.connect(ui_main.soundPlay)           # Activate the play button.
+    ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation)  # Activate the editing the file informatin button.
+    ui_main.btn_cam_detect.clicked.connect(ui_main.detectCamera)        # Activate detecting a connected camera button.
+    
+    #========================
+    # Media player
+    #========================
+    ui_main.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+    
+    ui_main.mlt_btn_play.setEnabled(False)
+    ui_main.mlt_btn_play.clicked.connect(ui_main.playMedia)
+    
+    ui_main.mlt_sld_play.setRange(0, 0)
+    ui_main.mlt_sld_play.sliderMoved.connect(ui_main.setPosition)
+    
+    ui_main.mediaPlayer.setVideoOutput(ui_main.mlt_video_widget)
+    ui_main.mediaPlayer.stateChanged.connect(ui_main.mediaStateChanged)
+    ui_main.mediaPlayer.positionChanged.connect(ui_main.positionChanged)
+    ui_main.mediaPlayer.durationChanged.connect(ui_main.durationChanged)
+    ui_main.mediaPlayer.error.connect(ui_main.handleError)
+    

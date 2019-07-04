@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, time, pyexiv2
+import sys, os, time, pyexiv2, shutil
 import sqlite3 as sqlite
 import xml.etree.cElementTree as ET
 
@@ -23,38 +23,175 @@ LAB_MAT_JA = u"資料"
 LAB_CON_EN = u"Consolidation"
 LAB_MAT_EN = u"Material"
 
-def changeConfig(parent):
-        print("main::changeConfig(self)")
+def initAll(parent):
+    print("general::initAll(parent)")
+    
+    try:
+        # Define paths
+        parent.root_directory = None
+        parent.table_directory = None
+        parent.consolidation_directory = None
+        parent.database = None
         
-        try:
-            # Get the root node of the configuration file.
-            xml_config = ET.parse(parent.config_file).getroot()
-            
-            # Replace current settings by new values.
-            for xml_child in xml_config:
-                # Configurations for User Interface.
-                if xml_child.tag == "theme":
-                    xml_child.find("language").text = parent.language    # Language settings.
-                    xml_child.find("skin").text = parent.skin            # Skin settings.
-                if xml_child.tag == "project":
-                    xml_child.find("root").text = parent.root_directory  # Current project.
-                if xml_child.tag == "tools":
-                    xml_child.find("awb").text = parent.awb_algo  # Auto white balance algorithm.
-                    xml_child.find("psp").text = parent.psp_algo  # Pansharpen algorithm
-                if xml_child.tag == "geoinfo":
-                    xml_child.find("maptile").text = parent.map_tile
-                if xml_child.tag == "network":
-                    xml_child.find("proxy").text = parent.proxy
-            # Create a new tree object by new entries.
-            tree = ET.ElementTree(xml_config)
-            
-            # Save the new configuration.
-            tree.write(parent.config_file)
-        except Exception as e:
-            print("Error occured in main::changeConfig(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
+        # Define the default extensions.
+        parent.qt_image = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
+        parent.image_extensions = [".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG", ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"]
+        parent.raw_image_extensions = [".RAW", ".ARW"]
+        parent.sound_extensions = [".WAV"]
+        
+        # Difine the current objects
+        parent.current_consolidation = None
+        parent.current_material = None
+        parent.current_file = None
+        parent.current_camera = None
+        
+        # Initialize the flickr API keys.
+        parent.flickr_apikey = None
+        parent.flickr_secret = None
+        
+        # Initialize the map tile source.
+        # Set the default settings.
+        parent.language = "en"
+        parent.skin = "grey"
+        parent.map_tile = "OpenStreetMap"
+        parent.proxy = "No Proxy"
+        
+        # Set default algorithms.
+        parent.awb_algo = "retinex_adjusted"
+        parent.psp_algo = "ihsConvert"
+        
+        # Initialyze the temporal directory.
+        if not os.path.exists(parent.temporal_directory):
+            # Create the temporal directory if not exists.
+            os.mkdir(parent.temporal_directory)
+        else:
+            # Delete the existing temporal directory before create.
+            shutil.rmtree(parent.temporal_directory)
+            os.mkdir(parent.temporal_directory)
+    except Exception as e:
+        print("Error occured in main::initAll(parent)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(None)
+    
+def initConfig(parent):
+    print("main::initConfig(parent)")
+    
+    try:
+        # Create the root node.
+        root = ET.Element("config")
+        
+        # Create the theme node.
+        theme = ET.SubElement(root, "theme")
+        
+        ET.SubElement(theme, "language").text = parent.language
+        ET.SubElement(theme, "skin").text = parent.skin
+        
+        # Create the project node.
+        project = ET.SubElement(root, "project")
+        ET.SubElement(project, "root").text = ""
+        
+        # Create the tool node
+        tools = ET.SubElement(root, "tools")
+        
+        ET.SubElement(tools, "awb").text = parent.awb_algo
+        ET.SubElement(tools, "psp").text = parent.psp_algo
+        
+        # Create the tool node
+        geoInfo = ET.SubElement(root, "geoinfo")
+        ET.SubElement(geoInfo, "maptile").text = parent.map_tile
+        
+        # Create the network node.
+        network = ET.SubElement(root, "network")
+        ET.SubElement(network, "proxy").text = parent.proxy
+        
+        # Write the 
+        tree = ET.ElementTree(root)
+        tree.write(parent.config_file)
+    except Exception as e:
+        print("Error occured in main::initConfig(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(None)
+
+def loadConfig(parent, file_config):
+    print("general::loadConfig(parent)")
+    
+    try:
+        xml_config = ET.parse(file_config).getroot()
+        
+        for xml_child in xml_config:
+            if xml_child.tag == "theme":
+                parent.language = xml_child.find("language").text
+                parent.skin = xml_child.find("skin").text
+            elif xml_child.tag == "tools":
+                parent.awb_algo = xml_child.find("awb").text
+                parent.psp_algo = xml_child.find("psp").text
+            elif xml_child.tag == "geoinfo":
+                parent.map_tile = xml_child.find("maptile").text
+            elif xml_child.tag == "network":
+                parent.proxy = xml_child.find("proxy").text
+            elif xml_child.tag == "project":
+                if not xml_child.find("root").text == "":
+                    xml_root = xml_child.find("root").text
+                    
+                    if xml_root and os.path.exists(xml_root):
+                        parent.root_directory = xml_child.find("root").text
+                        
+                        # Some essential directories are created under the root directory if they are not existed.
+                        parent.table_directory = os.path.join(parent.root_directory, "Table")
+                        parent.consolidation_directory = os.path.join(parent.root_directory, "Consolidation")
+                        
+                        # Define the DB file.
+                        parent.database = os.path.join(parent.table_directory, "project.db")
+        
+        # Check directories and files.
+        if not os.path.exists(parent.root_directory): return(None)
+        if not os.path.exists(parent.table_directory): return(None)
+        if not os.path.exists(parent.consolidation_directory): return(None)
+        if not os.path.exists(parent.database): return(None)
+        
+        # Return True
+        return(True)
+    except Exception as e:
+        print("Error occured in main::loadConfig(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(None)
+
+def changeConfig(parent):
+    print("main::changeConfig(self)")
+    
+    try:
+        # Get the root node of the configuration file.
+        xml_config = ET.parse(parent.config_file).getroot()
+        
+        # Replace current settings by new values.
+        for xml_child in xml_config:
+            # Configurations for User Interface.
+            if xml_child.tag == "theme":
+                xml_child.find("language").text = parent.language   # Language settings.
+                xml_child.find("skin").text = parent.skin           # Skin settings.
+            if xml_child.tag == "project":
+                xml_child.find("root").text = parent.root_directory # Current project.
+            if xml_child.tag == "tools":
+                xml_child.find("awb").text = parent.awb_algo        # Auto white balance algorithm.
+                xml_child.find("psp").text = parent.psp_algo        # Pansharpen algorithm
+            if xml_child.tag == "geoinfo":
+                xml_child.find("maptile").text = parent.map_tile    # Source for the map tile
+            if xml_child.tag == "network":
+                xml_child.find("proxy").text = parent.proxy         # Proxy setting
+        
+        # Create a new tree object by new entries.
+        tree = ET.ElementTree(xml_config)
+        
+        # Save the new configuration.
+        tree.write(parent.config_file)
+    except Exception as e:
+        print("Error occured in main::changeConfig(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
+        return(None)
 
 def pyDateTimeToQDateTime(value):
     print("general::pyDateTimeToqDateTime(value)")
@@ -104,11 +241,11 @@ def askNewProject(parent):
         # Create the directory of consolidation
         if reply == QMessageBox.Yes:
             # Create the consolidation directory and the table directory.
-            os.mkdir(parent._consolidation_directory)
-            os.mkdir(parent._table_directory)
+            os.mkdir(parent.consolidation_directory)
+            os.mkdir(parent.table_directory)
             
             # Create new tables which defined by Simple Object Profile(SOP).
-            createTables(parent._database)
+            createTables(parent.database)
             
             # Returns True. 
             return(True)    

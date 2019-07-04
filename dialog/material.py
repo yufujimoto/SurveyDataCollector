@@ -131,4 +131,3 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
         
         
         
-        

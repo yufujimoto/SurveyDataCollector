@@ -265,7 +265,7 @@ class Consolidation(SimpleObject):
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbInsert(dbfile)
             
-            # Insert texts of the Consolidation.
+            # Insert geometry of the Consolidation.
             if not self._geometries == None:
                 if not len(self._geometries) <= 0:
                     for geometry in self._geometries: geometry.dbInsert(dbfile)
@@ -321,7 +321,7 @@ class Consolidation(SimpleObject):
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbUpdate(dbfile)
             
-            # Update text of the Consolidation.
+            # Update geometry of the Consolidation.
             if not self._geometries == None:
                 if not len(self._geometries) <= 0:
                     for geometry in self._geometries: geometry.dbUpdate(dbfile)
@@ -410,33 +410,6 @@ class Consolidation(SimpleObject):
             error.ErrorCurrentFeature(information=err_info, details=str(e))
         
 class Material(SimpleObject):
-    def __init__(self, is_new = True, uuid=None, dbfile=None):
-        # Initialize the super class.
-        SimpleObject.__init__(self, is_new, uuid, dbfile)
-        
-        if is_new == True and dbfile == None:
-            # Initialize as the new instance.
-            self._consolidation = None
-            self._name = None
-            self._estimated_period_beginning = None
-            self._estimated_period_peak = None
-            self._estimated_period_ending = None
-            self._latitude = None
-            self._longitude = None
-            self._altitude = None
-            self._material_number = None
-            self._images = list()
-            self._sounds = list()
-            self._texts = list()
-            self._additionalAttributes = list()
-            self._description = None
-        elif is_new == False and uuid != None and dbfile != None:
-            # Initialize by the DB instance.
-            self._initInstanceByUuid(uuid, dbfile)
-        else:
-            # Other unexpected case.
-            return(None)
-    
     @property
     def consolidation(self): return self._consolidation
     @property
@@ -461,6 +434,8 @@ class Material(SimpleObject):
     def sounds(self): return self._sounds
     @property
     def texts(self): return self._texts
+    @property
+    def geometries(self): return self._geometries
     @property
     def additionalAttributes(self): return self._additionalAttributes
     @property
@@ -490,10 +465,40 @@ class Material(SimpleObject):
     def sounds(self, value): self._sounds = value
     @texts.setter
     def texts(self, value): self._texts = value
+    @geometries.setter
+    def geometries(self, value): self._geometries = value
     @additionalAttributes.setter
     def additionalAttributes(self, value): self._additionalAttributes = value
     @description.setter
     def description(self, value): self._description = value
+    
+    def __init__(self, is_new = True, uuid=None, dbfile=None):
+        # Initialize the super class.
+        SimpleObject.__init__(self, is_new, uuid, dbfile)
+        
+        if is_new == True and dbfile == None:
+            # Initialize as the new instance.
+            self._consolidation = None
+            self._name = None
+            self._estimated_period_beginning = None
+            self._estimated_period_peak = None
+            self._estimated_period_ending = None
+            self._latitude = None
+            self._longitude = None
+            self._altitude = None
+            self._material_number = None
+            self._images = list()
+            self._sounds = list()
+            self._texts = list()
+            self._geometries = list()
+            self._additionalAttributes = list()
+            self._description = None
+        elif is_new == False and uuid != None and dbfile != None:
+            # Initialize by the DB instance.
+            self._initInstanceByUuid(uuid, dbfile)
+        else:
+            # Other unexpected case.
+            return(None)
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
@@ -535,6 +540,7 @@ class Material(SimpleObject):
                 self._images = self._getFileList(dbfile, "image")
                 self._sounds = self._getFileList(dbfile, "audio")
                 self._texts = self._getFileList(dbfile, "text")
+                self._geometries = self._getFileList(dbfile, "geometry")
                 self._additionalAttributes = self._getAdditionalAttributes(dbfile)
                 self._description = entry[11]
             else:
@@ -598,6 +604,11 @@ class Material(SimpleObject):
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbInsert(dbfile)
             
+            # Insert geometry of the Consolidation.
+            if not self._geometries == None:
+                if not len(self._geometries) <= 0:
+                    for geometry in self._geometries: geometry.dbInsert(dbfile)
+            
             # Insert additional attributes.
             if not self._additionalAttributes == None:
                 if not len(self._additionalAttributes) <= 0:
@@ -657,6 +668,11 @@ class Material(SimpleObject):
             if not self._texts == None:
                 if not len(self._texts) <= 0:
                     for text in self._texts: text.dbUpdate(dbfile)
+            
+            # Update geometry of the Material.
+            if not self._geometries == None:
+                if not len(self._geometries) <= 0:
+                    for geometry in self._geometries: geometry.dbUpdate(dbfile)
             
             # Insert additional attributes.
             if not self._additionalAttributes == None:
@@ -839,7 +855,7 @@ class File(SimpleObject):
                         FROM file WHERE uuid=?"""
         
         # Fech one from DB.
-        entry = super(File, self).fetchOneSQL(dbfile, sql_select, [uuid])
+        entry = super(File, self).fetchOneSQL(dbfile, sql_select, [str(uuid)])
         
         if not entry == None:
             # Get attributes from the row.

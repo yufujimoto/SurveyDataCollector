@@ -1,1 +1,1 @@
-<config><theme><language>ja</language><skin>grey</skin></theme><project><root /></project><tools><awb>retinex_adjusted</awb><psp>ihsConvert</psp><maptile>OpenStreetMap</maptile></tools></config>
+<config><theme><language>en</language><skin>grey</skin></theme><project><root>/home/yufujimoto/Documents/Research/Hikimi/Kobara</root></project><tools><awb>retinex_adjusted</awb><psp>ihsConvert</psp></tools><geoinfo><maptile>Google Hybrid</maptile></geoinfo><network><proxy>http://202.245.115.8:8080</proxy></network></config>

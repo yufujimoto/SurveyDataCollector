@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1046</width>
+    <width>1072</width>
     <height>890</height>
    </rect>
   </property>
@@ -1896,7 +1896,7 @@
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>3</number>
+                <number>0</number>
                </property>
                <property name="iconSize">
                 <size>
@@ -2256,23 +2256,36 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QVideoWidget" name="mlt_player" native="true"/>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_12">
+                  <layout class="QVBoxLayout" name="verticalLayout_11">
                    <item>
-                    <widget class="QPushButton" name="btn_snd_play">
-                     <property name="text">
-                      <string>Play</string>
+                    <widget class="QVideoWidget" name="mlt_video_widget" native="true"/>
+                   </item>
+                   <item>
+                    <widget class="QSlider" name="mlt_sld_play">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="btn_snd_stop">
-                     <property name="text">
-                      <string>Stop</string>
-                     </property>
-                    </widget>
+                    <layout class="QHBoxLayout" name="horizontalLayout">
+                     <item>
+                      <widget class="QPushButton" name="mlt_btn_play">
+                       <property name="text">
+                        <string>Play</string>
+                       </property>
+                       <property name="iconSize">
+                        <size>
+                         <width>24</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </item>
                   </layout>
                  </item>
@@ -2298,23 +2311,67 @@
                 </attribute>
                 <layout class="QVBoxLayout" name="tab_src_geo_lay">
                  <item>
-                  <widget class="QPushButton" name="btn_geo_coding">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>25</height>
-                    </size>
+                  <layout class="QFormLayout" name="formLayout">
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
-                   <property name="text">
-                    <string>ジオコーディング</string>
+                   <property name="topMargin">
+                    <number>0</number>
                    </property>
-                   <property name="flat">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
+                   <item row="0" column="0">
+                    <widget class="QPushButton" name="btn_geo_coding">
+                     <property name="minimumSize">
+                      <size>
+                       <width>150</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>150</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>ジオコーディング</string>
+                     </property>
+                     <property name="flat">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QPushButton" name="btn_map_reload">
+                     <property name="minimumSize">
+                      <size>
+                       <width>150</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>150</width>
+                       <height>25</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>再読込</string>
+                     </property>
+                     <property name="flat">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <widget class="QWebView" name="geo_view">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="url">
                     <url>
                      <string>https://www.google.com/?gws_rd=ssl</string>
@@ -2342,7 +2399,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1046</width>
+     <width>1072</width>
      <height>33</height>
     </rect>
    </property>
@@ -2577,7 +2634,7 @@
   <customwidget>
    <class>QVideoWidget</class>
    <extends>QWidget</extends>
-   <header>PyQt5.QtMultimediaWidgets</header>
+   <header location="global">PyQt5.QtMultimediaWidgets</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -2622,8 +2679,6 @@
   <tabstop>cbx_fil_deleted</tabstop>
   <tabstop>cbx_fil_original</tabstop>
   <tabstop>btn_img_inv</tabstop>
-  <tabstop>btn_snd_play</tabstop>
-  <tabstop>btn_snd_stop</tabstop>
   <tabstop>tre_img_prop</tabstop>
  </tabstops>
  <resources/>
