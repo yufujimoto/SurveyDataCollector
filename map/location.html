@@ -11,13 +11,3 @@
 	</head>
 	<body>
 		<div id='map'></div>
-		<script>
-			var map = L.map('map');
-			L.tileLayer("http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", {attribution: "Google Hybrid",minZoom: 0, maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3']}).addTo(map);
-			map.setView([32.6759094, 129.4209844], 2);
-		</script>
-		<script>
-			map.on('click', copyCoord);
-		</script>
-	</body>
-</html>

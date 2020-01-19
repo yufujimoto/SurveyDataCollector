@@ -37,6 +37,7 @@ apt install pyqt5-dev-tools
 apt install gphoto2
 apt install libgphoto2-dev
 pip2 install gphoto2
+pip2 install pysony
 
 # Install external application software.
 apt install gimp

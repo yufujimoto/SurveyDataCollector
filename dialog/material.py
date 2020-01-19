@@ -123,9 +123,9 @@ class materialDialog(QDialog, materialDialog.Ui_materialDialog):
         self.tbx_mat_tmp_bgn.setText(parent._current_material.estimated_period_beginning)
         self.tbx_mat_tmp_mid.setText(parent._current_material.estimated_period_peak)
         self.tbx_mat_tmp_end.setText(parent._current_material.estimated_period_ending)
-        self.tbx_mat_geo_lat.setText(parent._current_material.latitude)
-        self.tbx_mat_geo_lon.setText(parent._current_material.longitude)
-        self.tbx_mat_geo_alt.setText(parent._current_material.altitude)
+        self.tbx_mat_geo_lat.setText(str(parent._current_material.latitude))
+        self.tbx_mat_geo_lon.setText(str(parent._current_material.longitude))
+        self.tbx_mat_geo_alt.setText(str(parent._current_material.altitude))
         self.tbx_mat_description.setText(parent._current_material.description)
         
         

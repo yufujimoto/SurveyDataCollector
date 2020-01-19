@@ -103,6 +103,8 @@ def setMainWindowButtonText(parent):
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("開く")
         parent.act_prj_open.setShortcut("Ctrl+O")
+        parent.act_prj_save.setText("設定の保存")
+        parent.act_prj_save.setShortcut("Ctrl+S")
         parent.act_imp_db.setText("データベース")
         parent.act_imp_txt.setText("テキストデータ")
         parent.act_imp_fls.setText("ファイルシステム")
@@ -199,6 +201,8 @@ def setMainWindowButtonText(parent):
         parent.actionOpen_Project.setText("Open Project")
         parent.act_prj_open.setText("Open")
         parent.act_prj_open.setShortcut("Ctrl+O")
+        parent.act_prj_save.setText("Save")
+        parent.act_prj_save.setShortcut("Ctrl+S")
         parent.act_imp_db.setText("Database")
         parent.act_imp_txt.setText("Text ile")
         parent.act_imp_fls.setText("File system")
@@ -402,7 +406,16 @@ def setMainWindowIcons(parent, icon_path):
     
     parent.mlt_btn_play.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
     parent.mlt_btn_play.setIconSize(qicon_size)
-
+    
+    parent.btn_geo_coding.setIcon(getIconFromPath(os.path.join(icon_path, 'location.png')))
+    parent.btn_geo_coding.setIconSize(qicon_size)
+    
+    parent.btn_map_reload.setIcon(getIconFromPath(os.path.join(icon_path, 'sync.png')))
+    parent.btn_map_reload.setIconSize(qicon_size)
+    
+    parent.btn_map_search.setIcon(getIconFromPath(os.path.join(icon_path, 'search.png')))
+    parent.btn_map_search.setIconSize(qicon_size)
+    
 def setDefaultConsolidationText(parent, status, skin="grey"):
     print("skin::setDefaultConsolidationText(parent, status, skin='grey')")
     

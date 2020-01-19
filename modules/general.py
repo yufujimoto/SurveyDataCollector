@@ -23,6 +23,18 @@ LAB_MAT_JA = u"資料"
 LAB_CON_EN = u"Consolidation"
 LAB_MAT_EN = u"Material"
 
+def createPathIfNotExists(path):
+    print("general::createPathIfNotExists(path)")
+    
+    try:
+        if not os.path.exists(path): os.mkdir(path)
+        return(True)
+    except Exception as e:
+        print("Error occured in general::createPathIfNotExists(parent)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)
+    
 def initAll(parent):
     print("general::initAll(parent)")
     
@@ -69,13 +81,13 @@ def initAll(parent):
             shutil.rmtree(parent.temporal_directory)
             os.mkdir(parent.temporal_directory)
     except Exception as e:
-        print("Error occured in main::initAll(parent)")
+        print("Error occured in general::initAll(parent)")
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
     
 def initConfig(parent):
-    print("main::initConfig(parent)")
+    print("general::initConfig(parent)")
     
     try:
         # Create the root node.
@@ -109,7 +121,7 @@ def initConfig(parent):
         tree = ET.ElementTree(root)
         tree.write(parent.config_file)
     except Exception as e:
-        print("Error occured in main::initConfig(self)")
+        print("Error occured in general::initConfig(self)")
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
@@ -117,50 +129,57 @@ def initConfig(parent):
 def loadConfig(parent, file_config):
     print("general::loadConfig(parent)")
     
-    try:
-        xml_config = ET.parse(file_config).getroot()
-        
-        for xml_child in xml_config:
-            if xml_child.tag == "theme":
-                parent.language = xml_child.find("language").text
-                parent.skin = xml_child.find("skin").text
-            elif xml_child.tag == "tools":
-                parent.awb_algo = xml_child.find("awb").text
-                parent.psp_algo = xml_child.find("psp").text
-            elif xml_child.tag == "geoinfo":
-                parent.map_tile = xml_child.find("maptile").text
-            elif xml_child.tag == "network":
-                parent.proxy = xml_child.find("proxy").text
-            elif xml_child.tag == "project":
-                if not xml_child.find("root").text == "":
-                    xml_root = xml_child.find("root").text
-                    
-                    if xml_root and os.path.exists(xml_root):
-                        parent.root_directory = xml_child.find("root").text
+    if os.path.exists(file_config):
+        try:
+            xml_config = ET.parse(file_config).getroot()
+            
+            for xml_child in xml_config:
+                if xml_child.tag == "theme":
+                    parent.language = xml_child.find("language").text
+                    parent.skin = xml_child.find("skin").text
+                elif xml_child.tag == "tools":
+                    parent.awb_algo = xml_child.find("awb").text
+                    parent.psp_algo = xml_child.find("psp").text
+                elif xml_child.tag == "geoinfo":
+                    parent.map_tile = xml_child.find("maptile").text
+                elif xml_child.tag == "network":
+                    parent.proxy = xml_child.find("proxy").text
+                elif xml_child.tag == "project":
+                    if not xml_child.find("root").text == "":
+                        xml_root = xml_child.find("root").text
                         
-                        # Some essential directories are created under the root directory if they are not existed.
-                        parent.table_directory = os.path.join(parent.root_directory, "Table")
-                        parent.consolidation_directory = os.path.join(parent.root_directory, "Consolidation")
-                        
-                        # Define the DB file.
-                        parent.database = os.path.join(parent.table_directory, "project.db")
-        
-        # Check directories and files.
-        if not os.path.exists(parent.root_directory): return(None)
-        if not os.path.exists(parent.table_directory): return(None)
-        if not os.path.exists(parent.consolidation_directory): return(None)
-        if not os.path.exists(parent.database): return(None)
-        
-        # Return True
-        return(True)
-    except Exception as e:
-        print("Error occured in main::loadConfig(self)")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
+                        if xml_root:
+                            if os.path.exists(xml_root):
+                                parent.root_directory = xml_child.find("root").text
+                                
+                                # Some essential directories are created under the root directory if they are not existed.
+                                parent.table_directory = os.path.join(parent.root_directory, "Table")
+                                parent.consolidation_directory = os.path.join(parent.root_directory, "Consolidation")
+                                
+                                # Define the DB file.
+                                parent.database = os.path.join(parent.table_directory, "project.db")
+            
+            # Check directories and files.
+            if parent.root_directory == None: return(None)
+            if parent.table_directory == None: return(None)
+            if parent.consolidation_directory == None: return(None)
+            if parent.database == None: return(None)
+            
+            if not os.path.exists(parent.root_directory): return(None)
+            if not os.path.exists(parent.table_directory): return(None)
+            if not os.path.exists(parent.consolidation_directory): return(None)
+            if not os.path.exists(parent.database): return(None)
+            
+            # Return True
+            return(True)
+        except Exception as e:
+            print("Error occured in general::loadConfig(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+            return(None)
 
 def changeConfig(parent):
-    print("main::changeConfig(self)")
+    print("general::changeConfig(self)")
     
     try:
         # Get the root node of the configuration file.
@@ -188,7 +207,7 @@ def changeConfig(parent):
         # Save the new configuration.
         tree.write(parent.config_file)
     except Exception as e:
-        print("Error occured in main::changeConfig(self)")
+        print("Error occured in general::changeConfig(self)")
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)

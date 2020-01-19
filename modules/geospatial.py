@@ -101,7 +101,6 @@ class mapObject(object):
             saveAs.write("\t</body>\n")
             saveAs.write("</html>\n")
             saveAs.close()
-            print("OK")
         except Exception as e:
             print("Error occured in publishMap(self, output, zoom=15)")
             print(str(e))
@@ -239,7 +238,6 @@ class mapMarker(object):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
-
 def writeHtml(parent, output, map_zoom = 2, map_center = [32.6759094,129.4209844], markers = None):
     print("geospatial::writeHtml(parent, output, map_zoom = 2, map_center = [32.6759094,129.4209844], markers = None)")
     
@@ -304,6 +302,20 @@ def writeHtml(parent, output, map_zoom = 2, map_center = [32.6759094,129.4209844
         error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)    
 
+def moveMapTo(parent, geoname, output, proxies=None):
+    try:
+        if not proxies == None:
+            g = geocoder.arcgis(geoname, proxies=proxies)
+        else:
+            g = geocoder.arcgis(geoname)
+        
+        writeHtml(parent, output, map_zoom = 15, map_center = g.latlng)
+    except Exception as e:
+        print("Error occured in geospatial::geoCoding(geoname, proxies=None)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
+        return(None)
+
 def geoCoding(geoname, proxies=None):
     print("geospatial::geoCoding(geoname, proxies=None)")
     
@@ -317,7 +329,7 @@ def geoCoding(geoname, proxies=None):
     except Exception as e:
         print("Error occured in geospatial::geoCoding(geoname, proxies=None)")
         print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
     
     

@@ -41,6 +41,7 @@ def activate(ui_main):
     # Activate actions on the menu bar.
     ui_main.bar_menu.setNativeMenuBar(False)
     ui_main.act_prj_open.triggered.connect(ui_main.getTheRootDirectory)
+    ui_main.act_prj_open.triggered.connect(ui_main.saveCurrentSettings)
     ui_main.act_imp_csv_con.triggered.connect(ui_main.importConsolidationCSV)
     ui_main.act_imp_csv_mat.triggered.connect(ui_main.importMaterialCSV)
     ui_main.act_imp_csv_fil.triggered.connect(ui_main.importFileCSV)
@@ -87,6 +88,7 @@ def activate(ui_main):
     ui_main.cbx_fil_pub.setChecked(False)
     ui_main.cbx_fil_pub.clicked.connect(ui_main.updateFile)
     ui_main.cbx_fil_original.clicked.connect(ui_main.toggleShowFileMode)
+    ui_main.cbx_fil_deleted.setChecked(False)
     ui_main.cbx_fil_deleted.clicked.connect(ui_main.toggleShowFileMode)
     
     # Activate the image processing functions.
@@ -106,6 +108,7 @@ def activate(ui_main):
     # Activate the map functions.
     ui_main.btn_geo_coding.clicked.connect(ui_main.addGeometryByGeocoding)
     ui_main.btn_map_reload.clicked.connect(ui_main.refreshMap)
+    ui_main.btn_map_search.clicked.connect(ui_main.searchLocationOnMap)
     
     # Activate the extra functions.
     ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation)  # Activate the editing the file informatin button.

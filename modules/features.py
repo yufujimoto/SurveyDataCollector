@@ -138,6 +138,8 @@ class Consolidation(SimpleObject):
     @property
     def sounds(self): return self._sounds
     @property
+    def movies(self): return self._movies
+    @property
     def texts(self): return self._texts
     @property
     def geometries(self): return self._geometries
@@ -156,6 +158,8 @@ class Consolidation(SimpleObject):
     def images(self, value): self._images = value
     @sounds.setter
     def sounds(self, value): self._sounds = value
+    @movies.setter
+    def movies(self, value): self._movies = value
     @texts.setter
     def texts(self, value): self._texts = value
     @geometries.setter
@@ -176,6 +180,7 @@ class Consolidation(SimpleObject):
             self._temporal_annotation = None
             self._images = list()
             self._sounds = list()
+            self._movies = list()
             self._texts = list()
             self._geometries = list()
             self._additionalAttributes = list()
@@ -213,6 +218,7 @@ class Consolidation(SimpleObject):
                 self._temporal_annotation = entry[3]
                 self._images = self._getFileList(dbfile, "image")
                 self._sounds = self._getFileList(dbfile, "audio")
+                self._movies = self._getFileList(dbfile, "movie")
                 self._texts = self._getFileList(dbfile, "text")
                 self._geometries = self._getFileList(dbfile, "geometry")
                 self._additionalAttributes = self._getAdditionalAttributes(dbfile)
@@ -259,6 +265,11 @@ class Consolidation(SimpleObject):
             if not self._sounds == None:
                 if not len(self._sounds) <= 0:
                     for sound in self._sounds: sound.dbInsert(dbfile)
+            
+            # Insert movies of the Consolidation.
+            if not self._movies == None:
+                if not len(self._movies) <= 0:
+                    for movie in self._movies: movie.dbInsert(dbfile)
             
             # Insert texts of the Consolidation.
             if not self._texts == None:
@@ -315,6 +326,11 @@ class Consolidation(SimpleObject):
             if not self._sounds == None:
                 if not len(self._sounds) <= 0:
                     for sound in self._sounds: sound.dbUpdate(dbfile)
+            
+            # Update sounds of the Consolidation.
+            if not self._movies == None:
+                if not len(self._movies) <= 0:
+                    for movie in self._movies: movie.dbUpdate(dbfile)
             
             # Update text of the Consolidation.
             if not self._texts == None:
@@ -433,6 +449,8 @@ class Material(SimpleObject):
     @property
     def sounds(self): return self._sounds
     @property
+    def movies(self): return self._movies
+    @property
     def texts(self): return self._texts
     @property
     def geometries(self): return self._geometries
@@ -463,6 +481,8 @@ class Material(SimpleObject):
     def images(self, value): self._images = value
     @sounds.setter
     def sounds(self, value): self._sounds = value
+    @movies.setter
+    def movies(self, value): self._movies = value
     @texts.setter
     def texts(self, value): self._texts = value
     @geometries.setter
@@ -489,6 +509,7 @@ class Material(SimpleObject):
             self._material_number = None
             self._images = list()
             self._sounds = list()
+            self._movies = list()
             self._texts = list()
             self._geometries = list()
             self._additionalAttributes = list()
@@ -539,7 +560,9 @@ class Material(SimpleObject):
                 self._material_number = entry[10]
                 self._images = self._getFileList(dbfile, "image")
                 self._sounds = self._getFileList(dbfile, "audio")
+                self._movies = self._getFileList(dbfile, "movie")
                 self._texts = self._getFileList(dbfile, "text")
+                
                 self._geometries = self._getFileList(dbfile, "geometry")
                 self._additionalAttributes = self._getAdditionalAttributes(dbfile)
                 self._description = entry[11]
@@ -598,6 +621,11 @@ class Material(SimpleObject):
             if not self._sounds == None:
                 if not len(self._sounds) <= 0:
                     for sound in self._sounds: sound.dbInsert(dbfile)
+            
+            # Insert movies of the Material.
+            if not self._movies == None:
+                if not len(self._movies) <= 0:
+                    for movie in self._movies: movie.dbInsert(dbfile)
             
             # Insert texts of the Material.
             if not self._texts == None:
@@ -663,6 +691,11 @@ class Material(SimpleObject):
             if not self._sounds == None:
                 if not len(self._sounds) <= 0:
                     for sound in self._sounds: sound.dbUpdate(dbfile)
+            
+            # Update sounds of the Consolidation.
+            if not self._movies == None:
+                if not len(self._movies) <= 0:
+                    for movie in self._movies: movie.dbUpdate(dbfile)
             
             # Insert texts of the Material.
             if not self._texts == None:

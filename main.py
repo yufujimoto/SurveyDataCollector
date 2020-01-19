@@ -232,7 +232,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Set the initial image to thumbnail viewer.
         img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
         self.showImage(img_file_path)
-        
+    
     # ==========================
     # General operation
     # ==========================  
@@ -281,7 +281,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-
+    
+    def saveCurrentSettings(self):
+        print("main::saveCurrentSettings(self)")
+        general.changeConfig(self)
+    
     def setProxy(self):
         print("main::setProxy(self)")
         
@@ -826,6 +830,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Get images from the given class.
             images = sop_object.images
             sounds = sop_object.sounds
+            movies = sop_object.movies
             texts = sop_object.texts
             geometries = sop_object.geometries
             
@@ -833,6 +838,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 for image in images: self.setFileInfo(image)
             if not sounds == None and len(sounds) > 0:
                 for sound in sounds: self.setFileInfo(sound)
+            if not movies == None and len(movies) > 0:
+                for movie in movies: self.setFileInfo(movie)
             if not texts == None and len(texts) > 0:
                 for text in texts: self.setFileInfo(text)
             if not geometries == None and len(geometries) > 0:
@@ -1166,6 +1173,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_consolidation)
+                
+                # Refresh the map.
+                self.refreshMap()
         except Exception as e:
             print("Error occured in main::updateConsolidation(self)")
             print(str(e))
@@ -1669,6 +1679,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
                 mat_dir = os.path.join(con_dir, "Materials")
                 
+                # Create Materials directory if not exists.
+                if not os.path.exists(mat_dir): os.mkdir(mat_dir)
+                
+                # Create material directory.
                 general.createDirectories(os.path.join(mat_dir, self._current_material.uuid), False)
                 
                 # Update the tree view.
@@ -1932,6 +1946,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         self.tab_src.setCurrentIndex(1)
                         self.getSoundFileInfo(self._current_file)
                         self.openMultimediaFile()
+                    if self._current_file.file_type == "movie":
+                        # Set active control tab for material.
+                        self.tab_src.setCurrentIndex(1)
+                        self.getSoundFileInfo(self._current_file)
+                        self.openMultimediaFile()
                     if self._current_file.file_type == "text":
                         # Set active control tab for material.
                         self.tab_src.setCurrentIndex(2)
@@ -2082,7 +2101,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         entries = line.split(",")
                                                 
                         # Create a new SOP object of consolidation.
-                        sop_file = features.File(is_new=True, uuid=None, dbfile=None)
+                        self._current_file = features.File(is_new=True, uuid=None, dbfile=None)
                         
                         con_dir = ""
                         mat_dir = ""
@@ -2100,11 +2119,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                 print(fil_head[i])
                                 
                                 if fil_head[i] == "uuid":
-                                    if not entries[i] == "NULL":sop_file.uuid = entries[i]
-                                    else:sop_file.uuid = str(uuid.uuid4())
+                                    if not entries[i] == "NULL":self._current_file.uuid = entries[i]
+                                    else:self._current_file.uuid = str(uuid.uuid4())
                                 elif fil_head[i] == "consolidation":
-                                    if not entries[i] == "NULL": sop_file.consolidation = entries[i]
-                                    else: sop_file.consolidation = None
+                                    if not entries[i] == "NULL": self._current_file.consolidation = entries[i]
+                                    else: self._current_file.consolidation = None
                                 elif fil_head[i] == "material":
                                     if not entries[i] == "NULL": sop_file.material = entries[i]
                                     else: sop_file.material = None
@@ -2602,7 +2621,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 fileName = os.path.join(self._root_directory, self._current_file.filename)
                 
                 if fileName != '':
-                    if self._current_file.file_type == "audio":
+                    if self._current_file.file_type == "audio" or self._current_file.file_type == "movie":
                         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
                         self.mlt_btn_play.setEnabled(True)
             else:
@@ -2649,6 +2668,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     # ==========================
     # Map processing tools
     # ==========================
+    def checkLeafletLibrary(self, item_path):
+        print("checkLeafletLibrary(self)")
+        
+        # Generate the GUID for the consolidation
+        geo_dir = os.path.join(item_path, 'Geometries')
+        if not os.path.exists(geo_dir):
+            os.mkdir(geo_dir)
+            print("The directory for geometries is created.")
+        # Check library of leaflet path.
+        geo_lib = os.path.join(self._map_directory,"lib")
+        if not  os.path.exists(os.path.join(geo_dir,"lib")):
+            shutil.copytree(geo_lib, os.path.join(geo_dir,"lib"))
+            print("Libraries for leaflet is copied.")
+        return(True)
+    
     def setDefaultMap(self):
         print("main::setDefaultMap(self)")
         
@@ -2666,9 +2700,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         con_dir = os.path.join(self._consolidation_directory, self._current_consolidation.uuid)
                         geo_dir = os.path.join(con_dir, "Geometries")
                         
-                        wkt_path = os.path.join(self._root_directory, self._current_file.filename)
-                        output = self.publishMap(wkt_path)
-                        
                         # Check whether the geometry directory is exists or not.
                         if not os.path.exists(geo_dir):
                             # Create a directory for storing geometries.
@@ -2679,17 +2710,20 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             
                             # Exit this proces
                             return(None)
-                            
+                        
+                        wkt_path = os.path.join(self._root_directory, self._current_file.filename)
+                        
                         # Check whether the output file is exists or not.
-                        if not os.path.exists(output):
+                        if not os.path.exists(wkt_path):
                             # Set the default map.
                             self.setDefaultMap()
                             
                             # Exit this proces
                             return(None)
-                        
-                        # Load a map.
-                        self.geo_view.setUrl(QUrl("file:///" + output))
+                        else:
+                            output = self.publishMap(wkt_path)
+                            # Load a map.
+                            self.geo_view.setUrl(QUrl("file:///" + output))
                     else:
                         self.setDefaultMap()
                 else:
@@ -2747,20 +2781,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         return(map_path)
         
-    def createMapByLocationName(self, geo_uuid, item_path, geo_name):
-        print("main::createMapByLocationName(self, geo_uuid, item_path)")
+    def createMapByLocationName(self, geo_name, wkt_path):
+        print("main::createMapByLocationName(self, wkt_path)")
+        
         try:
-            # Generate the GUID for the consolidation
-            geo_dir = os.path.join(item_path, 'Geometries')
-            if not os.path.exists(geo_dir):
-                os.mkdir(geo_dir)
-            
-            geo_lib = os.path.join(self._map_directory,"lib")
-            if not  os.path.exists(os.path.join(geo_dir,"lib")):
-                shutil.copytree(geo_lib, os.path.join(geo_dir,"lib"))
-            
-            wkt_path = os.path.join(geo_dir, geo_uuid + ".wkt")
-            
             if not self._proxy == "No Proxy":
                 proxy = {'https': self._proxy}
                 latlon = geospatial.geoCoding(geo_name, proxy)
@@ -2839,6 +2863,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Check whether current object has images.
             if sop_object.geometries == None: sop_object.geometries = list()
             
+            # Check the path to the leaflet library.
+            self.checkLeafletLibrary(item_path)
+            
             # Get the current date and time.
             now = datetime.datetime.utcnow().isoformat()
             
@@ -2849,47 +2876,52 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     # Get the uuid from the existing object.
                     geo_uuid = geometry.uuid
                     
-                    # Update the existing file.
-                    geo_path = self.createMapByLocationName(geo_uuid, item_path, geo_name)
-                    
                     # Instantiate the File class.
                     wkt_file = features.File(is_new=False, uuid=geo_uuid, dbfile=self._database)
                     wkt_file.modified_date = now
                     
                     # Update the file information
                     wkt_file.dbUpdate(self._database)
+                    
+                    # Update the existing file.
+                    geo_path = os.path.join(self._root_directory, self._current_file.filename)
+                    self.createMapByLocationName(geo_name, geo_path)
+                    
             # If geocoded is existed geocoded file is updated else new file is created.        
             if geo_uuid == None:
                 # Generate new UUID.
                 geo_uuid = str(uuid.uuid4())
                 
-                # Create a wkt file and its corresponding leaflet file.
-                geo_path = self.createMapByLocationName(geo_uuid, item_path, geo_name)
+                # Generate the WKT file path.
+                geo_dir = os.path.join(item_path, 'Geometries')
+                geo_path = os.path.join(geo_dir, geo_uuid + ".wkt")
                 
-                if os.path.exists(geo_path):
-                    # Instantiate the File class.
-                    wkt_file = features.File(is_new=True, uuid=geo_uuid, dbfile=None)
-                    wkt_file.material = mat_uuid
-                    wkt_file.consolidation = con_uuid
-                    wkt_file.filename = general.getRelativePath(geo_path, "Consolidation")
-                    wkt_file.created_date = now
-                    wkt_file.modified_date = now
-                    wkt_file.file_type = "geometry"
-                    wkt_file.alias = "Geocoded"
-                    wkt_file.status = "Automatically Generated"
-                    wkt_file.lock = False
-                    wkt_file.public = False
-                    wkt_file.source = "Nothing"
-                    wkt_file.operation = "Geocoding"
-                    wkt_file.operating_application = "Survey Data Collector"
-                    wkt_file.caption = "Geocoded Location"
-                    wkt_file.description = ""
-                    
-                    # Execute the SQL script.
-                    wkt_file.dbInsert(self._database)
-                    
-                    # Add the image to the object.
-                    sop_object.geometries.insert(0, wkt_file)
+                # Instantiate the File class.
+                wkt_file = features.File(is_new=True, uuid=geo_uuid, dbfile=None)
+                wkt_file.material = mat_uuid
+                wkt_file.consolidation = con_uuid
+                wkt_file.filename = general.getRelativePath(geo_path, "Consolidation")
+                wkt_file.created_date = now
+                wkt_file.modified_date = now
+                wkt_file.file_type = "geometry"
+                wkt_file.alias = "Geocoded"
+                wkt_file.status = "Automatically Generated"
+                wkt_file.lock = False
+                wkt_file.public = False
+                wkt_file.source = "Nothing"
+                wkt_file.operation = "Geocoding"
+                wkt_file.operating_application = "Survey Data Collector"
+                wkt_file.caption = "Geocoded Location"
+                wkt_file.description = ""
+                
+                # Execute the SQL script.
+                wkt_file.dbInsert(self._database)
+                
+                # Add the image to the object.
+                sop_object.geometries.insert(0, wkt_file)
+                
+                # Create a wkt file and its corresponding leaflet file.
+                self.createMapByLocationName(geo_name, geo_path)
             # Refresh the map
             self.refreshMap()
             
@@ -2909,7 +2941,28 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-    
+     
+    def searchLocationOnMap(self):
+        print("main::searchLocationOnMap(self)")
+        try:
+            geo_name = self.txt_map_search.text()
+            output = os.path.join(self._map_directory,"location.html")
+            
+            if not self._proxy == "No Proxy":
+                proxy = {'https': self._proxy}
+                geospatial.moveMapTo(self, geo_name, output, proxies=proxy)
+            else:
+                geospatial.moveMapTo(self, geo_name, output)
+            self.geo_view.setUrl(QUrl("file:///" + output))
+        except Exception as e:
+            print("Error occured in main::searchLocationOnMap(self)")
+            print(str(e))
+            
+            # Set the default map.
+            self.setDefaultMap()
+            
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
     # ==========================
     # Image processing tools
     # ==========================
@@ -2918,10 +2971,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Instantiate the file object of SOP.
-            self.getCurrentFile()
-            
-            if self._current_file == None:
-                return(None)
+            if self._current_file == None: return(None)
             
             if self._current_file.file_type == "image":
                 # Set active control tab for material.
@@ -3033,9 +3083,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::rotateImage(self, angle)")
         
         try:
-            # Instantiate the file object of SOP.
-            self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
             if self._current_file == None: return(None)
             
@@ -3119,9 +3166,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::makeMonoImage(self, angle)")
         
         try:
-            # Instantiate the file object of SOP.
-            self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
             if self._current_file == None: return(None)
             
@@ -3207,9 +3251,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::adjustWhiteBalance(self)")
         
         try:
-            # Instantiate the file object of SOP.
-            self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
             if self._current_file == None: return(None)
             
@@ -3291,27 +3332,24 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-        
+     
     def enhanceImage(self):
         print("main::enhanceImage(self)")
         
         try:
-            # Instantiate the file object of SOP.
-            sop_file = self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -3345,8 +3383,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -3355,7 +3393,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "Normalizing"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Normalized version"
@@ -3384,22 +3422,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::extractContour(self)")
         
         try:
-            # Instantiate the file object of SOP.
-            sop_file = self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -3432,8 +3467,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 # Instantiate the File class.
                 img_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
-                img_file.material = sop_file.material
-                img_file.consolidation = sop_file.consolidation
+                img_file.material = self._current_file.material
+                img_file.consolidation = self._current_file.consolidation
                 img_file.filename = general.getRelativePath(new_file, "Consolidation")
                 img_file.created_date = time_open
                 img_file.modified_date = time_close
@@ -3442,7 +3477,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.status = "Edited"
                 img_file.lock = False
                 img_file.public = False
-                img_file.source = sop_file.uuid
+                img_file.source = self._current_file.uuid
                 img_file.operation = "Cropping"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Cropped version"
@@ -3470,9 +3505,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::negativeToPositive(self)")
         
         try:
-            # Instantiate the file object of SOP.
-            self.getCurrentFile()
-            
             # Exit if SOP object is not instantiated.
             if self._current_file == None: return(None)
             
@@ -3566,28 +3598,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         if (selected == None or len(selected) == 0): return(None)
         
         try:
-            # Instantiate the file object of SOP.
-            sop_file = self.getCurrentFile()
-            
             # Check the file type.
-            print(sop_file._file_type)
+            print(self._current_file._file_type)
             
             # Set the default output file name.
-            fil_out = sop_file.uuid + ".jpg"
+            fil_out = self._current_file.uuid + ".jpg"
             
             # Exit if SOP object is not instantiated.
-            if sop_file == None: return(None)
+            if self._current_file == None: return(None)
             
             # Get the image path.
-            img_path = os.path.join(self._root_directory, sop_file.filename)
+            img_path = os.path.join(self._root_directory, self._current_file.filename)
             
             # Exit if selected file is not exists.
             if not os.path.exists(img_path): error.ErrorMessageFileNotExist(); return(None)
             
-            if sop_file.file_type == "image":
+            if self._current_file.file_type == "image":
                 # Set active control tab for material.
                 self.tab_src.setCurrentIndex(0)
-                self.getImageFileInfo(sop_file)
+                self.getImageFileInfo(self._current_file)
                 
                 # Chec the extension of the file.
                 ext = os.path.splitext(img_path)[1].lower()
@@ -3608,7 +3637,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         shutil.copyfile(img_path, new_file)
                         
                         # Export file info by XML.
-                        sop_xml = sop_file.writeAsXml()
+                        sop_xml = self._current_file.writeAsXml()
                         if not sop_xml == None:
                             xml_image_info = open(new_file+'.xml', "w") 
                             xml_image_info.write(sop_xml) 
@@ -3634,9 +3663,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             item_path = None
             img_path = None
             thm_path = None
-            
-            # Instantiate the file object of SOP.
-            self.getCurrentFile()
             
             # Exit if SOP object is not instantiated.
             if self._current_file == None: return(None)
