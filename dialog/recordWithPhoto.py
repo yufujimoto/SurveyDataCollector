@@ -16,12 +16,14 @@ import modules.features as features
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
-import modules.skin as skin
+#import modules.skin as skin
+import modules.setupConfigSkin as skin
 
 import dialog.recordWithPhotoDialog as recordWithPhotoDialog
 
 # Import libraries for sound recording. 
-import Queue as queue
+#import Queue as queue
+from multiprocessing import Queue as queue
 import sounddevice as sd
 import soundfile as sf
 import numpy as np

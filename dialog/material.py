@@ -18,7 +18,9 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import modules.general as general
 import modules.features as features
 import modules.error as error
-import modules.skin as skin
+#import modules.skin as skin
+import modules.setupConfigSkin as skin
+
 
 # Import camera and image processing library.
 import dialog.materialDialog as materialDialog

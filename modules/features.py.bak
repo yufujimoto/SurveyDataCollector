@@ -29,17 +29,17 @@ class SimpleObject(object):
     def uuid(self, value): self._uuid = value
     
     def excuteSQL(self, dbfile, sql, values):
-        print(("features::SimpleObject::excuteSQL(self, dbfile, sql, values)"))
-        
+        print("features::SimpleObject::excuteSQL(self, " + dbfile + ", "+ sql + ", " + values + ")")
+        # Convert None objects into "Null" values in DB table.
+        db_values = list()
+        for value in values:
+            if value == None or value == "":
+                db_values.append("NULL")
+            else:
+                db_values.append(value)
+                
+        # Execute the query.
         try:
-            # Convert None objects into "Null" values in DB table.
-            db_values = list()
-            for value in values:
-                if value == None or value == "":
-                    db_values.append("NULL")
-                else:
-                    db_values.append(value)
-            
             # Establish the connection to the DataBase file.
             conn = sqlite.connect(dbfile)
             
@@ -61,7 +61,7 @@ class SimpleObject(object):
                 'icon': "Critical",
                 'detailed': e.args[0]
             }
-            print((e.args[0]))
+            print(e.args[0])
             # Returns error messages.
             return(error)
         finally:
@@ -69,78 +69,66 @@ class SimpleObject(object):
             conn.close()
     
     def fetchOneSQL(self, dbfile, sql, keys):
-        print(("SimpleObject::fetchOneSQL(self, dbfile , sql, keys)"))
+        print("features::SimpleObject::fetchOneSQL(self, " + dbfile + ", "+ sql + ", keys)")
         # Establish the connection between DB.
         conn = sqlite.connect(dbfile)
         
-        try:
-            if conn is not None:
-                # Instantiate the cursor for query.
-                cur = conn.cursor()
-                
-                # Execute the query.
-                cur.execute(sql, keys)
-                
-                # Fetch one row.
-                rows = cur.fetchone()
-                entry = list()
-                
-                # Replace NULL values by blank.
-                for row in rows:
-                    if row == "NULL":
-                        entry.append("")
-                    else:
-                        entry.append(row)
-                
-                # Get attributes from the row.
-                return(entry)
-            else:
-                return(None)
-        except Exception as e:
-            err_info = "Error occus in SimpleObject::fetchOneSQL(self, dbfile , sql, keys)"
-            print(err_info)
-            print((str(e)))
-            error.ErrorCurrentFeature(information=err_info, details=str(e))
+        if conn is not None:
+            # Instantiate the cursor for query.
+            cur = conn.cursor()
+            
+            # Execute the query.
+            cur.execute(sql, keys)
+            
+            # Fetch one row.
+            rows = cur.fetchone()
+            entry = list()
+            
+            # Replace NULL values by blank.
+            for row in rows:
+                if row == "NULL":
+                    entry.append("")
+                else:
+                    entry.append(row)
+            
+            # Get attributes from the row.
+            return(entry)
+        else:
+            return(None)
     
     def fetchAllSQL(self, dbfile, sql, keys):
-        print(("features::SimpleObject::fetchAllSQL(self, dbfile,sql, keys"))
+        print("features::SimpleObject::fetchAllSQL(self, " + dbfile + ", "+ sql + ", " + keys + ")")
         
-        try:
-            # Establish the connection between DB.
-            conn = sqlite.connect(dbfile)
+        # Establish the connection between DB.
+        conn = sqlite.connect(dbfile)
+        
+        if conn is not None:
+            # Instantiate the cursor for query.
+            cur = conn.cursor()
             
-            if conn is not None:
-                # Instantiate the cursor for query.
-                cur = conn.cursor()
+            # Execute the query.
+            cur.execute(sql, keys)
+            
+            # Fetch one row.
+            rows = cur.fetchall()
+            
+            entries = list()
+            
+            # Replace NULL values by blank.
+            for row in rows:
+                entry = list()
                 
-                # Execute the query.
-                cur.execute(sql, keys)
-                
-                # Fetch one row.
-                rows = cur.fetchall()
-                
-                entries = list()
-                
-                # Replace NULL values by blank.
-                for row in rows:
-                    entry = list()
-                    
-                    for value in row:
-                        if value == "NULL":
-                            entry.append("")
-                        else:
-                            entry.append(value)
-                    entries.append(entry)
-                
-                # Get attributes from the row.
-                return(entries)
-            else:
-                return(None)
-        except Exception as e:
-            err_info = "Error occus in SimpleObject::fetchAllSQL(self, dbfile , sql, keys)"
-            print(err_info)
-            print((str(e)))
-            error.ErrorCurrentFeature(information=err_info, details=str(e))
+                for value in row:
+                    if value == "NULL":
+                        entry.append("")
+                    else:
+                        entry.append(value)
+                entries.append(entry)
+            
+            # Get attributes from the row.
+            return(entries)
+        else:
+            return(None)
 
 class Consolidation(SimpleObject):
     @property
@@ -187,8 +175,7 @@ class Consolidation(SimpleObject):
     
     def __init__(self, is_new=True, uuid=None, dbfile=None):
         # Initialize the super class.
-        # SimpleObject.__init__(self, is_new, uuid, dbfile)
-        super(Consolidation, self).__init__(is_new, uuid, dbfile)
+        SimpleObject.__init__(self, is_new, uuid, dbfile)
         
         if is_new == True and dbfile == None:
             # Initialize as the new instance.
@@ -245,7 +232,7 @@ class Consolidation(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Consolidation::_initInstanceByUuid(self, uuid, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbInsert(self, dbfile):
@@ -306,7 +293,7 @@ class Consolidation(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Consolidation::dbInsert(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbUpdate(self, dbfile):
@@ -367,7 +354,7 @@ class Consolidation(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Consolidation::dbUpdate(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbDrop(self, dbfile):
@@ -385,7 +372,7 @@ class Consolidation(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Consolidation::dbDrop(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def _getFileList(self, dbfile, file_type):
@@ -394,33 +381,29 @@ class Consolidation(SimpleObject):
         # Initialyze the return value.
         sop_file_list = list()
         
-        try:
-            # Get image files related to the consolidation.
-            sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
+        # try:
+        # Get image files related to the consolidation.
+        sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
+        
+        # Execute the query.
+        sop_files = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
+        
+        # Exit if there are no entries.
+        if sop_files == None or len(sop_files) == 0: return(None)
+        
+        # Create sop image ojects from the DB table.
+        for sop_file in sop_files:
+            sop_file_obj = File(is_new=False, uuid=sop_file[0], dbfile=dbfile)
+            print(sop_file[0])
+            print(sop_file_obj)
+            sop_file_list.append(sop_file_obj)
             
-            # Execute the query.
-            print(self._uuid, file_type)
-            sop_files = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
-            
-            print(sop_files)
-            
-            # Exit if there are no entries.
-            if sop_files == None or len(sop_files) == 0: return(None)
-            print("1-5")
-            # Create sop image ojects from the DB table.
-            for sop_file in sop_files:
-                print("1-6")
-                sop_file_obj = File(is_new=False, uuid=sop_file[0], dbfile=dbfile)
-                print((sop_file[0]))
-                print(sop_file_obj)
-                sop_file_list.append(sop_file_obj)
-                
-            return(sop_file_list)
-        except Exception as e:
-            err_info = "Error occus in Consolidation::_getFileList(self, dbfile, file_type)"
-            print(err_info)
-            print(str(e))
-            error.ErrorCurrentFeature(information=err_info, details=str(e))
+        return(sop_file_list)
+        # except Exception as e:
+        #     err_info = "Error occus in Consolidation::_getFileList(self, dbfile, file_type)"
+        #     print(err_info)
+        #     print(str(e))
+        #     error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def _getAdditionalAttributes(self, dbfile):
         print("Consolidation::_getAdditionalAttributes(self, dbfile)")
@@ -446,9 +429,8 @@ class Consolidation(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Consolidation::_getAdditionalAttributes(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
-    
         
 class Material(SimpleObject):
     @property
@@ -597,7 +579,7 @@ class Material(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Material::_initInstanceByUuid(self, uuid, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbInsert(self, dbfile):
@@ -670,7 +652,7 @@ class Material(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Material::dbInsert(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbUpdate(self, dbfile):
@@ -740,7 +722,7 @@ class Material(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Material::dbUpdate(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def dbDrop(self, dbfile):
@@ -758,7 +740,7 @@ class Material(SimpleObject):
         except Exception as e:
             err_info = "Error occus in Material::dbDrop(self, dbfile)"
             print(err_info)
-            print((str(e)))
+            print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
             
     def _getFileList(self, dbfile, file_type):
@@ -800,7 +782,7 @@ class Material(SimpleObject):
                 
             return(sop_attr_list)
         except Exception as e:
-            print((str(e)))
+            print(str(e))
 
 class File(SimpleObject):
     def __init__(self, is_new = True, uuid=None, dbfile=None):
@@ -892,8 +874,6 @@ class File(SimpleObject):
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
-        print("features::File::_initInstanceByUuid(self, " + uuid + ", dbfile)")
-        
         # Make the SQL statement.
         sql_select = """SELECT
                             id,
@@ -940,7 +920,7 @@ class File(SimpleObject):
             return(None)
     
     def dbInsert(self, dbfile):
-        print(("features::File::dbInsert(self, " + dbfile + ")"))
+        print("features::File::dbInsert(self, " + dbfile + ")")
         
         # Insert a new record into the database
         values = [
@@ -1326,7 +1306,7 @@ def exportAsHtml(dbfile, output, title="Archive"):
 def whatisthis(s):
     if isinstance(s, str):
         print("ordinary string")
-    elif isinstance(s, str):
+    elif isinstance(s, unicode):
         print("unicode string")
     else:
         print("not a string")

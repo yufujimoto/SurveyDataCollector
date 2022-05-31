@@ -12,7 +12,8 @@ from PyQt5.QtCore import *
 # Import general operations.
 import modules.general as general
 import modules.imageProcessing as imageProcessing
-import modules.skin as skin
+#import modules.skin as skin
+import modules.setupConfigSkin as skin
 import modules.error as error
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../viewer')

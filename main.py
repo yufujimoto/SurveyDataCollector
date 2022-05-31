@@ -51,7 +51,8 @@ import dialog.cameraSelect as cameraSelectDialog
 import dialog.flickr as flickrDialog
 
 # Import libraries for sound recording. 
-import Queue as queue
+from multiprocessing import Queue as queue
+#import Queue as queue
 import sounddevice as sd
 import soundfile as sf
 
@@ -277,7 +278,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Save the current setting.
                 general.changeConfig(self)
         except Exception as e:
-            print("Error occured in main::setSkin(self, lang, theme)")
+            print("Error occured in main::openConfigDialog(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -307,7 +308,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     )
         except Exception as e:
             self._proxy = "No Proxy"
-            print("Error occured in main::setSkin(self, lang, theme)")
+            print("Error occured in main::setProxy(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -319,7 +320,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Reset values.
             self._language = lang
             self._skin = theme
-            
+                        
             # Apply the new skin.
             setupMainSkin.applyMainWindowSkin(self, self._icon_directory, skin=self._skin)
             setupMainSkin.setMainWindowButtonText(self)
@@ -627,8 +628,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.lbl_prj_path.setText(self._root_directory)
     
     def showImage(self, img_file_path):
-        print("main::showImage(self)")
-        
+        print("main::showImage(self," + img_file_path + ")")
+        # 
         try:
             # Check the image file can be displayed directry.
             img_base, img_ext = os.path.splitext(img_file_path)
@@ -745,14 +746,12 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Set attributes of the consolidation and the material to the input boxes.
                 self.setConsolidationInfo(self._current_consolidation)
                 self.setMaterialInfo()
-                
                 # Set active control tab for consolidation.
                 self.tab_target.setCurrentIndex(1)
                 
                 # Set file information of material images.
                 self.refreshFileList(self._current_material)
                 self.toggleCurrentSourceTab()
-                
         except Exception as e:
             print("Error occured in main::toggleCurrentTreeObject(self)")
             print(str(e))
@@ -2333,7 +2332,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
     def getImageFileInfo(self, sop_image):
-        print("main::getImageFileInfo(self, sop_text)")
+        print("main::getImageFileInfo(self, sop_image)")
         
         try:
             # Clear.
@@ -2352,7 +2351,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                     tags = imageProcessing.getMetaInfo(img_file_path)
                     
                     # Show EXIF tags on the tree item view.
-                    for tag in sorted(tags.iterkeys()):
+                    for tag in sorted(tags.keys()):
                         self.tre_img_prop.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
                         
             # Refresh the tree view.
@@ -2364,7 +2363,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Adjust columns width.
             self.tre_img_prop.resizeColumnToContents(0)
             self.tre_img_prop.resizeColumnToContents(1)
-            
         except Exception as e:
             print("Error occured in main::getImageFileInfo(self)")
             print(str(e))
@@ -2617,7 +2615,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             if not self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-                setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+                setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_play=self.mlt_btn_play, skin=self._skin)
                 fileName = os.path.join(self._root_directory, self._current_file.filename)
                 
                 if fileName != '':
@@ -2625,7 +2623,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
                         self.mlt_btn_play.setEnabled(True)
             else:
-                setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+                setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_pause=self.mlt_btn_play, skin=self._skin)
         except Exception as e:
             print("Error occured in main::openMultimediaFile(self)")
             print(str(e))
@@ -2641,12 +2639,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.mediaPlayer.play()
     
     def mediaStateChanged(self, state):
+        print("main::mediaStateChanged(self, " + state + ")")
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+            setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_pause=self.mlt_btn_play, skin=self._skin)
         else:
-            setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_stop=self.mlt_btn_play, skin=self._skin)
+            setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_play=self.mlt_btn_play, skin=self._skin)
 
     def positionChanged(self, position):
+        print("main::positionChanged(self, " + state + ")")
         self.mlt_sld_play.setValue(position)
 
     def durationChanged(self, duration):
@@ -3868,7 +3868,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
                 cbx.addItem(opt_txt)
         except Exception as e:
-            print("Error occured in main::detectCamera(self)")
+            print("Error occured in main::setCamParamCbx(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)

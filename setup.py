@@ -15,5 +15,5 @@ setup(name='citmas-sdc',
       author_email='yu.fujimoto@geo-nara.net',
       license='GPL',
       packages=['citmas-sdc'],
-      install_requires=["PyQt5","imutils","parse","argparse","uuid","lxml","pipes","Cython","pyqtgraph","cartopy","scipy","gphoto2","flickrapi","numpy","scipy","pillow","imutils","colorcorrect","rawKit","exifread","pexif","sounddevice","soundfile","pyqtgraph","cartopy"],
+      install_requires=["PyQt5","imutils","parse","argparse","uuid","lxml","pipes","Cython","pyqtgraph","cartopy","scipy","gphoto2","flickrapi","numpy","scipy","pillow","imutils","colorcorrect","rawpy","imageio","exifread","pexif","sounddevice","soundfile","pyqtgraph","cartopy"],
       )

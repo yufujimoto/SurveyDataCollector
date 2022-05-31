@@ -128,8 +128,8 @@ class Camera(object):
             return(None)
 
     def _getCameraConfig(self, cam_parameter):
-        print("Camera::getCameraConfig(cam_parameter)")
-        
+        print("Camera::_getCameraConfig(" + cam_parameter + ")")
+                
         result = dict()
         
         try:
@@ -147,7 +147,7 @@ class Camera(object):
             if stdout_data == None or stdout_data == "": return(None)
             
             # Get camera parameters from  printed messages.
-            params = stdout_data.split("\n")
+            params = str(stdout_data).split("\n")
             
             # Define variables for storing entries.
             label = ""
@@ -190,28 +190,26 @@ class Camera(object):
             
             return(None)
 
-
-
-def setCamera(cam_name):
-    print("Camera::setCamera(cam_name)")
-    
-    try:
-        # Define the subprocess for detecting connected camera.
-        cmd_setting = ["gphoto2"]
-        
-        # Define parameters for the subprocess.
-        cmd_setting.append("--camera")
-        cmd_setting.append(cam_name)
-        
-        # Execute the gphoto2 command.
-        subprocess.check_output(cmd_setting)
-        
-        return(True)
-    except Exception as e:
-        print("Error occured in Camera::setCamera(name, addr)")
-        print(str(e))
-        
-        return(None)
+# def setCamera(cam_name):
+#     print("Camera::setCamera(cam_name)")
+#     
+#     try:
+#         # Define the subprocess for detecting connected camera.
+#         cmd_setting = ["gphoto2"]
+#         
+#         # Define parameters for the subprocess.
+#         cmd_setting.append("--camera")
+#         cmd_setting.append(cam_name)
+#         
+#         # Execute the gphoto2 command.
+#         subprocess.check_output(cmd_setting)
+#         
+#         return(True)
+#     except Exception as e:
+#         print("Error occured in Camera::setCamera(name, addr)")
+#         print(str(e))
+#         
+#         return(None)
 
 def detectCamera():
     print("Camera::detectCamera()")
@@ -234,74 +232,74 @@ def detectCamera():
         
         for name, port in cameras:
             cams.append({"name" : name, "port" : port})
-            
+        
         return(cams)
     except Exception as e:
         print("Error occured in Camera::detectCamera()")
         print(str(e))
     
-def getCameraConfig(cam_parameter):
-    print("Camera::getCameraConfig(cam_parameter)")
-    
-    result = dict()
-    
-    try:
-        # Define the subprocess for getting camera parameters.
-        cmd_setting = ["gphoto2"]
-        
-        # Define parameters for the subprocess.
-        cmd_setting.append("--get-config")
-        cmd_setting.append(cam_parameter)
-        
-        # Execute the subprocess.
-        stdout_data = subprocess.check_output(cmd_setting)
-        
-        # Exit if none of messages printed.
-        if stdout_data == None or stdout_data == "": return(None)
-        
-        # Get camera parameters from  printed messages.
-        params = stdout_data.split("\n")
-        
-        # Define variables for storing entries.
-        label = ""
-        current = ""
-        choice = list()
-        
-        for param in params:
-            item = param.split(":")
-            label = item[0]
-            
-            if label == "Label":
-                entry = item[1].strip()
-                result["label"] = entry
-            elif label == "Current":
-                entry = item[1].strip()
-                result["current"] = entry
-            elif label == "Choice":
-                # Split the text with white space.
-                entry = item[1].strip().split(" ")
-                
-                # Get the first item as the value.
-                entry_val = entry[0]
-                
-                # Remove the first item from the entry.
-                entry_txt = str(entry.pop(0))
-                
-                # Append the entry to the choice list.
-                choice.append({str(entry.pop(0)):entry_val})
-            
-            result["choice"] = choice
-            
-        # Returns configuration list.
-        if len(result) == None or len(result) == 0:
-            return(None)
-        else:
-            return(result)
-    except Exception as e:
-        print("Error occured in Camera::getCameraConfig(cam_parameter)")
-        print(str(e))
-        
-        return(None)
+# def getCameraConfig(cam_parameter):
+#     print("Camera::getCameraConfig(cam_parameter)")
+#     result = dict()
+#     
+#     try:
+#         # Define the subprocess for getting camera parameters.
+#         cmd_setting = ["gphoto2"]
+#         
+#         # Define parameters for the subprocess.
+#         print("0")
+#         cmd_setting.append("--get-config")
+#         cmd_setting.append(cam_parameter)
+#         print("1")
+#         # Execute the subprocess.
+#         stdout_data = subprocess.check_output(cmd_setting)
+#         print("2")
+#         # Exit if none of messages printed.
+#         if stdout_data == None or stdout_data == "": return(None)
+#         print("3")
+#         # Get camera parameters from  printed messages.
+#         params = stdout_data.split("\n")
+#         
+#         # Define variables for storing entries.
+#         label = ""
+#         current = ""
+#         choice = list()
+#         
+#         for param in params:
+#             item = param.split(":")
+#             label = item[0]
+#             
+#             if label == "Label":
+#                 entry = item[1].strip()
+#                 result["label"] = entry
+#             elif label == "Current":
+#                 entry = item[1].strip()
+#                 result["current"] = entry
+#             elif label == "Choice":
+#                 # Split the text with white space.
+#                 entry = item[1].strip().split(" ")
+#                 
+#                 # Get the first item as the value.
+#                 entry_val = entry[0]
+#                 
+#                 # Remove the first item from the entry.
+#                 entry_txt = str(entry.pop(0))
+#                 
+#                 # Append the entry to the choice list.
+#                 choice.append({str(entry.pop(0)):entry_val})
+#             
+#             result["choice"] = choice
+#             
+#         # Returns configuration list.
+#         if len(result) == None or len(result) == 0:
+#             return(None)
+#         else:
+#             return(result)
+#     except Exception as e:
+#         print("Error occured in Camera::getCameraConfig(cam_parameter)")
+#         print(str(e))
+#         
+#         return(None)
     
 def takePhoto(output):
     print("Camera::takePhoto(output)")

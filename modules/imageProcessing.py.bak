@@ -3,7 +3,7 @@
 
 # import the necessary packages
 import cv2, imutils, argparse, uuid, math, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
-import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread, rawpy, imageio
+import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread
 
 from pyexiv2 import ImageMetadata
 from sys import argv
@@ -11,6 +11,7 @@ from optparse import OptionParser
 from imutils import perspective, contours
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
+from rawkit.raw import Raw
 from colorcorrect.util import from_pil, to_pil
 
 import modules.error as error
@@ -23,7 +24,7 @@ def imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8):
         return fl_output
     except Exception as e:
         print("Error occured in imageProcessing::imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return None
 
@@ -41,7 +42,7 @@ def imwrite(fl_input, fl_output, params=None):
             return False
     except Exception as e:
         print("Error occured in imageProcessing::colorize(src_dir, imgfile, output)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return False
 
@@ -54,8 +55,8 @@ def colorize(dir_source, fl_input, fl_output, col_model="colornet.t7"):
                 
         # Define the parameters for the command.
         script_siggraph.append(str(os.path.join(dir_source, "colorize.lua")))
-        script_siggraph.append(str(fl_input.encode("utf-8"),"utf-8"))     # Input grey scaled image file.
-        script_siggraph.append(str(fl_output.encode("utf-8"),"utf-8"))     # Output colorized image.
+        script_siggraph.append(unicode(fl_input.encode("utf-8"),"utf-8"))     # Input grey scaled image file.
+        script_siggraph.append(unicode(fl_output.encode("utf-8"),"utf-8"))     # Output colorized image.
         script_siggraph.append(str(os.path.join(dir_source, col_model)))
         
         # Execute the colorize function.
@@ -64,7 +65,7 @@ def colorize(dir_source, fl_input, fl_output, col_model="colornet.t7"):
         return(True)
     except Exception as e:
         print("Error occured in imageProcessing::colorize(src_dir, imgfile, output)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -83,7 +84,7 @@ def openWithGimp(fl_input):
         return(True)
     except Exception as e:
         print("Error occured in imageProcessing::openWithGimp(fl_input)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -92,7 +93,6 @@ def getMetaInfo(fl_input):
     
     try:
         # Open the image object with read only mode.
-        
         img_input = open(fl_input, 'rb')
         
         # Get EXIF tags and their values.
@@ -101,7 +101,7 @@ def getMetaInfo(fl_input):
         # Prepare new tags object.
         new_tags = dict()
         
-        for org_tag in sorted(org_tags.keys()):
+        for org_tag in sorted(org_tags.iterkeys()):
             key = str(org_tag).replace("EXIF ","")
             value = str(org_tags[org_tag])
             
@@ -137,7 +137,7 @@ def getMetaInfo(fl_input):
         return(new_tags)
     except Exception as e:
         print("Error occured in imageProcessing::getMetaInfo(fl_input)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -157,7 +157,7 @@ def exifRational(exifTag):
         return(value)
     except Exception as e:
         print("Error occured in imageProcessing::exifRational(exifTag)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -169,22 +169,15 @@ def getThumbnail(fl_input):
         fl_output = os.path.splitext(fl_input)[0] + ".thumb" + ".jpg"
         
         # Extract the thumbnail image from raw image file.
-        with rawpy.imread(fl_input) as raw:
-            thumb = raw.extract_thumb()
-        if thumb.format == rawpy.ThumbFormat.JPEG:
-            # thumb.data is already in JPEG format, save as-is
-            with open(fl_output, 'wb') as f:
-                f.write(thumb.data)
-        elif thumb.format == rawpy.ThumbFormat.BITMAP:
-            # thumb.data is an RGB numpy array, convert with imageio
-            imageio.imsave(fl_output, thumb.data)
+        with Raw(filename=fl_input) as img_raw:
+            img_raw.save_thumb(filename=fl_output)
         
         # Return the result.
         return(fl_output)
         
     except Exception as e:
         print("Error occured in imageProcessing::getThumbnail(fl_input)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -217,7 +210,7 @@ def enhance(fl_input, fl_output):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::enhance(fl_input)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
     
@@ -238,7 +231,7 @@ def makeMono(fl_input, fl_output):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::makeMono(fl_input, fl_output)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -267,7 +260,7 @@ def negaToPosi(fl_input, fl_output):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::negaToPosi(fl_input, fl_output)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -323,7 +316,7 @@ def extractInnerFrame(fl_input, fl_output, ratio):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::extractInnerFrame(in_file fl_output, ratio)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -350,7 +343,7 @@ def correctRotaion(fl_input):
         '''
     except Exception as e:
         print("Error occured in imageProcessing::correctRotaion(in_file)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -389,7 +382,7 @@ def rotation(fl_input, fl_output, angle):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::rotation(in_file, fl_output, angle)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -418,7 +411,7 @@ def makeThumbnail(fl_input, fl_output, basewidth):
         return(fl_output)
     except Exception as e:
         print("Error occured in mageProcessing::makeThumbnail(fl_input, output, basewidth)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -449,7 +442,7 @@ def autoWhiteBalance(fl_input, fl_output, method = "automatic"):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::autoWhiteBalance(fl_input, fl_output, method = 'automatic'")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
     
@@ -484,7 +477,7 @@ def pansharpen(thumbnail, fl_input, fl_output, method="ihsConvert"):
         return(fl_output)
     except Exception as e:
         print("Error occured in imageProcessing::pansharpen(thumbnail, fl_input, fl_output, method='ihs')")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -501,7 +494,7 @@ def normalize(npy_array):
         return npy_array
     except Exception as e:
         print("Error occured in imageProcessing::normalize(npy_array)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -532,7 +525,7 @@ def broveyConvert(img_pil_input, height):
         return(img_pil_output)
     except Exception as e:
         print("Error occured in broveyConvert(img, height)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -559,7 +552,7 @@ def simpleMeanConvert(img_pil_input, height):
         return(img_pil_output)
     except Exception as e:
         print("Error occured in simpleMeanConvert(img, height)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
 
@@ -614,6 +607,6 @@ def ihsConvert(img_pil_input, values):
         return(img_pil_output)
     except Exception as e:
         print("Error occured in ihsConvert(img, height)")
-        print((str(e)))
+        print(str(e))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
