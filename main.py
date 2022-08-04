@@ -3856,7 +3856,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def setCamParamCbx(self, cbx, param):
         # Clear the combobox.
         cbx.clear()
-        
+        print(cbx,param)
         try:
             # Add the first position for the combobox as the current value.
             cbx.addItem(param["current"])

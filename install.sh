@@ -33,6 +33,7 @@ pip install Cython
 
 # Install GUI libraries.
 apt install libqt5webkit5-dev
+apt install libqt5multimedia5-plugins
 apt install python3-pyqt5
 apt install python3-pyqt5.qtwebkit
 apt install python3-pyqt5.qtmultimedia
@@ -78,6 +79,7 @@ apt install libx264-dev
 apt install opencv-data 
 apt install libopencv-dev 
 apt install python3-opencv
+pip install opencv-python-headless
 
 # Install tethering tools.
 apt install gphoto2

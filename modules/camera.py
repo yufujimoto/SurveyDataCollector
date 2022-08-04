@@ -109,6 +109,7 @@ class Camera(object):
             self._exposuremetermode = self._getCameraConfig("exposuremetermode")
     
     def _setCamera(self, cam_name):
+        print("Camera::_setCamera(" + cam_name + ")")
         try:
             # Define the subprocess for detecting connected camera.
             cmd_setting = ["gphoto2"]
@@ -129,9 +130,8 @@ class Camera(object):
 
     def _getCameraConfig(self, cam_parameter):
         print("Camera::_getCameraConfig(" + cam_parameter + ")")
-                
         result = dict()
-        
+        print("A")
         try:
             # Define the subprocess for getting camera parameters.
             cmd_setting = ["gphoto2"]
@@ -139,16 +139,21 @@ class Camera(object):
             # Define parameters for the subprocess.
             cmd_setting.append("--get-config")
             cmd_setting.append(cam_parameter)
-            
+            print("B")
             # Execute the subprocess.
-            stdout_data = subprocess.check_output(cmd_setting)
             
+            cmd = "gphoto2 --get-config=" + cam_parameter
+            stdout_test = subprocess.Popen(cmd_setting, stdout=subprocess.PIPE, stderr=subprocess. STDOUT, shell=True)
+            print(stdout_test)
+            
+            stdout_data = subprocess.check_output(cmd_setting).decode('UTF-8')
+            print("C")
             # Exit if none of messages printed.
             if stdout_data == None or stdout_data == "": return(None)
-            
+            print("D")
             # Get camera parameters from  printed messages.
             params = str(stdout_data).split("\n")
-            
+            print("E")
             # Define variables for storing entries.
             label = ""
             current = ""
