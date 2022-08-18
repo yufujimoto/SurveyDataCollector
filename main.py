@@ -1076,15 +1076,15 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Exit if the root directory is not loaded.
             if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
-            
+            print(1)
             # Initialize the Consolidation Class.
             self._current_consolidation = features.Consolidation(is_new=True, uuid=None, dbfile=None)
-            
+            print(2)
             # Show the dialog.
             dlg_con = consolidationDialog.consolidationDialog(parent=self)
-            
+            print(3)
             isAccepted = dlg_con.exec_()
-            
+            print(4)
             if isAccepted == 1:
                 # Instantiate the consolidation class
                 self._current_consolidation.name = dlg_con.tbx_con_name.text()
@@ -3819,7 +3819,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Get a selected camera from the list.
                 selected_camera = camera_list[self.dialog_camera.selected]
                 
-                # Set the selected camera as the current.
+                # Set the selected camera as the current
                 self._current_camera = camera.Camera(selected_camera["name"], selected_camera["port"])
                 
                 # Set the connected camera to the header.
@@ -3846,7 +3846,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if not self._current_camera.capturemode == None:
                     self.setCamParamCbx(self.cbx_cam_cpt, self._current_camera.capturemode)
                 
-                print("Camera success fully detected.")
+                print("Camera successfully detected.")
         except Exception as e:
             print("Error occured in main::detectCamera(self)")
             print(str(e))
@@ -3854,17 +3854,19 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
         
     def setCamParamCbx(self, cbx, param):
+        print("main::setCamParamCbx(self)")
         # Clear the combobox.
         cbx.clear()
-        print(cbx,param)
+        
         try:
             # Add the first position for the combobox as the current value.
             cbx.addItem(param["current"])
             
             # Add the options into the combobox.
+            
             for opt in param["choice"]:
-                opt_txt = str(opt.keys()[0])
-                opt_val = str(opt.values()[0])
+                opt_txt = list(opt.keys())[0]
+                opt_val = list(opt.values())[0]
                 
                 cbx.addItem(opt_txt)
         except Exception as e:
@@ -4030,6 +4032,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
         
         try:
+            print(1)
             # Initialyze the variables.
             sop_object = None
             item_path = None
@@ -4089,13 +4092,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Define the temporal path for the tethered shooting.
             tmp_path = os.path.join(tethered_path, pht_uuid)
-            
+            print(2)
             # Take a imge by using imageProcessing library.
             camera.takePhoto(tmp_path)
-            
+            print(3)
             # Check the result of the tethered image.
             self.dialogTetheredShooting = checkTetheredImageDialog.CheckImageDialog(parent=self, path=tethered_path)
-            
+            print(4)
             if self.dialogTetheredShooting.exec_():
                 # Get the current date and time.
                 now = datetime.datetime.utcnow().isoformat()
@@ -4181,7 +4184,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
             # Remove tethered path from the temporal directory.
             shutil.rmtree(tethered_path)
-            
+            print(5)
             # Refresh the file list.
             if sop_object.__class__.__name__ == "Consolidation":
                 self._current_consolidation = sop_object

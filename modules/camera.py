@@ -97,16 +97,38 @@ class Camera(object):
         self._exposuremetermode = None
             
         if self._setCamera(cam_name):
-            self._imagesize = self._getCameraConfig("imagesize")
-            self._iso = self._getCameraConfig("iso")
-            self._whitebalance = self._getCameraConfig("whitebalance")
-            self._exposurecompensation = self._getCameraConfig("exposurecompensation")
-            self._f_number = self._getCameraConfig("f-number")
-            self._imagequality = self._getCameraConfig("imagequality")
-            self._focusmode = self._getCameraConfig("focusmode")
-            self._expprogram = self._getCameraConfig("expprogram")
-            self._capturemode = self._getCameraConfig("capturemode")
-            self._exposuremetermode = self._getCameraConfig("exposuremetermode")
+            pop1 = subprocess.Popen(["gphoto2","--get-config","imagesize"], stdout=subprocess.PIPE)
+            pop2 = subprocess.Popen(["gphoto2","--get-config","iso"], stdout=subprocess.PIPE)
+            pop3 = subprocess.Popen(["gphoto2","--get-config","whitebalance"], stdout=subprocess.PIPE)
+            pop4 = subprocess.Popen(["gphoto2","--get-config","exposurecompensation"], stdout=subprocess.PIPE)
+            pop5 = subprocess.Popen(["gphoto2","--get-config","f-number"], stdout=subprocess.PIPE)
+            pop6 = subprocess.Popen(["gphoto2","--get-config","imagequality"], stdout=subprocess.PIPE)
+            pop7 = subprocess.Popen(["gphoto2","--get-config","focusmode"], stdout=subprocess.PIPE)
+            pop8 = subprocess.Popen(["gphoto2","--get-config","expprogram"], stdout=subprocess.PIPE)
+            pop9 = subprocess.Popen(["gphoto2","--get-config","capturemode"], stdout=subprocess.PIPE)
+            pop0 = subprocess.Popen(["gphoto2","--get-config","exposuremetermode"], stdout=subprocess.PIPE)
+            
+            pop1.wait()
+            pop2.wait()
+            pop3.wait()
+            pop4.wait()
+            pop5.wait()
+            pop6.wait()
+            pop7.wait()
+            pop8.wait()
+            pop9.wait()
+            pop0.wait()
+            
+            self._imagesize = self._getCameraConfig(pop1)
+            self._iso = self._getCameraConfig(pop2)
+            self._whitebalance = self._getCameraConfig(pop3)
+            self._exposurecompensation = self._getCameraConfig(pop4)
+            self._f_number = self._getCameraConfig(pop5)
+            self._imagequality = self._getCameraConfig(pop6)
+            self._focusmode = self._getCameraConfig(pop7)
+            self._expprogram = self._getCameraConfig(pop8)
+            self._capturemode = self._getCameraConfig(pop9)
+            self._exposuremetermode = self._getCameraConfig(pop0)
     
     def _setCamera(self, cam_name):
         print("Camera::_setCamera(" + cam_name + ")")
@@ -128,32 +150,20 @@ class Camera(object):
             
             return(None)
 
-    def _getCameraConfig(self, cam_parameter):
-        print("Camera::_getCameraConfig(" + cam_parameter + ")")
+    def _getCameraConfig(self, pop):
+        print("Camera::_getCameraConfig('pop')")
         result = dict()
-        print("A")
+        
         try:
-            # Define the subprocess for getting camera parameters.
-            cmd_setting = ["gphoto2"]
+            stdout_data = pop.communicate()[0].decode("UTF-8")
             
-            # Define parameters for the subprocess.
-            cmd_setting.append("--get-config")
-            cmd_setting.append(cam_parameter)
-            print("B")
-            # Execute the subprocess.
-            
-            cmd = "gphoto2 --get-config=" + cam_parameter
-            stdout_test = subprocess.Popen(cmd_setting, stdout=subprocess.PIPE, stderr=subprocess. STDOUT, shell=True)
-            print(stdout_test)
-            
-            stdout_data = subprocess.check_output(cmd_setting).decode('UTF-8')
-            print("C")
+            #stdout_data = subprocess.check_output(cmd_setting).decode('UTF-8')
             # Exit if none of messages printed.
             if stdout_data == None or stdout_data == "": return(None)
-            print("D")
+            
             # Get camera parameters from  printed messages.
             params = str(stdout_data).split("\n")
-            print("E")
+            
             # Define variables for storing entries.
             label = ""
             current = ""
@@ -195,27 +205,6 @@ class Camera(object):
             
             return(None)
 
-# def setCamera(cam_name):
-#     print("Camera::setCamera(cam_name)")
-#     
-#     try:
-#         # Define the subprocess for detecting connected camera.
-#         cmd_setting = ["gphoto2"]
-#         
-#         # Define parameters for the subprocess.
-#         cmd_setting.append("--camera")
-#         cmd_setting.append(cam_name)
-#         
-#         # Execute the gphoto2 command.
-#         subprocess.check_output(cmd_setting)
-#         
-#         return(True)
-#     except Exception as e:
-#         print("Error occured in Camera::setCamera(name, addr)")
-#         print(str(e))
-#         
-#         return(None)
-
 def detectCamera():
     print("Camera::detectCamera()")
     
@@ -243,69 +232,6 @@ def detectCamera():
         print("Error occured in Camera::detectCamera()")
         print(str(e))
     
-# def getCameraConfig(cam_parameter):
-#     print("Camera::getCameraConfig(cam_parameter)")
-#     result = dict()
-#     
-#     try:
-#         # Define the subprocess for getting camera parameters.
-#         cmd_setting = ["gphoto2"]
-#         
-#         # Define parameters for the subprocess.
-#         print("0")
-#         cmd_setting.append("--get-config")
-#         cmd_setting.append(cam_parameter)
-#         print("1")
-#         # Execute the subprocess.
-#         stdout_data = subprocess.check_output(cmd_setting)
-#         print("2")
-#         # Exit if none of messages printed.
-#         if stdout_data == None or stdout_data == "": return(None)
-#         print("3")
-#         # Get camera parameters from  printed messages.
-#         params = stdout_data.split("\n")
-#         
-#         # Define variables for storing entries.
-#         label = ""
-#         current = ""
-#         choice = list()
-#         
-#         for param in params:
-#             item = param.split(":")
-#             label = item[0]
-#             
-#             if label == "Label":
-#                 entry = item[1].strip()
-#                 result["label"] = entry
-#             elif label == "Current":
-#                 entry = item[1].strip()
-#                 result["current"] = entry
-#             elif label == "Choice":
-#                 # Split the text with white space.
-#                 entry = item[1].strip().split(" ")
-#                 
-#                 # Get the first item as the value.
-#                 entry_val = entry[0]
-#                 
-#                 # Remove the first item from the entry.
-#                 entry_txt = str(entry.pop(0))
-#                 
-#                 # Append the entry to the choice list.
-#                 choice.append({str(entry.pop(0)):entry_val})
-#             
-#             result["choice"] = choice
-#             
-#         # Returns configuration list.
-#         if len(result) == None or len(result) == 0:
-#             return(None)
-#         else:
-#             return(result)
-#     except Exception as e:
-#         print("Error occured in Camera::getCameraConfig(cam_parameter)")
-#         print(str(e))
-#         
-#         return(None)
-    
 def takePhoto(output):
     print("Camera::takePhoto(output)")
     
@@ -319,9 +245,11 @@ def takePhoto(output):
         cmd_taking.append("--filename=" + output + ".%C")
         
         # Execute the command.
-        result = subprocess.check_output(cmd_taking)
+        print("Hi,Cheez!!")
+        pop = subprocess.Popen(cmd_taking)
+        pop.wait()
         
-        return(result)
+        return(0)
     except Exception as e:
         print("Error occured in Camera::takePhoto(output)")
         print(str(e))

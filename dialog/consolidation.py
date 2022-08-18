@@ -79,7 +79,7 @@ class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
         # Set the skin and icon.
         self.bbx_con_res.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'check.png')))
         self.bbx_con_res.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(icon_path, 'close.png')))
-        
+        print("A")
         # Setup labels with designated language.
         if parent.language == "ja":
             self.lbl_con_uuid.setText("UUID :")

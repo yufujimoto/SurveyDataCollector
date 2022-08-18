@@ -43,7 +43,10 @@ def getIconSize():
 def getScreenSize():
     print("setupConfigSkin::getScreenSize()")
     
-    screen = subprocess.Popen('xrandr | grep "\*"',shell=True, stdout=subprocess.PIPE).communicate()[0].split()[0].split("x")
+    pop = subprocess.Popen('xrandr | grep "\*"',shell=True, stdout=subprocess.PIPE)
+    pop.wait()
+    
+    screen = pop.communicate()[0].decode("UTF-8").split()[0].split("x")
     return(screen)
 
 def getImagePreviewSize():
