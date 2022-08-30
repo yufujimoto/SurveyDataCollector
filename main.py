@@ -51,8 +51,7 @@ import dialog.cameraSelect as cameraSelectDialog
 import dialog.flickr as flickrDialog
 
 # Import libraries for sound recording. 
-from multiprocessing import Queue as queue
-#import Queue as queue
+import queue
 import sounddevice as sd
 import soundfile as sf
 
@@ -4032,7 +4031,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         if (selected == None or len(selected) == 0): error.ErrorMessageTreeItemNotSelected(language=self._language); return(None)
         
         try:
-            print(1)
             # Initialyze the variables.
             sop_object = None
             item_path = None
@@ -4092,13 +4090,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Define the temporal path for the tethered shooting.
             tmp_path = os.path.join(tethered_path, pht_uuid)
-            print(2)
+            
             # Take a imge by using imageProcessing library.
             camera.takePhoto(tmp_path)
-            print(3)
+            
             # Check the result of the tethered image.
             self.dialogTetheredShooting = checkTetheredImageDialog.CheckImageDialog(parent=self, path=tethered_path)
-            print(4)
+            
             if self.dialogTetheredShooting.exec_():
                 # Get the current date and time.
                 now = datetime.datetime.utcnow().isoformat()
@@ -4184,7 +4182,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 
             # Remove tethered path from the temporal directory.
             shutil.rmtree(tethered_path)
-            print(5)
+            
             # Refresh the file list.
             if sop_object.__class__.__name__ == "Consolidation":
                 self._current_consolidation = sop_object

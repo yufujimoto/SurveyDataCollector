@@ -389,35 +389,42 @@ def executeSql(dbfile, sql):
 def getFilesWithExtensionList(dir_search, ext_list_search, result=None):
     print("general::getFilesWithExtensionList(dir_search, ext_list_search, result=None)")
     
-    if result == None:
-        result = list()
-    
-    for ext_search in ext_list_search:
-        if os.path.exists(dir_search):
-            # Get files from the given directory.
-            filenames = os.listdir(dir_search)
-            
-            for filename in filenames:
-                # Get the full path of the file.
-                full_path = os.path.join(dir_search, filename)
+    try:
+        if result == None:
+            result = list()
+        
+        for ext_search in ext_list_search:
+            if os.path.exists(dir_search):
+                # Get files from the given directory.
+                filenames = os.listdir(dir_search)
                 
-                if not os.path.isdir(full_path):
-                    # Split file path into file name and file path.
-                    basename, extension = os.path.splitext(filename)
+                for filename in filenames:
+                    # Get the full path of the file.
+                    full_path = os.path.join(dir_search, filename)
                     
-                    # Check the file extension.
-                    if extension.lower() == ext_search.lower():
-                        result.append(filename)
-                else:
-                    # Search files recursively if the full path is directory.
-                    next_search_ext = list()
-                    next_search_ext.append(ext_search)
-                    
-                    getFilesWithExtensionList(full_path, next_search_ext, result)
-        else:
-            print("No such path: " + str(dir_search))
-            return(None)
-    return(result)
+                    if not os.path.isdir(full_path):
+                        # Split file path into file name and file path.
+                        basename, extension = os.path.splitext(filename)
+                        
+                        # Check the file extension.
+                        if extension.lower() == ext_search.lower():
+                            result.append(filename)
+                    else:
+                        # Search files recursively if the full path is directory.
+                        next_search_ext = list()
+                        next_search_ext.append(ext_search)
+                        
+                        getFilesWithExtensionList(full_path, next_search_ext, result)
+            else:
+                print("No such path: " + str(dir_search))
+                return(None)
+        return(result)
+    except Exception as e:
+        print("Error occured in general::getFilesWithExtensionList")
+        print(str(e))
+        
+        # Return Nothing..
+        return(None)
 
 def createTables(dbfile):
     print("general::createTables(dbfile)")

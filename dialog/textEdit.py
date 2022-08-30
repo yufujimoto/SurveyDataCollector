@@ -19,7 +19,7 @@ import modules.imageProcessing as imageProcessing
 import dialog.textEditDialog as textEditDialog
 
 # Import libraries for sound recording. 
-import Queue as queue
+import queue
 import sounddevice as sd
 import soundfile as sf
 import numpy as np

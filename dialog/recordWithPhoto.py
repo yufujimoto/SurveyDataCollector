@@ -22,8 +22,7 @@ import modules.setupConfigSkin as skin
 import dialog.recordWithPhotoDialog as recordWithPhotoDialog
 
 # Import libraries for sound recording. 
-#import Queue as queue
-from multiprocessing import Queue as queue
+import queue
 import sounddevice as sd
 import soundfile as sf
 import numpy as np
@@ -281,12 +280,12 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             snd_lst = general.getFilesWithExtensionList(self.path_snd, self._sound_extensions)
             
             # Add each image file name to the list box.
-            if snd_lst > 0:
+            if len(snd_lst) > 0:
                 for snd_fl in snd_lst:
                     snd_item = QListWidgetItem(snd_fl)
                     self.lst_snd_fls.addItem(snd_item)
         except Exception as e:
-            print("Error in RecordWithImage::stopping(self)")
+            print("Error in RecordWithImage::getSoundFiles")
             print(str(e))
     
     def getImageFiles(self):
@@ -297,7 +296,7 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
             img_lst_main = general.getFilesWithExtensionList(self.path_img, self._image_extensions)
             
             # Add each image file name to the list box.
-            if img_lst_main > 0:
+            if len(img_lst_main) > 0:
                 for img_main in img_lst_main:
                     # Check the image file can be displayed directry.
                     img_base, img_ext = os.path.splitext(img_main)
