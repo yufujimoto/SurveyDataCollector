@@ -5,6 +5,7 @@
 import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, gc, json
 import xml.etree.cElementTree as ET
 import geodaisy.converters as convert
+import gphoto2 as gp
 
 from os.path import expanduser
 
@@ -47,6 +48,8 @@ import dialog.material as materialDialog
 import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
 import dialog.imageInformation as imageInformationDialog
+#import dialog.textEdit as textEditDialog
+import dialog.textEditWithPhoto as textEditWithPhoto
 import dialog.cameraSelect as cameraSelectDialog
 import dialog.flickr as flickrDialog
 
@@ -106,6 +109,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     @property
     def current_camera(self): return self._current_camera
     @property
+    def gp_camera(self): return self._gp_camera
+    @property
+    def gp_context(self): return self._gp_context
+    @property
     def awb_algo(self): return self._awb_algo
     @property
     def psp_algo(self): return self._psp_algo
@@ -164,6 +171,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def current_file(self, value): self._current_file = value
     @current_camera.setter
     def current_camera(self, value): self._current_camera = value
+    @gp_camera.setter
+    def gp_camera(self, value): self._gp_camera = value
+    @gp_context.setter
+    def gp_context(self, value): self._gp_context = value
     @awb_algo.setter
     def awb_algo(self, value): self._awb_algo = value
     @psp_algo.setter
@@ -221,6 +232,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 general.initAll(self)
         
         # Detect the camera automatically.
+        self._gp_context = gp.Context()
+        self._gp_camera = gp.Camera()
         self.detectCamera()
         
         # Initialyze the map viewer
@@ -2665,6 +2678,134 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         return(None)
     
     # ==========================
+    # Text processing tools
+    # ==========================
+    def textEditWithPhoto(self):
+        print("main::textEditWithPhoto(self)")
+        
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+            
+            # Exit if the tree object is not selected.
+            selected = self.tre_prj_item.selectedItems()
+            if (selected == None or len(selected) == 0): error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            
+            # Exit if current object is not set.
+            if self.tab_target.currentIndex() == 0:
+                # Exit if the current consolidation is not selected.
+                if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+            elif self.tab_target.currentIndex()==1:
+                # Exit if the current consolidation is not selected.
+                if self._current_consolidation == None: error.ErrorMessageCurrentConsolidation(language=self._language); return(None)
+                
+                # Exit if the current consolidation is not selected.
+                if self._current_material == None: error.ErrorMessageCurrentMaterial(language=self._language); return(None)
+            
+            sop_object = None
+            
+            # Initialyze the variables.
+            con_uuid = None
+            mat_uuid = None
+            item_path = None
+            
+            # Get the current object from the selected tab index.
+            if self.tab_target.currentIndex() == 0:
+                # Get the current consolidaiton uuid.
+                con_uuid = self.tbx_con_uuid.text()
+                
+                # Instantiate the consolidation.
+                sop_object = self._current_consolidation
+                
+                # Get the item path of the selected consolidaiton.
+                item_path = os.path.join(self._consolidation_directory, sop_object.uuid)
+            elif self.tab_target.currentIndex() == 1:
+                # Get the current material uuid.
+                mat_uuid = self.tbx_mat_uuid.text()
+                
+                # Instantiate the material.
+                sop_object = self._current_material
+                
+                # Instantiate the consolidation.
+                con_uuid = sop_object.consolidation
+                con_path = os.path.join(self._consolidation_directory, sop_object.consolidation)
+                item_path = os.path.join(os.path.join(con_path, "Materials"), sop_object.uuid) 
+            else:
+                return(None)
+            
+            # Exit if none of objecs are instantiated.
+            if sop_object == None: return(None)
+            
+            if sop_object.texts == None: sop_object.texts = list()
+                        
+            # Define the path for saving images.
+            txt_path = os.path.join(item_path, "Texts")
+            img_path = os.path.join(os.path.join(item_path, "Images"),"Main")
+        
+            # Check the result of the tethered image.
+            self.dialogJotting = textEditWithPhoto.jottingWithImage(parent=self, img_path=img_path, txt_path=txt_path)
+            isAccepted = self.dialogJotting.exec_()
+            # 
+            # if isAccepted == 1:
+            #     # Get the current date and time from accepted timing.
+            #     now = datetime.datetime.utcnow().isoformat()    
+            #     
+            #     # Define the output directory.
+            #     snd_lst_main = general.getFilesWithExtensionList(recording_path, self._sound_extensions)
+            #     
+            #     # Move to proper directory.
+            #     if len(snd_lst_main) > 0:
+            #         # Get the resultants recursively.
+            #         for i in range(0, len(snd_lst_main)):
+            #             # Get the temporal file path and the destination path for putting.
+            #             snd_orig = os.path.join(recording_path, snd_lst_main[i])
+            #             snd_dest = os.path.join(snd_path, snd_lst_main[i])
+            #             
+            #             # Move to "Main" in the consolidation.
+            #             shutil.move(snd_orig, snd_dest)
+            #             
+            #             # Instantiate the File class.
+            #             snd_file = features.File(is_new=True, uuid=None, dbfile=None)
+            #             snd_file.material = mat_uuid
+            #             snd_file.consolidation = con_uuid
+            #             snd_file.filename = general.getRelativePath(snd_dest, "Consolidation")
+            #             snd_file.created_date = now
+            #             snd_file.modified_date = now
+            #             snd_file.file_type = "audio"
+            #             snd_file.alias = "Recording"
+            #             snd_file.status = "Original"
+            #             snd_file.lock = True
+            #             snd_file.public = False
+            #             snd_file.source = "Nothing"
+            #             snd_file.operation = "Audio Recording"
+            #             snd_file.operating_application = "Survey Data Collector"
+            #             snd_file.caption = "Original audio"
+            #             snd_file.description = ""
+            #             
+            #             # Insert the new entry into the self._database.
+            #             snd_file.dbInsert(self._database)
+            #             
+            #             # Add the image to the boject.
+            #             sop_object.sounds.insert(0, snd_file)
+            #     else:
+            #         print("There are no resultants.")
+            #         return(None)
+            #     
+            #     # Remove tethered path from the temporal directory.
+            #     shutil.rmtree(recording_path)
+            #     
+            #     # Refresh the file list.
+            #     self.refreshFileList(sop_object)
+            # else:
+                # print("The result is not accepted.")
+                # return(None)
+        except Exception as e:
+            print("Error occured in main::textEditWithPhoto(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    # ==========================
     # Map processing tools
     # ==========================
     def checkLeafletLibrary(self, item_path):
@@ -3805,21 +3946,25 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Refresh camera parameters.
             self.refreshCameraParameters()
             
-            # Detect the connected camera.
-            camera_list = camera.detectCamera()
-            
-            # Exit if no camera connect to PC.
-            if not len(camera_list) > 0: return(None)
-            
             # Display the camera select dialog.
-            self.dialog_camera = cameraSelectDialog.SelectCameraDialog(self, camera_list)
-            
-            if self.dialog_camera.exec_() == True and self.dialog_camera.selected != None:
-                # Get a selected camera from the list.
-                selected_camera = camera_list[self.dialog_camera.selected]
-                
+            self.dialog_camera = cameraSelectDialog.SelectCameraDialog(self)
+            if self.dialog_camera.exec_() == True:
                 # Set the selected camera as the current
-                self._current_camera = camera.Camera(selected_camera["name"], selected_camera["port"])
+                # self._current_camera = self.dialog_camera.camera
+                cam_name = self.dialog_camera.camera_name
+                cam_port = self.dialog_camera.camera_port
+                
+                print(cam_name, cam_port)
+                
+                # search ports for camera port name
+                port_info_list = gp.PortInfoList()
+                port_info_list.load()
+                idx = port_info_list.lookup_path(cam_port)
+                
+                self._gp_camera.set_port_info(port_info_list[idx])
+                self._gp_camera.init(self._gp_context)
+                
+                self._current_camera = camera.Camera(cam_name, cam_port, self._gp_context, self._gp_camera)
                 
                 # Set the connected camera to the header.
                 self.lbl_cam_detected.setStyleSheet("color: rgb(0, 0, 0);")
@@ -3859,13 +4004,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Add the first position for the combobox as the current value.
-            cbx.addItem(param["current"])
+            current = param.get_value()
+            cbx.addItem(current)
             
             # Add the options into the combobox.
-            
-            for opt in param["choice"]:
-                opt_txt = list(opt.keys())[0]
-                opt_val = list(opt.values())[0]
+            for n in range(gp.check_result(gp.gp_widget_count_choices(param))):
+                choice = gp.check_result(gp.gp_widget_get_choice(param, n))
+                opt_txt = str(n) + ":" + choice
                 
                 cbx.addItem(opt_txt)
         except Exception as e:
@@ -4090,9 +4235,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             
             # Define the temporal path for the tethered shooting.
             tmp_path = os.path.join(tethered_path, pht_uuid)
+            img_quality = self._current_camera.imagequality.get_value()
             
             # Take a imge by using imageProcessing library.
-            camera.takePhoto(tmp_path)
+            # camera.takePhoto(tmp_path)
+            self._current_camera._do_capture(self._gp_context,self._gp_camera, tmp_path)
             
             # Check the result of the tethered image.
             self.dialogTetheredShooting = checkTetheredImageDialog.CheckImageDialog(parent=self, path=tethered_path)

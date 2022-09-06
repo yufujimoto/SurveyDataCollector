@@ -406,10 +406,10 @@ class Consolidation(SimpleObject):
             
             # Exit if there are no entries.
             if sop_files == None or len(sop_files) == 0: return(None)
-            print("1-5")
+            
             # Create sop image ojects from the DB table.
             for sop_file in sop_files:
-                print("1-6")
+                
                 sop_file_obj = File(is_new=False, uuid=sop_file[0], dbfile=dbfile)
                 print((sop_file[0]))
                 print(sop_file_obj)

@@ -15,7 +15,18 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QListWidget" name="lst_camera"/>
+    <widget class="QTreeWidget" name="tre_cam">
+     <column>
+      <property name="text">
+       <string>port</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>name</string>
+      </property>
+     </column>
+    </widget>
    </item>
    <item row="1" column="0">
     <widget class="QDialogButtonBox" name="buttonBox">

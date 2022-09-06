@@ -73,6 +73,7 @@ def activate(ui_main):
     ui_main.btn_con_update.clicked.connect(ui_main.updateConsolidation)   # Activate the updating the selected consolidation button.
     ui_main.btn_con_del.clicked.connect(ui_main.deleteConsolidation)      # Activate the deleting the selected consolidation button.
     ui_main.btn_con_take.clicked.connect(ui_main.tetheredShooting)        # Activate the taking a image of the consolidation button.
+    ui_main.btn_con_txt.clicked.connect(ui_main.textEditWithPhoto)        # Activate the jotting a memo of the material button.
     ui_main.btn_con_imp.clicked.connect(ui_main.importExternalData)       # Activate the importing files of the consolidation button.
     ui_main.btn_con_rec.clicked.connect(ui_main.recordWithPhoto)          # Activate the opening recording dialog button.
     
@@ -81,6 +82,7 @@ def activate(ui_main):
     ui_main.btn_mat_update.clicked.connect(ui_main.updateMaterial)    # Activate the updating the selected material button.
     ui_main.btn_mat_del.clicked.connect(ui_main.deleteMaterial)       # Activate the consolidation delete button.
     ui_main.btn_mat_take.clicked.connect(ui_main.tetheredShooting)    # Activate the taking a image of the material button.
+    ui_main.btn_mat_txt.clicked.connect(ui_main.textEditWithPhoto)    # Activate the jotting a memo of the material button.
     ui_main.btn_mat_imp.clicked.connect(ui_main.importExternalData)   # Activate the importing files of the consolidation button.
     ui_main.btn_mat_rec.clicked.connect(ui_main.recordWithPhoto)      # Activate the opening recording dialog button.
     

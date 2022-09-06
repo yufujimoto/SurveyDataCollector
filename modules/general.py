@@ -122,7 +122,6 @@ def initConfig(parent):
         tree.write(parent.config_file)
     except Exception as e:
         print("Error occured in general::initConfig(self)")
-        print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
 
@@ -240,6 +239,8 @@ def pyDateToQDate(value):
         print(str(e) + ":" + str(value))
 
 def askNewProject(parent):
+    print("general::askNewProject(parent)")
+    
     try:
         if parent.language == "ja":
             title = "データベース・ファイルが見つかりません。"
@@ -271,39 +272,50 @@ def askNewProject(parent):
         else:
             raise
     except Exception as e:
+        print("Error occured in main::askNewProject(self)")
         error.ErrorMessageProjectNotCreated(details=str(e), language=parent.language)
         return(None)
 
 def askDeleteConsolidation(parent):
-    con_uuid = parent.current_consolidation.uuid
+    print("general::askDeleteConsolidation(parent)")
     
-    if parent.language == "ja":
-        title = LAB_CON_JA + u"の削除"
-        message = LAB_CON_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
-    elif parent.language == "en":
-        title = u"Delete the " + LAB_CON_EN + "."
-        message = u"Every kinds of datasets included in the " + LAB_CON_EN + u" will be removed. Would you like to delete the " + LAB_CON_EN + u" ?"
+    try:
+        con_uuid = parent.current_consolidation.uuid
+        
+        if parent.language == "ja":
+            title = LAB_CON_JA + u"の削除"
+            message = LAB_CON_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
+        elif parent.language == "en":
+            title = u"Delete the " + LAB_CON_EN + "."
+            message = u"Every kinds of datasets included in the " + LAB_CON_EN + u" will be removed. Would you like to delete the " + LAB_CON_EN + u" ?"
+        
+        reply = QMessageBox.question(
+            parent, 
+            title, 
+            message, 
+            QMessageBox.Yes, 
+            QMessageBox.No
+        )
+        
+        return(reply)
+    except Exception as e:
+        print("Error occured in general::askDeleteConsolidation(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
     
-    reply = QMessageBox.question(
-        parent, 
-        title, 
-        message, 
-        QMessageBox.Yes, 
-        QMessageBox.No
-    )
-    
-    return(reply)
-
 def askNewMaterial(parent):
+    print("general::askNewMaterial(parent)")
+    
     try:
         con_uuid = parent.current_consolidation.uuid
         
         if parent.language == "ja":
             title = LAB_MAT_JA + u"を内包する" + LAB_CON_JA + u"が指定されていません。"
-            message = u"現在の" + LAB_CON_JA + u"（" + con_uuid.decode("utf-8") + u"）に新規の" + LAB_MAT_JA + u"を追加しますか？"
+            message = u"現在の" + LAB_CON_JA + u"（" + con_uuid + u"）に新規の" + LAB_MAT_JA + u"を追加しますか？"
         elif parent.language == "en":
             title = LAB_CON_EN + u" including the " + LAB_MAT_EN + u" is not selected."
-            message = u"Would you like to add a " + LAB_MAT_JA + u" to the current " + LAB_CON_EN + u" （" + con_uuid.decode("utf-8") + u"?"
+            message = u"Would you like to add a " + LAB_MAT_JA + u" to the current " + LAB_CON_EN + u" （" + con_uuid + u"?)"
             
         reply = QMessageBox.question(
             parent, 
@@ -315,45 +327,64 @@ def askNewMaterial(parent):
         
         return(reply)
     except Exception as e:
+        print("Error occured in general::askNewMaterial(self)")
         print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
 
 def askDeleteMaterial(parent):
-    mat_uuid = parent.current_material.uuid
+    print("general::askDeleteMaterial(parent)")
     
-    if parent.language == "ja":
-        title = LAB_MAT_JA + u"の削除"
-        message = LAB_MAT_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
-    elif parent.language == "en":
-        title = u"Delete the " + LAB_MAT_EN + "."
-        message = u"Every kinds of datasets included in the " + LAB_MAT_EN + u" will be removed. Would you like to delete the " + LAB_MAT_JA + u" ?"
+    try:
+        mat_uuid = parent.current_material.uuid
         
-    reply = QMessageBox.question(
-        parent, 
-        title, 
-        message, 
-        QMessageBox.Yes, 
-        QMessageBox.No
-    )
+        if parent.language == "ja":
+            title = LAB_MAT_JA + u"の削除"
+            message = LAB_MAT_JA + u"が内包する全てのデータが削除されます。本当に削除しますか？"
+        elif parent.language == "en":
+            title = u"Delete the " + LAB_MAT_EN + "."
+            message = u"Every kinds of datasets included in the " + LAB_MAT_EN + u" will be removed. Would you like to delete the " + LAB_MAT_JA + u" ?"
+            
+        reply = QMessageBox.question(
+            parent, 
+            title, 
+            message, 
+            QMessageBox.Yes, 
+            QMessageBox.No
+        )
+        
+        return(reply)
+    except Exception as e:
+        print("Error occured in general::askDeleteMaterial(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
     
-    return(reply)
-
 def alert(title, message, icon, info, detailed):
-    # Create a message box object.
-    msg = QMessageBox()
+    print("general::alert(parent)")
     
-    # Set parameters for the message box.
-    msg.setIcon(icon)
-    msg.setWindowTitle(title)
-    msg.setText(message)
-    
-    # Generate additional information if exists.
-    if not info == None:
-        msg.setInformativeText(info)
-    if not detailed == None:
-        msg.setDetailedText(detailed)
-    
-    # Show the message box.    
-    msg.exec_()
+    try:
+        # Create a message box object.
+        msg = QMessageBox()
+        
+        # Set parameters for the message box.
+        msg.setIcon(icon)
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        
+        # Generate additional information if exists.
+        if not info == None:
+            msg.setInformativeText(info)
+        if not detailed == None:
+            msg.setDetailedText(detailed)
+        
+        # Show the message box.    
+        msg.exec_()
+    except Exception as e:
+        print("Error occured in general::alert(self)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+        return(None)
 
 def executeSql(dbfile, sql):
     print("general::executeSql(dbfile, sql)")
@@ -379,6 +410,7 @@ def executeSql(dbfile, sql):
     except Error as e:
         print("Cannot execute the SQL: general::executeSql(dbfile, sql)")
         print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
         
         # Exit with 0.
         return(None)
@@ -444,6 +476,7 @@ def createTables(dbfile):
     except Exception as e:
         print("Error occured in general::createTables(dbfile)")
         print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
         
         # Return Nothing..
         return(None)
@@ -467,6 +500,7 @@ def createTableConsolidation(dbfile):
     except Exception as e:
         print("Error occured in general::createTableConsolidation(dbfile)")
         print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
         
         # Return Nothing
         return(None)
@@ -497,6 +531,7 @@ def createTableMaterial(dbfile):
     except Exception as e:
         print("Error occured in general::createTableMaterial(dbfile)")
         print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
         
         # Retrun nothing.
         return(None)

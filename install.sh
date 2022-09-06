@@ -81,6 +81,12 @@ apt install libopencv-dev
 apt install python3-opencv
 pip install opencv-python-headless
 
+# Install OCR tools.
+apt install tesseract-ocr
+apt install tesseract-ocr-jpn
+apt install tesseract-ocr-jpn-vert
+pip install pytesseract
+
 # Install tethering tools.
 apt install gphoto2
 apt install libgphoto2-dev

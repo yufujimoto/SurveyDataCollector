@@ -419,6 +419,9 @@ def setMainWindowIcons(parent, icon_path):
         parent.btn_con_imp.setIcon(getIconFromPath(os.path.join(icon_path, 'file_download.png')))
         parent.btn_con_imp.setIconSize(qicon_size)
         
+        parent.btn_con_txt.setIcon(getIconFromPath(os.path.join(icon_path, 'file.png')))
+        parent.btn_con_txt.setIconSize(qicon_size)
+        
         parent.btn_con_rec.setIcon(getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
         parent.btn_con_rec.setIconSize(qicon_size)
         
@@ -436,6 +439,9 @@ def setMainWindowIcons(parent, icon_path):
         
         parent.btn_mat_imp.setIcon(getIconFromPath(os.path.join(icon_path, 'file_download.png')))
         parent.btn_mat_imp.setIconSize(qicon_size)
+        
+        parent.btn_mat_txt.setIcon(getIconFromPath(os.path.join(icon_path, 'file.png')))
+        parent.btn_mat_txt.setIconSize(qicon_size)
         
         parent.btn_mat_rec.setIcon(getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
         parent.btn_mat_rec.setIconSize(qicon_size)

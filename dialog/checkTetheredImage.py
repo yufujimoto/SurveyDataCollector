@@ -195,7 +195,7 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
                 # Get file information by using "dcraw" library.
                 tags = imageProcessing.getMetaInfo(img_file_path)
                 
-                for tag in sorted(tags.iterkeys()):
+                for tag in sorted(tags.keys()):
                         self.tre_img_info.addTopLevelItem(QTreeWidgetItem([str(tag), str(tags[tag])]))
                 
                 # Refresh the tree view.
