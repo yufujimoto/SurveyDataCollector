@@ -149,7 +149,7 @@ class Camera(object):
             ext = pathlib.Path(camera_file_path.name).suffix
             
             # Save the image file
-            camera_file.save(save_path + "." + ext)
+            camera_file.save(save_path + ext)
             
             # Delete the temporal file.
             gp_camera.file_delete(camera_file_path.folder, camera_file_path.name)

@@ -448,8 +448,7 @@ class Consolidation(SimpleObject):
             print(err_info)
             print((str(e)))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
-    
-        
+       
 class Material(SimpleObject):
     @property
     def consolidation(self): return self._consolidation

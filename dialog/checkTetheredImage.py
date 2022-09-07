@@ -157,17 +157,31 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
             img_lst_main = general.getFilesWithExtensionList(self.tethered, self._image_extensions)
             img_lst_raw = general.getFilesWithExtensionList(self.tethered, self._raw_image_extensions)
             
+            # Count image files.
+            img_cnt = 0
+            
             # Add each image file name to the list box.
             if len(img_lst_main) > 0:
                 for img_main in img_lst_main:
                     img_item = QListWidgetItem(img_main)
                     self.lst_fls.addItem(img_item)
                     
+                    # Increment the count of the image file.
+                    img_cnt += 1
+                    
             # Add each RAW file name to the list box.
             if len(img_lst_raw) > 0:
                 for img_raw in img_lst_raw:
                     img_item = QListWidgetItem(img_raw)
                     self.lst_fls.addItem(img_raw)
+                    
+                    # Increment the count of the image file.
+                    img_cnt += 1
+            
+            # Set the top item as the default.
+            if img_cnt > 0: self.lst_fls.setCurrentRow(0)
+            
+            # Select the first file.
         except Exception as e:
             print("Error occured in CheckImageDialog::getImageFiles(self)")
             print(str(e))

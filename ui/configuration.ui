@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>761</width>
+    <width>808</width>
     <height>542</height>
    </rect>
   </property>
@@ -32,7 +32,7 @@
       <item>
        <widget class="QTabWidget" name="tab_conf_main">
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_general">
          <attribute name="title">
@@ -482,7 +482,7 @@
            <widget class="QFrame" name="frm_cam_list">
             <property name="minimumSize">
              <size>
-              <width>300</width>
+              <width>350</width>
               <height>0</height>
              </size>
             </property>
@@ -500,7 +500,18 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
-              <widget class="QListWidget" name="lst_cam"/>
+              <widget class="QTreeWidget" name="tre_cam">
+               <column>
+                <property name="text">
+                 <string>port</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>name</string>
+                </property>
+               </column>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_cam_conn">
@@ -522,6 +533,33 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_8">
              <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QLabel" name="lbl_cur_cam">
+                 <property name="maximumSize">
+                  <size>
+                   <width>120</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Current Camera:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="lbl_cur_cam_nam">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
               <layout class="QHBoxLayout" name="hlay_cam_size">
                <item>
                 <widget class="QLabel" name="lbl_cam_size">
@@ -540,7 +578,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_size"/>
+                <widget class="QComboBox" name="cbx_cam_size">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -563,7 +608,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_iso"/>
+                <widget class="QComboBox" name="cbx_cam_iso">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -586,7 +638,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_wht"/>
+                <widget class="QComboBox" name="cbx_cam_wht">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -609,7 +668,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_exp"/>
+                <widget class="QComboBox" name="cbx_cam_exp">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -632,7 +698,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_fval"/>
+                <widget class="QComboBox" name="cbx_cam_fval">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -655,7 +728,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_qoi"/>
+                <widget class="QComboBox" name="cbx_cam_qoi">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -678,7 +758,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_fmod"/>
+                <widget class="QComboBox" name="cbx_cam_fmod">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -701,7 +788,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_epg"/>
+                <widget class="QComboBox" name="cbx_cam_epg">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -724,7 +818,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_cpt"/>
+                <widget class="QComboBox" name="cbx_cam_cpt">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -747,7 +848,14 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="cbx_cam_met"/>
+                <widget class="QComboBox" name="cbx_cam_met">
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>

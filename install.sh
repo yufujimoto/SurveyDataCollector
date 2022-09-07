@@ -85,6 +85,11 @@ pip install opencv-python-headless
 apt install tesseract-ocr
 apt install tesseract-ocr-jpn
 apt install tesseract-ocr-jpn-vert
+apt install libtesseract-dev
+apt install libleptonica-dev
+apt install tesseract-ocr-script-jpan
+apt install tesseract-ocr-script-jpan-vert
+
 pip install pytesseract
 
 # Install tethering tools.
@@ -103,24 +108,6 @@ pip install flickrapi
 # Install SqLite & Browser.
 apt install sqlite
 apt install sqlitebrowser
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

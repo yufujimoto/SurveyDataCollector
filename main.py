@@ -254,7 +254,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         
         try:
             # Initialize the configuration dialog.
-            self.dialog_Config = configurationDialog.configurationDialog(self)
+            self.dialog_Config = configurationDialog.configurationDialog(parent=self)
             
             # Open the configuration dialog.
             if self.dialog_Config.exec_() == True:
@@ -2739,66 +2739,21 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if sop_object.texts == None: sop_object.texts = list()
                         
             # Define the path for saving images.
-            txt_path = os.path.join(item_path, "Texts")
+            txt_path = os.path.join(item_path, "Texts"); general.createPathIfNotExists(txt_path)
             img_path = os.path.join(os.path.join(item_path, "Images"),"Main")
         
             # Check the result of the tethered image.
-            self.dialogJotting = textEditWithPhoto.jottingWithImage(parent=self, img_path=img_path, txt_path=txt_path)
+            self.dialogJotting = textEditWithPhoto.jottingWithImage(parent=self,
+                                                                    img_path=img_path,
+                                                                    txt_path=txt_path,
+                                                                    sop=sop_object,
+                                                                    con_uuid=con_uuid,
+                                                                    mat_uuid=mat_uuid)
             isAccepted = self.dialogJotting.exec_()
-            # 
-            # if isAccepted == 1:
-            #     # Get the current date and time from accepted timing.
-            #     now = datetime.datetime.utcnow().isoformat()    
-            #     
-            #     # Define the output directory.
-            #     snd_lst_main = general.getFilesWithExtensionList(recording_path, self._sound_extensions)
-            #     
-            #     # Move to proper directory.
-            #     if len(snd_lst_main) > 0:
-            #         # Get the resultants recursively.
-            #         for i in range(0, len(snd_lst_main)):
-            #             # Get the temporal file path and the destination path for putting.
-            #             snd_orig = os.path.join(recording_path, snd_lst_main[i])
-            #             snd_dest = os.path.join(snd_path, snd_lst_main[i])
-            #             
-            #             # Move to "Main" in the consolidation.
-            #             shutil.move(snd_orig, snd_dest)
-            #             
-            #             # Instantiate the File class.
-            #             snd_file = features.File(is_new=True, uuid=None, dbfile=None)
-            #             snd_file.material = mat_uuid
-            #             snd_file.consolidation = con_uuid
-            #             snd_file.filename = general.getRelativePath(snd_dest, "Consolidation")
-            #             snd_file.created_date = now
-            #             snd_file.modified_date = now
-            #             snd_file.file_type = "audio"
-            #             snd_file.alias = "Recording"
-            #             snd_file.status = "Original"
-            #             snd_file.lock = True
-            #             snd_file.public = False
-            #             snd_file.source = "Nothing"
-            #             snd_file.operation = "Audio Recording"
-            #             snd_file.operating_application = "Survey Data Collector"
-            #             snd_file.caption = "Original audio"
-            #             snd_file.description = ""
-            #             
-            #             # Insert the new entry into the self._database.
-            #             snd_file.dbInsert(self._database)
-            #             
-            #             # Add the image to the boject.
-            #             sop_object.sounds.insert(0, snd_file)
-            #     else:
-            #         print("There are no resultants.")
-            #         return(None)
-            #     
-            #     # Remove tethered path from the temporal directory.
-            #     shutil.rmtree(recording_path)
-            #     
-            #     # Refresh the file list.
-            #     self.refreshFileList(sop_object)
-            # else:
-                # print("The result is not accepted.")
-                # return(None)
+                
+            # Refresh the file list.
+            self.refreshFileList(sop_object)
+
         except Exception as e:
             print("Error occured in main::textEditWithPhoto(self)")
             print(str(e))
@@ -3913,108 +3868,38 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     
     # ==========================
     # Cemera operation
-    # ==========================
-    def refreshCameraParameters(self):
-        print("main::refreshCameraParameters(self)")
-        
-        try:
-            # Set the message to the header.
-            self.lbl_cam_detected.setStyleSheet("color: rgb(255, 0, 0);")
-            self.lbl_cam_detected.setText("No Camera detected")
-            
-            # Clear comboboxes for camera parameters.
-            self.cbx_cam_size.clear()
-            self.cbx_cam_iso.clear()
-            self.cbx_cam_wht.clear()
-            self.cbx_cam_exp.clear()
-            self.cbx_cam_fval.clear()
-            self.cbx_cam_qoi.clear()
-            self.cbx_cam_fmod.clear()
-            self.cbx_cam_epg.clear()
-            self.cbx_cam_cpt.clear()
-            self.cbx_cam_met.clear()
-        except Exception as e:
-            print("Error occured in main::refreshCameraParameters(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
-    
+    # ==========================    
     def detectCamera(self):
         print("main::detectCamera(self)")
         
         try:
-            # Refresh camera parameters.
-            self.refreshCameraParameters()
-            
             # Display the camera select dialog.
             self.dialog_camera = cameraSelectDialog.SelectCameraDialog(self)
             if self.dialog_camera.exec_() == True:
                 # Set the selected camera as the current
                 # self._current_camera = self.dialog_camera.camera
+                
                 cam_name = self.dialog_camera.camera_name
                 cam_port = self.dialog_camera.camera_port
                 
-                print(cam_name, cam_port)
-                
-                # search ports for camera port name
-                port_info_list = gp.PortInfoList()
-                port_info_list.load()
-                idx = port_info_list.lookup_path(cam_port)
-                
-                self._gp_camera.set_port_info(port_info_list[idx])
-                self._gp_camera.init(self._gp_context)
-                
-                self._current_camera = camera.Camera(cam_name, cam_port, self._gp_context, self._gp_camera)
-                
-                # Set the connected camera to the header.
-                self.lbl_cam_detected.setStyleSheet("color: rgb(0, 0, 0);")
-                self.lbl_cam_detected.setText(self._current_camera.camera_name)
-                
-                # Set parameters to comboboxes.
-                if not self._current_camera.imagesize == None:
-                    self.setCamParamCbx(self.cbx_cam_size, self._current_camera.imagesize)
-                if not self._current_camera.iso == None:
-                    self.setCamParamCbx(self.cbx_cam_iso, self._current_camera.iso)
-                if not self._current_camera.whitebalance == None:
-                    self.setCamParamCbx(self.cbx_cam_wht, self._current_camera.whitebalance)
-                if not self._current_camera.exposuremetermode == None:
-                    self.setCamParamCbx(self.cbx_cam_exp, self._current_camera.exposuremetermode)
-                if not self._current_camera.f_number == None:
-                    self.setCamParamCbx(self.cbx_cam_fval, self._current_camera.f_number)
-                if not self._current_camera.imagequality == None:
-                    self.setCamParamCbx(self.cbx_cam_qoi, self._current_camera.imagequality)
-                if not self._current_camera.focusmode == None:
-                    self.setCamParamCbx(self.cbx_cam_fmod, self._current_camera.focusmode)
-                if not self._current_camera.expprogram == None:
-                    self.setCamParamCbx(self.cbx_cam_epg, self._current_camera.expprogram)
-                if not self._current_camera.capturemode == None:
-                    self.setCamParamCbx(self.cbx_cam_cpt, self._current_camera.capturemode)
-                
-                print("Camera successfully detected.")
+                if not cam_name == None and not cam_port == None:
+                    print(cam_name, cam_port)
+                    
+                    # search ports for camera port name
+                    port_info_list = gp.PortInfoList()
+                    port_info_list.load()
+                    idx = port_info_list.lookup_path(cam_port)
+                    
+                    self._gp_camera.set_port_info(port_info_list[idx])
+                    self._gp_camera.init(self._gp_context)
+                    
+                    self._current_camera = camera.Camera(cam_name, cam_port, self._gp_context, self._gp_camera)
+                    print("Camera successfully detected.")
+                else:
+                    print("Any cameras are not detected... Please check the connection.")
+                    self._current_camera = None
         except Exception as e:
             print("Error occured in main::detectCamera(self)")
-            print(str(e))
-            error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
-            return(None)
-        
-    def setCamParamCbx(self, cbx, param):
-        print("main::setCamParamCbx(self)")
-        # Clear the combobox.
-        cbx.clear()
-        
-        try:
-            # Add the first position for the combobox as the current value.
-            current = param.get_value()
-            cbx.addItem(current)
-            
-            # Add the options into the combobox.
-            for n in range(gp.check_result(gp.gp_widget_count_choices(param))):
-                choice = gp.check_result(gp.gp_widget_get_choice(param, n))
-                opt_txt = str(n) + ":" + choice
-                
-                cbx.addItem(opt_txt)
-        except Exception as e:
-            print("Error occured in main::setCamParamCbx(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)

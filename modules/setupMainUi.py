@@ -114,7 +114,6 @@ def activate(ui_main):
     
     # Activate the extra functions.
     ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation)  # Activate the editing the file informatin button.
-    ui_main.btn_cam_detect.clicked.connect(ui_main.detectCamera)        # Activate detecting a connected camera button.
     
     #========================
     # Media player

@@ -188,7 +188,6 @@ def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
         parent.cbx_cam_epg.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_cam_cpt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_cam_met.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
-        parent.lst_cam.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
     elif skin == "white":
         icon_path = os.path.join(icon_path, "black")

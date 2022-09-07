@@ -8,6 +8,9 @@ import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, 
 from stat import *
 from dateutil.parser import parse
 
+# Import the library for camera operations.
+import gphoto2 as gp
+
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -26,12 +29,16 @@ import dialog.configurationDialog as configurationDialog
 
 class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
     @property
+    def main(self): return self._main
+    @property
     def language(self): return self._language
     @property
     def skin(self): return self._skin
     @property
     def proxy(self): return self._proxy
     
+    @main.setter
+    def main(self, value): self._main = value
     @language.setter
     def language(self, value): self._language = value
     @skin.setter
@@ -47,24 +54,59 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             # Initialize the window.
             self.setWindowTitle(self.tr("Configuration"))
             
-            #self.lst_camera.itemClicked.connect(self._getSelectedNumber)
+            # Get the parent.
+            self._main = parent
             
             # Refresh camera parameters.
             self.refreshCameraParameters()
             
-            # Detect the connected camera.
-            cams = camera.detectCamera()
-            
-            if not cams ==  None:
-                for cam in cams:
-                    item = QListWidgetItem(cam["name"])
-                    self.lst_cam.addItem(item)
-                self.lst_cam.show()
+            if not parent.current_camera == None:
+                # Set the current camera.
+                cam_nam = parent.current_camera.camera_name
+                cam_prt = parent.current_camera.port
                 
-                if len(cams) > 0 :
-                    self.lst_cam.setCurrentRow(0)
-                    self._selected = 0
+                # Set the current camera name.
+                self.lbl_cur_cam_nam.setText(cam_nam + " (" + cam_prt + ")")
+                
+                # Set parameters to comboboxes.
+                if not parent.current_camera.imagesize == None:
+                    self.setCamParamCbx(self.cbx_cam_size, parent.current_camera.imagesize)
+                if not parent.current_camera.iso == None:
+                    self.setCamParamCbx(self.cbx_cam_iso, parent.current_camera.iso)
+                if not parent.current_camera.whitebalance == None:
+                    self.setCamParamCbx(self.cbx_cam_wht, parent.current_camera.whitebalance)
+                if not parent.current_camera.exposuremetermode == None:
+                    self.setCamParamCbx(self.cbx_cam_exp, parent.current_camera.exposuremetermode)
+                if not parent.current_camera.f_number == None:
+                    self.setCamParamCbx(self.cbx_cam_fval, parent.current_camera.f_number)
+                if not parent.current_camera.imagequality == None:
+                    self.setCamParamCbx(self.cbx_cam_qoi, parent.current_camera.imagequality)
+                if not parent.current_camera.focusmode == None:
+                    self.setCamParamCbx(self.cbx_cam_fmod, parent.current_camera.focusmode)
+                if not parent.current_camera.expprogram == None:
+                    self.setCamParamCbx(self.cbx_cam_epg, parent.current_camera.expprogram)
+                if not parent.current_camera.capturemode == None:
+                    self.setCamParamCbx(self.cbx_cam_cpt, parent.current_camera.capturemode)
+            else:
+                self.lbl_cur_cam_nam.setText("Currently, no camera is connected...")
             
+            # Detect the cameras automatically and listing up them.
+            camera_list = list(gp.Camera.autodetect())
+            if not camera_list:
+                print('No camera detected')
+                
+            else:
+                camera_list.sort(key=lambda x: x[0])
+                
+                # Add each camera to the camera list.
+                for index, (name, addr) in enumerate(camera_list):
+                    tre_cam_item_ = QTreeWidgetItem(self.tre_cam)
+                    tre_cam_item_.setText(0, addr)
+                    tre_cam_item_.setText(1, name)
+                
+                # Resize the header width with contents.
+                self.tre_cam.resizeColumnToContents(0)
+                self.tre_cam.resizeColumnToContents(1)
             
             # Set the dialog button size.
             dlg_btn_size = QSize(125, 30)
@@ -111,6 +153,7 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             
             self.rbtn_proxy.clicked.connect(self.proxySettingsTrue)
             self.rbtn_no_proxy.clicked.connect(self.proxySettingsFalse)
+            self.btn_cam_conn.clicked.connect(self.detectCamera)
             
             if parent.proxy == "No Proxy":
                 self.proxySettingsFalse()
@@ -164,7 +207,6 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
-    
     def proxySettingsTrue(self):
         print("configuration::toggleProxySettingsTrue(self)")
         
@@ -192,4 +234,95 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             print("Error occured in configuration::setSkin(self, icon_path)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    def detectCamera(self):
+        print("configuration::detectCamera(self)")
+        
+        try:
+            parent = self._main
+            
+            # Stop the gp_context and gp_camera.
+            gp.gp_camera_exit(parent.gp_camera, parent.gp_context)
+            
+            # Restart the gp_context and gp_camera.
+            parent.gp_context = gp.Context()
+            parent.gp_camera = gp.Camera()
+            
+            # Get address and name of camera by selection.
+            selected = self.tre_cam.currentItem()
+            
+            if not selected == None:
+                cam_port, cam_name = [selected.text(0), selected.text(1)]
+                
+                print(cam_name, cam_port)
+                
+                # search ports for camera port name
+                port_info_list = gp.PortInfoList()
+                port_info_list.load()
+                idx = port_info_list.lookup_path(cam_port)
+                
+                parent.gp_camera.set_port_info(port_info_list[idx])
+                parent.gp_camera.init(parent.gp_context)
+                
+                parent.current_camera = camera.Camera(cam_name, cam_port, parent.gp_context, parent.gp_camera)
+                
+                # Set parameters to comboboxes.
+                if not parent.current_camera.imagesize == None:
+                    self.setCamParamCbx(self.cbx_cam_size, parent.current_camera.imagesize)
+                if not parent.current_camera.iso == None:
+                    self.setCamParamCbx(self.cbx_cam_iso, parent.current_camera.iso)
+                if not parent.current_camera.whitebalance == None:
+                    self.setCamParamCbx(self.cbx_cam_wht, parent.current_camera.whitebalance)
+                if not parent.current_camera.exposuremetermode == None:
+                    self.setCamParamCbx(self.cbx_cam_exp, parent.current_camera.exposuremetermode)
+                if not parent.current_camera.f_number == None:
+                    self.setCamParamCbx(self.cbx_cam_fval, parent.current_camera.f_number)
+                if not parent.current_camera.imagequality == None:
+                    self.setCamParamCbx(self.cbx_cam_qoi, parent.current_camera.imagequality)
+                if not parent.current_camera.focusmode == None:
+                    self.setCamParamCbx(self.cbx_cam_fmod, parent.current_camera.focusmode)
+                if not parent.current_camera.expprogram == None:
+                    self.setCamParamCbx(self.cbx_cam_epg, parent.current_camera.expprogram)
+                if not parent.current_camera.capturemode == None:
+                    self.setCamParamCbx(self.cbx_cam_cpt, parent.current_camera.capturemode)
+                
+                print("Camera successfully detected.")
+            
+            else:
+                error_title = "No camera is selected."
+                error_msg = "No camera is selected."
+                error_info = "Please select valid camera from the list."
+                error_icon = QMessageBox.Critical
+                error_detailed = "Please select valid camera from the list."
+                
+                # Handle error.
+                general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                    
+        except Exception as e:
+            print("Error occured in main::detectCamera(self)")
+            print(str(e))
+            error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
+            return(None)
+    
+    def setCamParamCbx(self, cbx, param):
+        print("configuration::setCamParamCbx(self)")
+        # Clear the combobox.
+        cbx.clear()
+        
+        try:
+            # Add the first position for the combobox as the current value.
+            current = param.get_value()
+            cbx.addItem(current)
+            
+            # Add the options into the combobox.
+            for n in range(gp.check_result(gp.gp_widget_count_choices(param))):
+                choice = gp.check_result(gp.gp_widget_get_choice(param, n))
+                opt_txt = str(n) + ":" + choice
+                
+                cbx.addItem(opt_txt)
+        except Exception as e:
+            print("Error occured in main::setCamParamCbx(self)")
+            print(str(e))
+            error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)

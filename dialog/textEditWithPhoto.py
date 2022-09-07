@@ -4,6 +4,9 @@
 # Import general libraries.
 import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime
 
+# import pytesseract
+import cv2, pytesseract
+
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -30,6 +33,8 @@ import viewer.imageViewer as viewer
 class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
     # Default paths.
     @property
+    def database(self): return self._database
+    @property
     def source_directory(self): return self._source_directory
     @property
     def icon_directory(self): return self._icon_directory
@@ -38,10 +43,20 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
     @property
     def currentObject(self): return self._currentObject
     @property
+    def con_uuid(self): return self._con_uuid
+    @property
+    def mat_uuid(self): return self._mat_uuid
+    @property
+    def text_path(self): return self._text_path
+    @property
+    def image_path(self): return self._image_path
+    @property
     def qt_image(self): return self._qt_image
     @property
     def image_extensions(self): return self._image_extensions
     
+    @database.setter
+    def database(self, value): self._database = value
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
     @icon_directory.setter
@@ -50,22 +65,36 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
     def root_directory(self, value): self._root_directory = value
     @currentObject.setter
     def currentObject(self, value): self._currentObject = value
+    @con_uuid.setter
+    def con_uuid(self, value): self._con_uuid = vlaue
+    @mat_uuid.setter
+    def mat_uuid(self, value): self._mat_uuid = value
+    @text_path.setter
+    def text_path(self, value): self._text_path = value
+    @image_path.setter
+    def image_path(self, value): self._image_path = value
     @qt_image.setter
     def qt_image(self, value): self._qt_image = value
     @image_extensions.setter
     def image_extensions(self, value): self._image_extensions = value
     
-    def __init__(self, parent=None, img_path=None, txt_path=None, sop=None):
+    #mat_uuid, con_uuid, dbfile
+    def __init__(self, parent=None, img_path=None, txt_path=None, sop=None, con_uuid=None, mat_uuid=None):
         # Initialyze super class and set up this.
         super(jottingWithImage, self).__init__(parent)
         self.setupUi(self)
         
         # Set the source directory which this program located.
+        self._database = parent.database
         self._source_directory = parent.source_directory
         self._icon_directory = parent.icon_directory
         self._qt_image = parent.qt_image
         self._image_extensions = parent.image_extensions
         self._currentObject = sop
+        self._con_uuid = con_uuid
+        self._mat_uuid = mat_uuid
+        self._text_path = txt_path
+        self._image_path = img_path
         
         # Initialize the window.
         self.setWindowTitle(self.tr("Jotting memo with obser"))
@@ -89,26 +118,17 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         self.lst_img_icon.setIconSize(QSize(200,200))
         self.lst_img_icon.setMovement(QListView.Static)
         self.lst_img_icon.setModel(QStandardItemModel())
-         
-        # # Initialyze the stop button.
-        # self.btn_rec_stop.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'pause.png'))))
-        # self.btn_rec_stop.setIconSize(QSize(24,24))
-        
-        # # Define the return values.
-        # self.bbx_rec_pht.accepted.connect(self.accept)
-        # self.bbx_rec_pht.rejected.connect(self.reject)
-        
+                
         # Create the graphic view item.        
         self.graphicsView = viewer.ImageViewer()
         self.graphicsView.setObjectName("graphicsView")
         self.verticalLayout.addWidget(self.graphicsView)
         
-        # Get the path of the tethered image.
-        self.path_img = img_path
-        self.path_txt = txt_path
-        
         # Initialyze the thumbnail selector.
         self.lst_img_icon.selectionModel().selectionChanged.connect(self.showImage)
+        
+        # Initialyze the text file selector.
+        self.lst_txt_fls.selectionModel().selectionChanged.connect(self.showText)
         
         # Get tethered image files.
         self.getImageFiles()
@@ -162,13 +182,12 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         # Initialyze the OCR button.
         self.btn_ocr.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'ocr.png'))))
         self.btn_ocr.setIconSize(QSize(24,24))
-        #self.btn_ocr.clicked.connect(self.startRecording)s
+        self.btn_ocr.clicked.connect(self.getTextByOcr)
         
         # Initialyze the barcode button.
         self.btn_bar.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'barcode.png'))))
         self.btn_bar.setIconSize(QSize(24,24))
         #self.btn_bar.clicked.connect(self.startRecording)
-        
         
         # Set the dialog button size.
         dlg_btn_size = QSize(125, 30)
@@ -179,47 +198,57 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
         self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
         
-    def createNewTextFile(self):
+        # Define the return values.
+        self.bbx_rec_pht.accepted.connect(self.accept)
+        self.bbx_rec_pht.rejected.connect(self.reject)
+        
+    def createNewTextFile(self, body=None, app="Survey Data Collector", ope="Created Manually"):
         print("textEditWithPhotoDialog::createNewTextFile")
         
         try:
             # Generate the GUID for the consolidation
             txt_uuid = str(uuid.uuid4())
             
+            # Get current time.
+            now = datetime.datetime.utcnow().isoformat()
+            
             # Define the path of new file.
-            txt_path = os.path.join(self.path_txt, txt_uuid + ".txt")
+            txt_path = os.path.join(self._text_path, txt_uuid + ".txt")
             
             # Instantiate the File class.
-            txt_file = features.File(is_new=True, uuid=None, dbfile=None)
-            txt_file.material = mat_uuid
-            txt_file.consolidation = con_uuid
-            txt_file.filename = general.getRelativePath(txt_path, "Consolidation")
-            txt_file.created_date = now
-            txt_file.modified_date = now
-            txt_file.file_type = "text"
-            txt_file.alias = "Description"
-            txt_file.status = "Original"
-            txt_file.lock = True
-            txt_file.public = False
-            txt_file.source = "Nothing"
-            txt_file.operation = "Make an empty text file"
-            txt_file.operating_application = "Survey Data Collector"
-            txt_file.caption = "Original text"
-            txt_file.description = ""
+            sop_txt_file = features.File(is_new=True, uuid=txt_uuid, dbfile=None)
+            sop_txt_file.material = self._mat_uuid
+            sop_txt_file.consolidation = self._con_uuid
+            sop_txt_file.filename = general.getRelativePath(txt_path, "Consolidation")
+            sop_txt_file.created_date = now
+            sop_txt_file.modified_date = now
+            sop_txt_file.file_type = "text"
+            sop_txt_file.alias = ope
+            sop_txt_file.status = "Original"
+            sop_txt_file.lock = True
+            sop_txt_file.public = False
+            sop_txt_file.source = "Nothing"
+            sop_txt_file.operation = ope
+            sop_txt_file.operating_application = app
+            sop_txt_file.caption = "Original text"
+            sop_txt_file.description = ""
             
             # Insert the new entry into the self._database.
-            txt_file.dbInsert(parent._database)
+            sop_txt_file.dbInsert(self._database)
             
             # Create a new file at the path.
-            open(txt_path, 'w').close()
-            
-            # Add new file to the text file list.
-            txt_item = QListWidgetItem(txt_path)
-            self.lst_txt_fls.addItem(txt_item)
+            if body == None or body == False:
+                open(txt_path, 'w').close()
+            else:
+                with open(txt_path, 'w') as f: f.write(body)
             
         except Exception as e:
             print("Error in RecordWithImage::createNewTextFile")
             print(str(e))
+            
+        finally:
+            # Update the text file list.
+            self.getTextFiles()
     
     def getTextFiles(self):
         print("textEditWithPhotoDialog::getTextFiles")
@@ -229,24 +258,41 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
             self.lst_txt_fls.clear()
             
             # Get the file list with given path.
-            txt_lst = os.listdir(self.path_txt)
+            txt_lst = os.listdir(self._text_path)
                         
             # Add each image file name to the list box.
             if len(txt_lst) > 0:
                 for txt_fl in txt_lst:
-                    if os.path.isfile(txt_fl):
+                    txt_fl_path = os.path.join(self._text_path,txt_fl)
+                    if os.path.isfile(txt_fl_path):
                         txt_item = QListWidgetItem(txt_fl)
                         self.lst_txt_fls.addItem(txt_item)
         except Exception as e:
             print("Error in RecordWithImage::getTextFiles")
             print(str(e))
     
+    def getTextByOcr(self):
+        print("textEditWithPhotoDialog::getTextByOcr(self)")
+        
+        selected = self.lst_img_icon.selectedIndexes()[0]
+        img_fl_nam = self.lst_img_icon.model().itemFromIndex(selected).text()
+        img_fl_path = os.path.join(self._image_path, img_fl_nam)
+        
+        ocr_img = cv2.imread(img_fl_path)
+        
+        # ocr_conf = r'-l eng --oem 3 --psm 11'
+        ocr_conf = r' -l jpn+eng' 
+        ocr_txt = pytesseract.image_to_string(ocr_img, config=ocr_conf)    #pytesseract.image_to_string(img, config=custom_config)
+        
+        print(ocr_txt)
+        self.createNewTextFile(body=ocr_txt, app="Tesseract OCR", ope="Optically Recoginzed")
+        
     def getImageFiles(self):
         print("textEditWithPhotoDialog::getImageFiles(self)")
         
         try:
             # Get the file list with given path.
-            img_lst_main = general.getFilesWithExtensionList(self.path_img, self._image_extensions)
+            img_lst_main = general.getFilesWithExtensionList(self._image_path, self._image_extensions)
             
             # Add each image file name to the list box.
             if len(img_lst_main) > 0:
@@ -255,7 +301,7 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
                     img_base, img_ext = os.path.splitext(img_main)
                     
                     # Get th ful path of the image.
-                    img_path = os.path.join(self.path_img, img_main)
+                    img_path = os.path.join(self._image_path, img_main)
                     
                     # Get images that can be shown as QPixmap object.
                     for qt_ext in self._qt_image:
@@ -274,11 +320,30 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
             print("Error in RecordWithImage::getImageFiles(self)")
             print(str(e))
     
+    def showText(self):
+        print("textEditWithPhotoDialog::showText(self)")
+        
+        if not self.lst_txt_fls.selectedIndexes() == None:
+            selected_index = self.lst_txt_fls.selectedIndexes()[0]
+            
+            txt_file_name = selected_index.data()
+            txt_file_path = os.path.join(self._text_path, txt_file_name)
+            
+            # Open the text file.
+            txt_file_stream = open(txt_file_path, "r")
+            
+            self.textEdit.setText(txt_file_stream.read())
+            
+            txt_file_stream.close()
+        else:
+            self.textEdit.setText("")
+        
+        
     def showImage(self):
         print("textEditWithPhotoDialog::showImage(self)")
         
         try:
-            # Do nothing if theh selected image is None.
+            # Do nothing if theh seleoted image is None.
             if not self.lst_img_icon.selectedIndexes() == None:
                 # Retrive the selected object.
                 selected_index = self.lst_img_icon.selectedIndexes()[0]
@@ -287,7 +352,7 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
                 img_main = selected_index.data()
                 
                 # Get the path to the image file.
-                img_path = os.path.join(self.path_img, img_main)
+                img_path = os.path.join(self._image_path, img_main)
                 
                 # Show the image on graphic view.
                 self.graphicsView.setFile(img_path)

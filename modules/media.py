@@ -92,8 +92,6 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 # Copy the original file.
                 shutil.copy(img_file, main_dest)
                 
-                
-                
                 # Instantiate the File class.
                 sop_img_file = features.File(is_new=True, uuid=img_uuid, dbfile=None)
                 sop_img_file.material = mat_uuid
@@ -230,7 +228,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 now = datetime.datetime.utcnow().isoformat()
                 
                 # Get the extension of the file
-                txt_name, txt_ext = os.path.splitext(mov_path)
+                txt_name, txt_ext = os.path.splitext(txt_path)
                 
                 # Define the destination file path.
                 txt_dest = os.path.join(txt_path, txt_uuid + txt_ext)

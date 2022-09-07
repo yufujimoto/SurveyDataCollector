@@ -29,15 +29,17 @@ class SelectCameraDialog(QDialog, cameraSelectDialog.Ui_CameraSelectDialog):
         super(SelectCameraDialog, self).__init__(parent)
         self.setupUi(self)
         
-        self._camera = None
+        # Initialyze the porperties.
+        self._camera_name = None
+        self._camera_port = None
+        
+        # Connect the functions to the UI objects.
         self.tre_cam.itemSelectionChanged.connect(self._getSelectedNumber)
         
-        #context = gp.context()
-        
+        # Get the list of connected cameras.
         camera_list = list(gp.Camera.autodetect())
         if not camera_list:
             print('No camera detected')
-            
         else:
             camera_list.sort(key=lambda x: x[0])
             
