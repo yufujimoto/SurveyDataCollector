@@ -24,7 +24,6 @@ def activate(ui_main):
     spl_main.addWidget(ui_main.frm_right)
     
     ui_main.frm_main_lay.addWidget(spl_main)
-    ui_main.setLayout(ui_main.frm_main_lay)
     
     # Create the graphic view item.        
     ui_main.graphicsView = viewer.ImageViewer()
@@ -36,7 +35,6 @@ def activate(ui_main):
     spl_fl.addWidget(ui_main.frm_fil_info_left)
     spl_fl.addWidget(ui_main.frm_fil_info_right)
     ui_main.frm_fil_info_lay.addWidget(spl_fl)
-    ui_main.setLayout(ui_main.frm_fil_info_lay)
     
     # Activate actions on the menu bar.
     ui_main.bar_menu.setNativeMenuBar(False)
@@ -58,8 +56,8 @@ def activate(ui_main):
     ui_main.act_lan_en.triggered.connect(ui_main.setLangEn)
     ui_main.act_lan_ja.triggered.connect(ui_main.setLangJa)
     
-    ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)    # Handle current selection of consolidations and materials.
-    ui_main.tre_fls.itemSelectionChanged.connect(ui_main.toggleCurrentFile)               # Handle current selection of consolidations and materials.
+    ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)      # Handle current selection of consolidations and materials.
+    ui_main.tre_fls.itemSelectionChanged.connect(ui_main.getCurrentFile)                    # Handle current selection of consolidations and materials.
     
     ui_main.tab_control.setCurrentIndex(0) # Initialyze the tab for source tree view and camera setting.
     ui_main.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.

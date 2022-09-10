@@ -29,7 +29,7 @@ class SimpleObject(object):
     def uuid(self, value): self._uuid = value
     
     def excuteSQL(self, dbfile, sql, values):
-        print(("features::SimpleObject::excuteSQL(self, dbfile, sql, values)"))
+        print(("## Execute the SQL: features::SimpleObject::excuteSQL"))
         
         try:
             # Convert None objects into "Null" values in DB table.
@@ -69,7 +69,7 @@ class SimpleObject(object):
             conn.close()
     
     def fetchOneSQL(self, dbfile, sql, keys):
-        print(("SimpleObject::fetchOneSQL(self, dbfile , sql, keys)"))
+        # print("## Fetch a object: "+ sql +": SimpleObject::fetchOneSQL")
         # Establish the connection between DB.
         conn = sqlite.connect(dbfile)
         
@@ -103,7 +103,7 @@ class SimpleObject(object):
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def fetchAllSQL(self, dbfile, sql, keys):
-        print(("features::SimpleObject::fetchAllSQL(self, dbfile,sql, keys"))
+        print("## Fetch all objects: features::SimpleObject::fetchAllSQL")
         
         try:
             # Establish the connection between DB.
@@ -212,7 +212,7 @@ class Consolidation(SimpleObject):
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
-        print("features::Consolidation::_initInstanceByUuid(self, uuid, dbfile)")
+        print("Start -> Consolidation::_initInstanceByUuid(self, uuid, dbfile)")
         
         try:
             # Make the SQL statement.
@@ -224,6 +224,7 @@ class Consolidation(SimpleObject):
                             FROM consolidation WHERE uuid=?"""
             
             # Fech one from DB.
+            print("## Fetch a Consolidation: SimpleObject::fetchOneSQL")
             entry = super(Consolidation, self).fetchOneSQL(dbfile, sql_select, [uuid])
             
             if not entry == None:
@@ -247,6 +248,8 @@ class Consolidation(SimpleObject):
             print(err_info)
             print((str(e)))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
+        finally:
+            print("End -> Consolidation::_initInstanceByUuid(self, uuid, dbfile)")
     
     def dbInsert(self, dbfile):
         print("Consolidation::dbInsert(self, dbfile)")
@@ -389,7 +392,7 @@ class Consolidation(SimpleObject):
             error.ErrorCurrentFeature(information=err_info, details=str(e))
     
     def _getFileList(self, dbfile, file_type):
-        print("Consolidation::_getFileList(self, dbfile, file_type)")
+        print("Start -> Consolidation::_getFileList(self, dbfile, file_type)")
         
         # Initialyze the return value.
         sop_file_list = list()
@@ -399,20 +402,15 @@ class Consolidation(SimpleObject):
             sql_select = """SELECT uuid FROM file WHERE con_id = ? AND mat_id="NULL" AND file_type=? ORDER BY id DESC;"""
             
             # Execute the query.
-            print(self._uuid, file_type)
+            print("## Get " + str(file_type) + " files.")
             sop_files = super(Consolidation, self).fetchAllSQL(dbfile, sql_select, [self._uuid, file_type])
-            
-            print(sop_files)
             
             # Exit if there are no entries.
             if sop_files == None or len(sop_files) == 0: return(None)
             
             # Create sop image ojects from the DB table.
             for sop_file in sop_files:
-                
                 sop_file_obj = File(is_new=False, uuid=sop_file[0], dbfile=dbfile)
-                print((sop_file[0]))
-                print(sop_file_obj)
                 sop_file_list.append(sop_file_obj)
                 
             return(sop_file_list)
@@ -421,6 +419,8 @@ class Consolidation(SimpleObject):
             print(err_info)
             print(str(e))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
+        finally:
+            print("End -> Consolidation::_getFileList(self, dbfile, file_type)")
     
     def _getAdditionalAttributes(self, dbfile):
         print("Consolidation::_getAdditionalAttributes(self, dbfile)")
@@ -547,7 +547,7 @@ class Material(SimpleObject):
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
-        print("Material::_initInstanceByUuid(self, uuid, dbfile)")
+        print("Start -> Material::_initInstanceByUuid(self, uuid, dbfile)")
         
         try:
             # Make the SQL statement.
@@ -566,6 +566,7 @@ class Material(SimpleObject):
                                 FROM material WHERE uuid=?"""
             
             # Fech one from DB.
+            print("## Fetch a Material: SimpleObject::fetchOneSQL")
             entry = super(Material, self).fetchOneSQL(dbfile, sql_select, [uuid])
             
             if not entry == None:
@@ -598,6 +599,9 @@ class Material(SimpleObject):
             print(err_info)
             print((str(e)))
             error.ErrorCurrentFeature(information=err_info, details=str(e))
+            
+        finally:
+            print("End -> Material::_initInstanceByUuid(self, uuid, dbfile)")
     
     def dbInsert(self, dbfile):
         print("Material::dbInsert(self, dbfile)")
@@ -891,53 +895,61 @@ class File(SimpleObject):
     
     # operation
     def _initInstanceByUuid(self, uuid, dbfile):
-        print("features::File::_initInstanceByUuid(self, " + uuid + ", dbfile)")
+        print("Start -> features::File::_initInstanceByUuid(self, " + uuid + ", dbfile)")
         
-        # Make the SQL statement.
-        sql_select = """SELECT
-                            id,
-                            con_id, 
-                            mat_id,
-                            created_date,
-                            modified_date,
-                            file_name,
-                            file_type,
-                            make_public,
-                            alias_name,
-                            status,
-                            is_locked,
-                            source, 
-                            file_operation,
-                            operating_application,
-                            caption,
-                            description
-                        FROM file WHERE uuid=?"""
-        
-        # Fech one from DB.
-        entry = super(File, self).fetchOneSQL(dbfile, sql_select, [str(uuid)])
-        
-        if not entry == None:
-            # Get attributes from the row.
-            self._id = str(entry[0])
-            self._uuid = str(uuid)
-            self._consolidation = str(entry[1])
-            self._material = str(entry[2])
-            self._created_date = str(entry[3])
-            self._modified_date = str(entry[4])
-            self._filename = str(entry[5])
-            self._file_type = str(entry[6])
-            self._public = str(entry[7])
-            self._alias = str(entry[8])
-            self._status = str(entry[9])
-            self._lock = str(entry[10])
-            self._source = str(entry[11])
-            self._operation = str(entry[12])
-            self._operating_application = str(entry[13])
-            self._caption = str(entry[14])
-            self._description = str(entry[15])
-        else:
-            return(None)
-    
+        try:
+            # Make the SQL statement.
+            sql_select = """SELECT
+                                id,
+                                con_id, 
+                                mat_id,
+                                created_date,
+                                modified_date,
+                                file_name,
+                                file_type,
+                                make_public,
+                                alias_name,
+                                status,
+                                is_locked,
+                                source, 
+                                file_operation,
+                                operating_application,
+                                caption,
+                                description
+                            FROM file WHERE uuid=?"""
+            
+            # Fech one from DB.
+            entry = super(File, self).fetchOneSQL(dbfile, sql_select, [str(uuid)])
+            
+            if not entry == None:
+                # Get attributes from the row.
+                self._id = str(entry[0])
+                self._uuid = str(uuid)
+                self._consolidation = str(entry[1])
+                self._material = str(entry[2])
+                self._created_date = str(entry[3])
+                self._modified_date = str(entry[4])
+                self._filename = str(entry[5])
+                self._file_type = str(entry[6])
+                self._public = str(entry[7])
+                self._alias = str(entry[8])
+                self._status = str(entry[9])
+                self._lock = str(entry[10])
+                self._source = str(entry[11])
+                self._operation = str(entry[12])
+                self._operating_application = str(entry[13])
+                self._caption = str(entry[14])
+                self._description = str(entry[15])
+            else:
+                return(None)
+        except Exception as e:
+            err_info = "Error occus in Material::dbInsert(self, dbfile)"
+            print(err_info)
+            print((str(e)))
+            error.ErrorCurrentFeature(information=err_info, details=str(e))
+        finally:
+            print("End -> features::File::_initInstanceByUuid")
+            
     def dbInsert(self, dbfile):
         print(("features::File::dbInsert(self, " + dbfile + ")"))
         

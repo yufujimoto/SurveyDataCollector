@@ -36,8 +36,6 @@ def createPathIfNotExists(path):
         return(False)
     
 def initAll(parent):
-    print("general::initAll(parent)")
-    
     try:
         # Define paths
         parent.root_directory = None
@@ -72,6 +70,13 @@ def initAll(parent):
         parent.awb_algo = "retinex_adjusted"
         parent.psp_algo = "ihsConvert"
         
+        # Set default ocr setting.
+        parent.ocr_lang = "eng+jpn"
+        parent.ocr_psm = "10"
+        
+        # Set default application of text editor.
+        parent.app_textEdit = "gedit"
+        
         # Initialyze the temporal directory.
         if not os.path.exists(parent.temporal_directory):
             # Create the temporal directory if not exists.
@@ -80,15 +85,17 @@ def initAll(parent):
             # Delete the existing temporal directory before create.
             shutil.rmtree(parent.temporal_directory)
             os.mkdir(parent.temporal_directory)
+    
     except Exception as e:
         print("Error occured in general::initAll(parent)")
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
     
-def initConfig(parent):
-    print("general::initConfig(parent)")
+    finally:
+        print("# Initialyzing parameter: general::initAll")
     
+def initConfig(parent):
     try:
         # Create the root node.
         root = ET.Element("config")
@@ -117,6 +124,15 @@ def initConfig(parent):
         network = ET.SubElement(root, "network")
         ET.SubElement(network, "proxy").text = parent.proxy
         
+        # Create the OCR node.
+        tesseract = ET.SubElement(root, "tesseract-ocr")
+        ET.SubElement(tesseract, "lang").text = parent.ocr_lang
+        ET.SubElement(tesseract, "psm").text = parent.ocr_psm
+        
+        # Create thirdparty app for any operation.
+        app = ET.SubElement(root, "app")
+        ET.SubElement(app, "text-edit").text = parent.app_textEdit
+        
         # Write the 
         tree = ET.ElementTree(root)
         tree.write(parent.config_file)
@@ -124,10 +140,11 @@ def initConfig(parent):
         print("Error occured in general::initConfig(self)")
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
-
-def loadConfig(parent, file_config):
-    print("general::loadConfig(parent)")
     
+    finally:
+        print("# Initialyzing configuration: general::initConfig")
+
+def loadConfig(parent, file_config):  
     if os.path.exists(file_config):
         try:
             xml_config = ET.parse(file_config).getroot()
@@ -157,6 +174,11 @@ def loadConfig(parent, file_config):
                                 
                                 # Define the DB file.
                                 parent.database = os.path.join(parent.table_directory, "project.db")
+                elif xml_child.tag == "tesseract-ocr":
+                    parent.ocr_lang = xml_child.find("lang").text
+                    parent.ocr_psm = xml_child.find("psm").text
+                elif xml_child.tag == "app":
+                    parent.app_textEdit = xml_child.find("text-edit").text
             
             # Check directories and files.
             if parent.root_directory == None: return(None)
@@ -176,9 +198,12 @@ def loadConfig(parent, file_config):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language="en")
             return(None)
+        
+        finally:
+            print("# Load the configuation: general::loadConfig")
 
 def changeConfig(parent):
-    print("general::changeConfig(self)")
+    print("Start -> general::changeConfig(self)")
     
     try:
         # Get the root node of the configuration file.
@@ -188,17 +213,59 @@ def changeConfig(parent):
         for xml_child in xml_config:
             # Configurations for User Interface.
             if xml_child.tag == "theme":
-                xml_child.find("language").text = parent.language   # Language settings.
-                xml_child.find("skin").text = parent.skin           # Skin settings.
+                print("# Change theme...")
+                
+                # Language settings.
+                xml_child.find("language").text = parent.language
+                print("## Change language:" + parent.language)
+                
+                # Skin settings.
+                xml_child.find("skin").text = parent.skin
+                print("## Change skin:" + parent.skin)
             if xml_child.tag == "project":
-                xml_child.find("root").text = parent.root_directory # Current project.
+                print("# Change project...")
+                
+                # Current project.
+                xml_child.find("root").text = parent.root_directory
+                print("## Change root directory:" + parent.root_directory)
             if xml_child.tag == "tools":
-                xml_child.find("awb").text = parent.awb_algo        # Auto white balance algorithm.
-                xml_child.find("psp").text = parent.psp_algo        # Pansharpen algorithm
+                print("# Change tools...")
+                
+                # Auto white balance algorithm.
+                xml_child.find("awb").text = parent.awb_algo
+                print("## Change Auto White Balance Alogolithm:" + parent.awb_algo)
+                
+                # Pansharpen algorithm
+                xml_child.find("psp").text = parent.psp_algo
+                print("## Change Pansharpen Algorithm:" + parent.psp_algo)
             if xml_child.tag == "geoinfo":
-                xml_child.find("maptile").text = parent.map_tile    # Source for the map tile
+                print("# Change Geoinfo...")
+                
+                # Source for the map tile
+                xml_child.find("maptile").text = parent.map_tile
+                print("## Change Pansharpen Algorithm:" + parent.map_tile)
             if xml_child.tag == "network":
-                xml_child.find("proxy").text = parent.proxy         # Proxy setting
+                print("# Change network...")
+                
+                # Proxy setting
+                xml_child.find("proxy").text = parent.proxy
+                print("## Change the proxy setting:" + parent.proxy)
+            if xml_child.tag == "tesseract-ocr":
+                print("# Change OCR settings...")
+                
+                # languge
+                xml_child.find("lang").text = parent.ocr_lang
+                print("## Change languages for OCR:" + parent.ocr_lang)
+                
+                # PSM(Page Segmentation Modes)
+                xml_child.find("psm").text = parent.ocr_psm
+                print("## Change the Page Segmentation Mode:" + parent.ocr_psm)
+            if xml_child.tag == "app":
+                print("# Change third party apps...")
+                
+                # Text Editor
+                xml_child.find("text-edit").text = parent.app_textEdit
+                print("## Change the default text editor:" + parent.app_textEdit)
         
         # Create a new tree object by new entries.
         tree = ET.ElementTree(xml_config)
@@ -210,6 +277,8 @@ def changeConfig(parent):
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
+    finally:
+        print("End -> general::changeConfig")
 
 def pyDateTimeToQDateTime(value):
     print("general::pyDateTimeToqDateTime(value)")
@@ -598,9 +667,25 @@ def createTableAdditionalAttribute(dbfile):
         # Return Nothing.
         return(None)
 
-def checkTableExist(dbfile, table_name):
-    print("general::checkTableExist(dbfile, table_name)")
+def checkExistenceOfTables(dbfile):
+    print("Start -> general::checkTables(dbfile=" + dbfile + ")")
     
+    try:
+        if not checkTableExist(dbfile, "consolidation"): createTableConsolidation(dbfile)
+        if not checkTableExist(dbfile, "material"): createTableMaterial(dbfile)
+        if not checkTableExist(dbfile, "file"): createTableFile(dbfile)
+        if not checkTableExist(dbfile, "additional_attribute"): createTableAdditionalAttribute(dbfile)
+        
+    except Exception as e:
+        print("Error occured in general::initAll(parent)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(None)
+    
+    finally:
+        print("End -> general::checkTables")
+
+def checkTableExist(dbfile, table_name):
     try:
         sql_check = """SELECT name FROM sqlite_master WHERE type='table' AND name=?;"""
         
@@ -618,8 +703,10 @@ def checkTableExist(dbfile, table_name):
             rows = cur.fetchone()
             
             if not rows == None:
+                print("# Checking table:" + table_name + " exists.")
                 return(True)
             else:
+                print("# Checking table:" + table_name + "is not found.")
                 return(False)
     except Exception as e:
         print("Error occured in general::checkTableExist(dbfile, table_name)")
@@ -628,9 +715,25 @@ def checkTableExist(dbfile, table_name):
         # Return nothing.
         return(None)
 
-def checkConsolidationTableFields(dbfile):
-    print("general::checkConsolidationTableFields(dbfile)")
+def checkFieldsOfTables(dbfile):
+    print("Start -> general::checkFieldsOfTables(dbfile=" + dbfile + ")")
     
+    try:
+        if not checkConsolidationTableFields(dbfile): return(False)
+        if not checkMaterialTableFields(dbfile): return(False)
+        if not checkFileTableFields(dbfile): return(False)
+        if not checkFileTableFields(dbfile): return(False)
+        
+    except Exception as e:
+        print("Error general::checkFieldsOfTables")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(None)
+    
+    finally:
+        print("End -> general::checkFieldsOfTables")
+        
+def checkConsolidationTableFields(dbfile):
     try:
         # Create a list for fields checking.
         con_fields = [
@@ -642,7 +745,12 @@ def checkConsolidationTableFields(dbfile):
                         ("flickr_photosetid", "text")
                     ]
         # Check fields.
-        checkFieldsExists(dbfile, "consolidation", con_fields)
+        if checkFieldsExists(dbfile, "consolidation", con_fields):
+            print("## Check Fields of Consolidation: OK")
+            return(True)
+        else:
+            print("## Check Fields of Consolidation: NG... Please fix fields!!")
+            return(False)
     except Exception as e:
         print("Error occured in general::checkConsolidationTableFields(dbfile)")
         print(str(e))
@@ -651,8 +759,6 @@ def checkConsolidationTableFields(dbfile):
         return(None)
 
 def checkMaterialTableFields(dbfile):
-    print("general::checkMaterialTableFields(dbfile)")
-    
     try:
         mat_fields= [
                         ("con_id", "text"),
@@ -667,8 +773,15 @@ def checkMaterialTableFields(dbfile):
                         ("material_number", "text"),
                         ("description", "text")
                     ]
+        
         # Check fields.
-        checkFieldsExists(dbfile, "material", mat_fields)
+        if checkFieldsExists(dbfile, "material", mat_fields):
+            print("## Check Fields of Material: OK")
+            return(True)
+        else:
+            print("## Check Fields of Material: NG... Please fix fields!!")
+            return(False)
+        
     except Exception as e:
         print("Error occured in general::checkMaterialTableFields(dbfile)")
         print(str(e))
@@ -677,8 +790,6 @@ def checkMaterialTableFields(dbfile):
         return(None)
 
 def checkFileTableFields(dbfile):
-    print("general::checkFileTableFields(dbfile)")
-    
     try:
         fil_fields = [
                         ("uuid", "text"),
@@ -699,8 +810,15 @@ def checkFileTableFields(dbfile):
                         ("description", "text"),
                         ("flickr_photoid", "text")
                     ]
+        
         # Check fields.
-        checkFieldsExists(dbfile, "file", fil_fields)
+        if checkFieldsExists(dbfile, "file", fil_fields):
+            print("## Check Fields of File: OK")
+            return(True)
+        else:
+            print("## Check Fields of File: NG... Please fix fields!!")
+            return(False)
+        
     except Exception as e:
         print("Error occured in general::checkFileTableFields(dbfile)")
         print(str(e))
@@ -708,9 +826,7 @@ def checkFileTableFields(dbfile):
         # Return nothing.
         return(None)
     
-def checkAdditionalAttributeTableFields(dbfile):
-    print("general::checkAdditionalAttributeTableFields(dbfile)")
-    
+def checkAdditionalAttributeTableFields(dbfile): 
     try:
         add_fields = [
                         ("uuid", "text"),
@@ -722,8 +838,15 @@ def checkAdditionalAttributeTableFields(dbfile):
                         ("datatype", "text"),
                         ("description", "text")
                     ]
+        
         # Check fields.
-        checkFieldsExists(dbfile, "additional_attribute", add_fields)
+        if checkFieldsExists(dbfile, "additional_attribute", add_fields):
+            print("## Check Fields of additional_attribute: OK")
+            return(True)
+        else:
+            print("## Check Fields of additional_attribute: NG... Please fix fields!!")
+            return(False)
+        
     except Exception as e:
         print("Error occured in general::checkAdditionalAttributeTableFields(dbfile)")
         print(str(e))
@@ -732,8 +855,6 @@ def checkAdditionalAttributeTableFields(dbfile):
         return(None)
     
 def checkFieldsExists(dbfile, table_name, fields):
-    print("general::checkFieldsExists(dbfile, table_name, fields)")
-    
      # Create tables by using SQL queries.
     sql_check = "PRAGMA table_info('" + table_name + "')"
     
@@ -765,6 +886,9 @@ def checkFieldsExists(dbfile, table_name, fields):
                     cur.execute(sql_alt)
             # Commit the result of the query.
             conn.commit()
+            
+            # Return true if no error occurs.
+            return(True)
     except Error as e:
         print("Error occured in general::checkFieldsExists(dbfile, table_name, fields)")
         print(str(e))
@@ -772,6 +896,8 @@ def checkFieldsExists(dbfile, table_name, fields):
         # Returns nothing.
         return(None)
     finally:
+        print("# Checking Fileds of " + table_name)
+        
         # Finally close the connection.
         conn.close()
 

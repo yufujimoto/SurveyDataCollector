@@ -12,10 +12,7 @@ from PyQt5.QtCore import *
 
 import modules.error as error
 
-
 def getIconFromPath(file_path):
-    print("setMainSkin::getIconFromPath(" + file_path + ")")
-    
     try:
         return(QIcon(QPixmap(file_path)))
     except Exception as e:
@@ -23,14 +20,16 @@ def getIconFromPath(file_path):
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("# Get Icon from " + file_path +": setMainSkin::getIconFromPath")
 
 def getFontSize():
-    print("setMainSkin::getFontSize()")
+    # Set the default value.
+    font_size = 10
     
     # Get the screen size and setting up font size.
     try:
         screen_size = getScreenSize()
-        font_size = 10
         
         if int(screen_size[0]) >= 1200:
             font_size = 10
@@ -43,9 +42,10 @@ def getFontSize():
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("# Font size is " + str(font_size) +". setMainSkin::getFontSize")
 
 def getIconSize():
-    print("setMainSkin::getIconSize()")
     try:
         # Get the screen size and setting up font size.
         screen_size = getScreenSize()
@@ -62,10 +62,10 @@ def getIconSize():
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("# Icon size is " + str(icon_size) +". setMainSkin::getIconSize")
 
 def getScreenSize(select=0):
-    print("setMainSkin::getScreenSize")
-    
     try:
         screen = []
         for m in get_monitors():
@@ -76,6 +76,8 @@ def getScreenSize(select=0):
         print(str(e))
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("# Screen size is " + str(screen[0].width) + "x" + str(screen[0].height) + ":setMainSkin::getScreenSize")
 
 def getImagePreviewSize():
     print("setMainSkin::getImagePreviewSize()")
@@ -647,6 +649,7 @@ def applyMainWindowSkin(parent, icon_path="", skin="grey"):
             parent.tre_fls.headerItem().setForeground(0,QBrush(Qt.gray))
             parent.tre_fls.headerItem().setForeground(1,QBrush(Qt.gray))
             parent.tre_fls.headerItem().setForeground(2,QBrush(Qt.gray))
+            
         elif skin == "white":
             icon_path = os.path.join(icon_path, "black")
             setMainWindowIcons(parent, icon_path)

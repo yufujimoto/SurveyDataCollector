@@ -56,6 +56,7 @@ apt install exiv2
 apt install libexiv2-dev
 apt install libboost-python-dev
 pip install py3exiv2
+pip install piexif
 pip install pillow
 pip install rawpy
 pip install imageio
@@ -89,6 +90,12 @@ apt install libtesseract-dev
 apt install libleptonica-dev
 apt install tesseract-ocr-script-jpan
 apt install tesseract-ocr-script-jpan-vert
+
+# Install barcode tools.
+pip install pyqrcode
+pip install pypng
+pip install python_barcode
+pip install pyzbar
 
 pip install pytesseract
 

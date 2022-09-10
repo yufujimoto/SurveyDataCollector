@@ -117,6 +117,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     @property
     def psp_algo(self): return self._psp_algo
     @property
+    def ocr_lang(self): return self._ocr_lang
+    @property
+    def ocr_psm(self): return self._ocr_psm
+    @property
     def language(self): return self._language
     @property
     def skin(self): return self._skin
@@ -128,6 +132,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def flickr_secret(self): return self._flickr_secret
     @property
     def map_tile(self): return self._map_tile
+    @property
+    def app_textEdit(self): return self._app_textEdit
     
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
@@ -179,6 +185,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def awb_algo(self, value): self._awb_algo = value
     @psp_algo.setter
     def psp_algo(self, value): self._psp_algo = value
+    @ocr_lang.setter
+    def ocr_lang(self, value): self._ocr_lang = value
+    @ocr_psm.setter
+    def ocr_psm(self, value): self._ocr_psm = value
     @language.setter
     def language(self, value): self._language = value
     @skin.setter
@@ -191,64 +201,196 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def flickr_secret(self, value): self._flickr_secret = value
     @map_tile.setter
     def map_tile(self, value): self._map_tile = value
+    @app_textEdit.setter
+    def app_textEdit(self, value): self._app_textEdit = value
     
     def __init__(self, parent=None):
-        # Clear memory
-        gc.collect()
+        print("Start -> main::__init__(self, parent=None)")
         
-        # Make this class as the super class and initialyze the class.
-        super(mainPanel, self).__init__(parent)
-        self.setupUi(self)
-        
-        # Initialyze the window.
-        self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
-        
-        # Activate modules.
-        setupMainUi.activate(self)
-        
-        # Initialyze the source paths.
-        self._source_directory = os.path.dirname(os.path.abspath(__file__))
-        self._config_file = os.path.join(self._source_directory, "config.xml")
-        self._lib_directory = os.path.join(self._source_directory, "lib")
-        self._siggraph_directory = os.path.join(os.path.expanduser("~"),"siggraph")
-        self._map_directory = os.path.join(self._source_directory, "map")
-        self._temporal_directory = os.path.join(self._source_directory, "temp")
-        self._icon_directory = os.path.join(self._source_directory, "icon")
-        
-        # Initialyze properties.
-        general.initAll(self)
-        
-        # Check whether configutation exists or not. And create the configuration if not exists.
-        if not os.path.exists(self._config_file):
-            general.initConfig(self)
-        else:
-            if not general.loadConfig(self, self._config_file) == None:
-                # Open the previous project.
-                self.openProject()
-                
-                # Initialyze the proxy setting
-                self.setProxy()
+        try:
+            # Clear memory
+            gc.collect()
+            
+            # Make this class as the super class and initialyze the class.
+            super(mainPanel, self).__init__(parent)
+            self.setupUi(self)
+            
+            # Initialyze the window.
+            self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
+            
+            # Activate modules.
+            setupMainUi.activate(self)
+            
+            # Initialyze the source paths.
+            self._source_directory = os.path.dirname(os.path.abspath(__file__))
+            self._config_file = os.path.join(self._source_directory, "config.xml")
+            self._lib_directory = os.path.join(self._source_directory, "lib")
+            self._siggraph_directory = os.path.join(os.path.expanduser("~"),"siggraph")
+            self._map_directory = os.path.join(self._source_directory, "map")
+            self._temporal_directory = os.path.join(self._source_directory, "temp")
+            self._icon_directory = os.path.join(self._source_directory, "icon")
+            
+            # Initialyze properties.
+            general.initAll(self)
+            
+            # Check whether configutation exists or not. And create the configuration if not exists.
+            if not os.path.exists(self._config_file):
+                general.initConfig(self)
             else:
-                general.initAll(self)
+                if not general.loadConfig(self, self._config_file) == None:
+                    # Open the previous project.
+                    self.openProject()
+                    
+                    # Initialyze the proxy setting
+                    self.setProxy()
+                else:
+                    general.initAll(self)
+            
+            # Detect the camera automatically.
+            self._gp_context = gp.Context()
+            self._gp_camera = gp.Camera()
+            self.detectCamera()
+            
+            # Initialyze the map viewer
+            self.setDefaultMap()
+            
+            # Set the default skin.
+            self.setSkin(lang=self._language, theme=self._skin)
+            
+            # Set the initial image to thumbnail viewer.
+            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
+            self.showImage(img_file_path)
+            
+            # Set the default file if the count of items are more than 1.
+            if self.tre_fls.topLevelItemCount() > 0:
+                # Set the top item of the file list.
+                self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
+                self.getCurrentFile()
+            
+        except Exception as e:
+            print("Error occured in main::__init__(self, parent=None)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
         
-        # Detect the camera automatically.
-        self._gp_context = gp.Context()
-        self._gp_camera = gp.Camera()
-        self.detectCamera()
-        
-        # Initialyze the map viewer
-        self.setDefaultMap()
-        
-        # Set the default skin.
-        self.setSkin(lang=self._language, theme=self._skin)
-        
-        # Set the initial image to thumbnail viewer.
-        img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-        self.showImage(img_file_path)
+        finally:
+            print("End -> main::__init__(self, parent=None)")
     
     # ==========================
     # General operation
-    # ==========================  
+    # ==========================
+    def openProject(self):
+        print("Start -> main::openProject(self)")
+        
+        try:
+            # Create a sqLite file if not exists. 
+            if os.path.exists(self._database):
+                
+                # Establish the connection to the self._database file.
+                conn = sqlite.connect(self._database)
+                
+                if conn is not None:
+                    # Check whether table exists or not.
+                    general.checkExistenceOfTables(self._database)
+                    
+                    # Check wether columns exists or not.
+                    general.checkFieldsOfTables(self.database)
+                    
+                    # Reconstruct the tree view for project items. 
+                    self.retriveProjectItems()
+        except sqlite.DatabaseError as e:
+            print("Error occured inn main::openProject(self)")
+            print(str(e))
+            error.ErrorMessageDbConnection(details=str(e), language=self._language)
+            return(None)
+        
+        finally:
+            # Finally set the root path to the text box.
+            if not self.root_directory == None:
+                self.lbl_prj_path.setText(self._root_directory)
+            print("End -> main::openProject(self)")
+    
+    def retriveProjectItems(self):
+        print("Start -> main::retriveProjectItems(self)")
+        
+        # Create a sqLite file if not exists. 
+        try:
+            # Establish the connection to the self._database file.
+            conn = sqlite.connect(self._database)
+            
+            # Exit if connection is not established.
+            if conn == None: return(None)
+            
+            # Create the SQL query for selecting consolidation.
+            sql_con_sel = """SELECT uuid, name, description, id FROM consolidation ORDER BY id"""
+            
+            # Create the SQL query for selecting the consolidation.
+            sql_mat_sel = """SELECT uuid, name, description, id FROM material WHERE con_id=? ORDER by id"""
+            
+            # Instantiate the cursor for query.
+            cur_con = conn.cursor()
+            rows_con = cur_con.execute(sql_con_sel)
+            
+            # Execute the query and get consolidation recursively
+            for row_con in rows_con:
+                # Get attributes from the row.
+                con_uuid = row_con[0]
+                con_name = row_con[1]
+                con_description = row_con[2]
+                
+                print("# Get the consolidation:" + con_uuid)
+                
+                # Convert the NULL value to the empty entry.
+                if con_uuid == None or con_uuid == "NULL": con_uuid = ""
+                if con_name == None or con_name == "NULL": con_name = ""
+                if con_description == None or con_description == "NULL": con_description = ""
+                
+                # Update the tree view.
+                tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
+                tre_prj_con_items.setText(0, con_uuid)
+                tre_prj_con_items.setText(1, con_name)
+                
+                # Instantiate the cursor for query.
+                cur_mat = conn.cursor()
+                rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
+                
+                for row_mat in rows_mat:
+                    # Get attributes from the row.
+                    mat_uuid = row_mat[0]
+                    mat_name = row_mat[1]
+                    mat_description = row_mat[2]
+                    
+                    print("# Get the material:" + mat_uuid)
+                    
+                    # Convert the NULL value to the empty entry.
+                    if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
+                    if mat_name == None or mat_name == "NULL": mat_name = ""
+                    if mat_description == None or mat_description == "NULL": mat_description = ""
+                    
+                    # Update the tree view.
+                    tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
+                    tre_prj_mat_items.setText(0, mat_uuid)
+                    tre_prj_mat_items.setText(1, mat_name)
+                    
+            # Refresh the tree view.
+            self.tre_prj_item.show()
+            
+            # Resize the column header by text length.
+            self.tre_prj_item.resizeColumnToContents(0)
+            self.tre_prj_item.resizeColumnToContents(1)
+            
+            # Select the first entry as the default.
+            self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
+                
+        except sqlite.DatabaseError as e:
+            print("Error occured in main::retriveProjectItems(self)")
+            print(staticmethod(e))
+            error.ErrorMessageDbConnection(str(e.args[0]))
+            return(None)
+        
+        finally:
+            print("End -> main::retriveProjectItems")
+    
     def openConfigDialog(self):
         print("main::openConfigDialog(self)")
         
@@ -453,79 +595,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
-    def retriveProjectItems(self):
-        print("main::retriveProjectItems(self)")
-        
-        # Create a sqLite file if not exists. 
-        try:
-            # Establish the connection to the self._database file.
-            conn = sqlite.connect(self._database)
-            
-            # Exit if connection is not established.
-            if conn == None: return(None)
-            
-            # Create the SQL query for selecting consolidation.
-            sql_con_sel = """SELECT uuid, name, description, id FROM consolidation ORDER BY id"""
-            
-            # Create the SQL query for selecting the consolidation.
-            sql_mat_sel = """SELECT uuid, name, description, id FROM material WHERE con_id=? ORDER by id"""
-            
-            # Instantiate the cursor for query.
-            cur_con = conn.cursor()
-            rows_con = cur_con.execute(sql_con_sel)
-            
-            # Execute the query and get consolidation recursively
-            for row_con in rows_con:
-                # Get attributes from the row.
-                con_uuid = row_con[0]
-                con_name = row_con[1]
-                con_description = row_con[2]
-                
-                # Convert the NULL value to the empty entry.
-                if con_uuid == None or con_uuid == "NULL": con_uuid = ""
-                if con_name == None or con_name == "NULL": con_name = ""
-                if con_description == None or con_description == "NULL": con_description = ""
-                
-                # Update the tree view.
-                tre_prj_con_items = QTreeWidgetItem(self.tre_prj_item)
-                tre_prj_con_items.setText(0, con_uuid)
-                tre_prj_con_items.setText(1, con_name)
-                
-                # Instantiate the cursor for query.
-                cur_mat = conn.cursor()
-                rows_mat = cur_mat.execute(sql_mat_sel, [con_uuid])
-                
-                for row_mat in rows_mat:
-                    # Get attributes from the row.
-                    mat_uuid = row_mat[0]
-                    mat_name = row_mat[1]
-                    mat_description = row_mat[2]
-                    
-                    # Convert the NULL value to the empty entry.
-                    if mat_uuid == None or mat_uuid == "NULL": mat_uuid = ""
-                    if mat_name == None or mat_name == "NULL": mat_name = ""
-                    if mat_description == None or mat_description == "NULL": mat_description = ""
-                    
-                    # Update the tree view.
-                    tre_prj_mat_items = QTreeWidgetItem(tre_prj_con_items)
-                    tre_prj_mat_items.setText(0, mat_uuid)
-                    tre_prj_mat_items.setText(1, mat_name)
-                    
-                # Refresh the tree view.
-                self.tre_prj_item.show()
-                
-                # Resize the column header by text length.
-                self.tre_prj_item.resizeColumnToContents(0)
-                self.tre_prj_item.resizeColumnToContents(1)
-                
-                # Select the first entry as the default.
-                self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
-        except sqlite.DatabaseError as e:
-            print("Error occured in main::retriveProjectItems(self)")
-            print(staticmethod(e))
-            error.ErrorMessageDbConnection(str(e.args[0]))
-            return(None)
-    
     def getTheRootDirectory(self):
         print("main::getTheRootDirectory(self)")
         
@@ -605,48 +674,14 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
     
-    def openProject(self):
-        print("main::openProject(self)")
-        
-        if os.path.exists(self._database):
-            # Create a sqLite file if not exists. 
-            try:
-                # Establish the connection to the self._database file.
-                conn = sqlite.connect(self._database)
-                
-                if conn is not None:
-                    # Check whether table exists or not.
-                    if not general.checkTableExist(self._database, "consolidation"): general.createTableConsolidation(self._database)
-                    if not general.checkTableExist(self._database, "material"): general.createTableMaterial(self._database)
-                    if not general.checkTableExist(self._database, "file"): general.createTableFile(self._database)
-                    if not general.checkTableExist(self._database, "additional_attribute"): general.createTableAdditionalAttribute(self._database)
-                    
-                    # Check wether columns exists or not.
-                    general.checkConsolidationTableFields(self._database)
-                    general.checkMaterialTableFields(self._database)
-                    general.checkFileTableFields(self._database)
-                    general.checkFileTableFields(self._database)
-                    
-                    # Reconstruct the tree view for project items. 
-                    self.retriveProjectItems()
-            except sqlite.DatabaseError as e:
-                print("Error occured inn main::openProject(self)")
-                print(str(e))
-                error.ErrorMessageDbConnection(details=str(e), language=self._language)
-                return(None)
-        
-        # Finally set the root path to the text box.
-        if not self.root_directory == None:
-            self.lbl_prj_path.setText(self._root_directory)
-    
     def showImage(self, img_file_path):
-        print("main::showImage(self," + img_file_path + ")")
-        # 
+        print("Start -> main::showImage(self," + img_file_path + ")")
+        
         try:
             # Check the image file can be displayed directry.
             img_base, img_ext = os.path.splitext(img_file_path)
             img_valid = False
-                        
+            
             for qt_ext in self._qt_image:
                 # Exit loop if extension is matched with Qt supported image.
                 if img_ext.lower() == qt_ext.lower():
@@ -679,6 +714,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
         
+        finally:
+            print("End -> main::showImage")
+        
     def toggleCurrentObjectTab(self):
         print("main::toggleCurrentObjectTab(self)")
         
@@ -707,8 +745,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def toggleCurrentTreeObject(self):
-        print("=========")
-        print("main::toggleCurrentTreeObject(self)")
+        print("Start -> main::toggleCurrentTreeObject(self)")
         
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
@@ -722,6 +759,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         # Clear the information of the previously selected objects.
         self._current_consolidation = None
         self._current_material = None
+        
+        # To clear current view of the material info...
         self.refreshMaterialInfo()
         
         try:
@@ -752,9 +791,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 self._current_material = features.Material(is_new=False, uuid=selected_uuid, dbfile=self._database)
                 self._current_consolidation = features.Consolidation(is_new=False, uuid=self._current_material.consolidation, dbfile=self._database)
                 
-                print(self._current_material.consolidation)
-                print(self._current_consolidation)
-                
                 # Set attributes of the consolidation and the material to the input boxes.
                 self.setConsolidationInfo(self._current_consolidation)
                 self.setMaterialInfo()
@@ -769,10 +805,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-    
-    def toggleCurrentFile(self):
-        print("main::toggleCurrentFile(self)")
-        self.getCurrentFile()
+        finally:
+            print("End -> main::toggleCurrentTreeObject")
     
     def toggleCurrentSourceTab(self):
         print("main::toggleCurrentSource(self)")
@@ -1885,7 +1919,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def refreshMaterialInfo(self):
-        print("main::refreshMaterialInfo(self)")
+        print("Start -> main::refreshMaterialInfo(self)")
         
         try:
             # Change text color for text boxes.
@@ -1913,12 +1947,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
+        print("End -> main::refreshMaterialInfo(self)")
     
     # ==========================
     # File
     # ==========================
     def getCurrentFile(self):
-        print("main::getCurrentFile(self)")
+        print("Start -> main::getCurrentFile(self)")
         
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
@@ -1976,7 +2011,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print("Error occured in main::getCurrentFile(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)    
+            return(None)
+        
+        finally:
+           print("End -> main::getCurrentFile") 
     
     def editImageInformation(self):
         print("main::editImageInformation(self)")
@@ -2494,7 +2532,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
     
     def refreshImageInfo(self):
-        print("main::refreshImageInfo(self)")
+        print("Start -> main::refreshImageInfo(self)")
         
         try:
             # Clear the file list tree view..
@@ -2524,6 +2562,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
+        finally:
+            print("End -> main::refreshImageInfo(self)")
     
     def deleteSelectedFile(self):
         print("main::deleteSelectedFile(self)")
@@ -2750,15 +2790,48 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                                                     con_uuid=con_uuid,
                                                                     mat_uuid=mat_uuid)
             isAccepted = self.dialogJotting.exec_()
-                
-            # Refresh the file list.
-            self.refreshFileList(sop_object)
-
+            
         except Exception as e:
             print("Error occured in main::textEditWithPhoto(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
+        
+        finally:
+            # Refresh the file list.
+            if sop_object.__class__.__name__ == "Consolidation":
+                # Get the Consolidation if the node have no parent.
+                selected_uuid = self._current_consolidation.uuid
+                
+                # Set current objects.
+                self._current_consolidation = features.Consolidation(is_new=False, uuid=selected_uuid, dbfile=self._database)
+                
+                # Set attributes of the consolidation to input boxes.
+                self.setConsolidationInfo(self._current_consolidation)
+                
+                # Set active control tab for consolidation.
+                self.tab_target.setCurrentIndex(0)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_consolidation)
+                self.toggleCurrentSourceTab()
+            elif sop_object.__class__.__name__ == "Material":
+                # Get the Materil if the node have a parent.
+                selected_uuid = self._current_material.uuid
+                
+                # Set current material.
+                self._current_material = features.Material(is_new=False, uuid=selected_uuid, dbfile=self._database)
+                self._current_consolidation = features.Consolidation(is_new=False, uuid=self._current_material.consolidation, dbfile=self._database)
+                
+                # Set attributes of the consolidation and the material to the input boxes.
+                self.setConsolidationInfo(self._current_consolidation)
+                self.setMaterialInfo()
+                # Set active control tab for consolidation.
+                self.tab_target.setCurrentIndex(1)
+                
+                # Set file information of material images.
+                self.refreshFileList(self._current_material)
+                self.toggleCurrentSourceTab()
     
     # ==========================
     # Map processing tools
@@ -3079,7 +3152,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if os.path.exists(img_path):
                     # Chec the extension of the file.
                     ext = os.path.splitext(img_path)[1].lower()
-                    print(ext)
+                    
                     # Cancel if the file extension is not JPEG.
                     if not (ext == ".jpg" or ext == ".jpeg"):
                         # Create error messages.

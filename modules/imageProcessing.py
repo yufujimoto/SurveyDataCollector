@@ -4,22 +4,24 @@
 # import the necessary packages
 import cv2, imutils, argparse, uuid, math, numpy, operator, gphoto2 as gp, colorcorrect.algorithm as cca
 import os, sys, subprocess, tempfile, pipes, getopt, colorsys, exifread, rawpy, imageio
+import pyexiv2, piexif
 
-from pyexiv2 import ImageMetadata
 from sys import argv
 from optparse import OptionParser
 from imutils import perspective, contours
 from PIL import Image, ImageDraw
-from PIL.ExifTags import TAGS, GPSTAGS
+from PIL.ExifTags import TAGS
 from colorcorrect.util import from_pil, to_pil
 
 import modules.error as error
 
 def imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8):
-    print("imageProcessing::imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8)")
+    print("## Reading a image as cv2 object:" + fl_input + " imageProcessing::imread")
+    
     try:
         img_numpy = numpy.fromfile(fl_input, dtype)
         fl_output = cv2.imdecode(img_numpy, flags)
+        
         return fl_output
     except Exception as e:
         print("Error occured in imageProcessing::imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8)")
@@ -28,7 +30,8 @@ def imread(fl_input, flags=cv2.IMREAD_COLOR, dtype=numpy.uint8):
         return None
 
 def imwrite(fl_input, fl_output, params=None):
-    print("imageProcessing::imwrite(fl_input, img, params=None)")
+    print("## Rewrite the "+ fl_input+" with the cv2 object: imageProcessing::imwrite")
+    
     try:
         ext = os.path.splitext(fl_input)[1]
         img_enc, img_numpy = cv2.imencode(ext, fl_output, params)
@@ -69,7 +72,7 @@ def colorize(dir_source, fl_input, fl_output, col_model="colornet.t7"):
         return(None)
 
 def openWithGimp(fl_input):
-    print("imageProcessing::openWithGimp(fl_input)")
+    print("Start -> imageProcessing::openWithGimp(" + fl_input + ")")
     
     try:
         # Define the subprocess for tethered shooting by using gphoto2
@@ -86,9 +89,11 @@ def openWithGimp(fl_input):
         print((str(e)))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("End -> imageProcessing::openWithGimp")
 
 def getMetaInfo(fl_input):
-    print("imageProcessing::getMetaInfo(fl_input)")
+    print("Start -> imageProcessing::getMetaInfo(" + fl_input + ")")
     
     try:
         # Open the image object with read only mode.
@@ -106,6 +111,8 @@ def getMetaInfo(fl_input):
             value = str(org_tags[org_tag])
             
             if org_tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote', 'EXIF UserComment', 'Image PrintIM'):
+                print("### Exif Info:" + key + ":" + value)
+                
                 if str(org_tag) == "EXIF Tag 0x9010":
                     key = "OffsetTime"
                 elif str(org_tag) == "EXIF Tag 0x9011":
@@ -140,9 +147,12 @@ def getMetaInfo(fl_input):
         print((str(e)))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
+    
+    finally:
+        print("End -> imageProcessing::getMetaInfo")
 
 def exifRational(exifTag):
-    print("imageProcessing::exifRational(exifTag)")
+    print("## EXIF tag to string:" + exifTag + ": imageProcessing::exifRational")
     
     try:
         value = None
@@ -162,8 +172,7 @@ def exifRational(exifTag):
         return(None)
 
 def getThumbnail(fl_input):
-    print("imageProcessing::getThumbnail(fl_input)")
-    
+    print("## Getting a thubnail of the RAW: imageProcessing::getThumbnail")
     try:
         # Define the output thumbnail file.
         fl_output = os.path.splitext(fl_input)[0] + ".thumb" + ".jpg"
@@ -189,7 +198,7 @@ def getThumbnail(fl_input):
         return(None)
 
 def enhance(fl_input, fl_output):
-    print("imageProcessing::enhance(fl_input, fl_output)")
+    print("Start -> imageProcessing::enhance(" + fl_input + "," + fl_output + ")")
     
     try:
         # Load input image, and create the output file name.
@@ -220,6 +229,8 @@ def enhance(fl_input, fl_output):
         print((str(e)))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
+    finally:
+        print("End -> imageProcessing::enhance")
     
 def makeMono(fl_input, fl_output):
     print("imageProcessing::makeMono(fl_input, fl_output)")
@@ -328,31 +339,62 @@ def extractInnerFrame(fl_input, fl_output, ratio):
         return(None)
 
 def correctRotaion(fl_input):
-    print("imageProcessing::correctRotaion(fl_input)")
+    print("Start -> imageProcessing::correctRotaion(fl_input)")
     
     try:
-        '''
-        # save the result
-        metadata = ImageMetadata(fl_input)
-        metadata.read()
+        # Get the metadata infomation.
+        tags = getMetaInfo(fl_input)
         
-        # Get the thumbnail of the image from EXIF.
-        thumb = metadata.exif_thumbnail
-        thumb.set_from_file(fl_input)
-        thumb.write_to_file('512_' + "a")
-        thumb.erase()
+        # Get the information about the rotation.
+        if not len(tags) == 0:
+            # Open the image as a PIL object.
+            img = Image.open(fl_input)
+            if "exif" in img.info:
+                # Get the exif object and load them.
+                exif_dict = piexif.load(img.info["exif"])
+                
+                if piexif.ImageIFD.Orientation in exif_dict["0th"]:
+                    # Get the orientation property.
+                    orientation = exif_dict["0th"].pop(piexif.ImageIFD.Orientation)
+                    
+                    # Modify the bug(or error??) to work correctly.
+                    exif_dict['Exif'][41729] = b'1'
+                    
+                    # Rewrite the exif information to "No rotation".
+                    exif_dict['0th'][piexif.ImageIFD.Orientation] = 1
+                    
+                    # Dump the exif tags to update.
+                    exif_bytes = piexif.dump(exif_dict)
+                    
+                    # Rotate image to match with EXIF information.
+                    if orientation == 2:
+                        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+                    elif orientation == 3:
+                        img = img.rotate(180)
+                    elif orientation == 4:
+                        img = img.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+                    elif orientation == 5:
+                        img = img.rotate(-90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
+                    elif orientation == 6:
+                        img = img.rotate(-90, expand=True)
+                    elif orientation == 7:
+                        img = img.rotate(90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
+                    elif orientation == 8:
+                        img = img.rotate(90, expand=True)
+                    
+                    # Rewrite the image with the new image file.
+                    img.save(fl_input, exif=exif_bytes)
+        else:
+            print("### There are no exif information.")
         
-        # Rewrite the thumbnail with corrected image.
-        metadata.write()
-        
-        # Return the output file name.
-        return(True)
-        '''
     except Exception as e:
         print("Error occured in imageProcessing::correctRotaion(in_file)")
         print((str(e)))
         error.ErrorMessageImageProcessing(details=str(e), show=True, language="en")
         return(None)
+    
+    finally:
+        print("End -> imageProcessing::correctRotaion(fl_input)")
 
 def rotation(fl_input, fl_output, angle):
     print("imageProcessing::rotation(fl_input, fl_output, angle)")
@@ -362,7 +404,7 @@ def rotation(fl_input, fl_output, angle):
         img_cv2_input = imread(fl_input)
         
         # grab the dimensions of the image and then determine the center
-        (h, w) = img_cv2_input.shape[:2]
+        (w, h) = img_cv2_input.shape[1::-1]
         (cX, cY) = (w // 2, h // 2)
         
         # grab the rotation matrix (applying the negative of the
@@ -380,7 +422,7 @@ def rotation(fl_input, fl_output, angle):
         M[1, 2] += (nH / 2) - cY
         
         # perform the actual rotation and return the image
-        img_cv2_rot = cv2.warpAffine(img_cv2_input, M, (nW, nH))
+        img_cv2_rot = cv2.warpAffine(img_cv2_input, M, dsize=(nW, nH))
         
         # Save the result.
         imwrite(fl_output, img_cv2_rot)

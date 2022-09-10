@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>863</width>
     <height>601</height>
    </rect>
   </property>
@@ -40,23 +40,10 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="btn_new_txt">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>New</string>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="btn_sav">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="maximumSize">
              <size>
               <width>120</width>
@@ -72,7 +59,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_ocr">
+           <widget class="QPushButton" name="btn_opn_app">
             <property name="maximumSize">
              <size>
               <width>120</width>
@@ -80,7 +67,7 @@
              </size>
             </property>
             <property name="text">
-             <string>OCR</string>
+             <string>Open By</string>
             </property>
             <property name="flat">
              <bool>true</bool>
@@ -88,18 +75,15 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_bar">
+           <widget class="QCheckBox" name="chk_edit">
             <property name="maximumSize">
              <size>
-              <width>120</width>
+              <width>100</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="text">
-             <string>Barcode</string>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
+             <string>Edit Mode</string>
             </property>
            </widget>
           </item>
@@ -116,53 +100,41 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextEdit" name="textEdit"/>
+         <widget class="QComboBox" name="cbx_type">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>Plane Text(*.txt)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Comma Separated Values(*.csv)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Markdown(*.md)</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="textEdit">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="0" rowspan="2">
-    <widget class="QFrame" name="frm_txt_sel">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>370</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_8">
-      <item>
-       <widget class="QLabel" name="lbl_fl_txt">
-        <property name="text">
-         <string>Text Files</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QListWidget" name="lst_txt_fls">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>
@@ -258,6 +230,115 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QFrame" name="frm_txt_sel">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>370</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_8">
+      <item>
+       <widget class="QLabel" name="lbl_fl_txt">
+        <property name="text">
+         <string>Text Files</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="lst_txt_fls">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="btn_new_txt">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>New</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_ocr">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>OCR</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_bar">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Barcode</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="dummy_0001">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

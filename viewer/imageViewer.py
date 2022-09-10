@@ -17,7 +17,7 @@ class ImageViewScene(QGraphicsScene):
         self.__pressedButton = None
  
     def setFile(self, img_path):
-        print("ImageViewScene::setFile(self, img_path)")
+        print("Start -> ImageViewScene::setFile(self, " + img_path + ")")
         
         try:
             # Get the image as QPixmap object.
@@ -39,9 +39,11 @@ class ImageViewScene(QGraphicsScene):
         except Exception as e:
             print("Error in ImageViewScene::setFile(self, img_path)")
             print(str(e))
+        finally:
+            print("End -> ImageViewScene::setFile")
     
     def fitImage(self):
-        print("ImageViewScene::fitImage(self)")
+        print("Start -> ImageViewScene::fitImage(self)")
         
         # Exit if the image is not loaded.
         if not self.__imageItem: return(None)
@@ -73,6 +75,8 @@ class ImageViewScene(QGraphicsScene):
         except Exception as e:
             print("Error in ImageViewScene::fitImage(self)")
             print(str(e))
+        finally:
+            print("End -> ImageViewScene::fitImage(self)")
     
     def mousePressEvent(self, event):
         try:
@@ -90,7 +94,6 @@ class ImageViewScene(QGraphicsScene):
             print(str(e))
     
     def wheelEvent(self, event):
-        print("ImageViewScene::wheelEvent(self,event)")
         # Exit if the image is not loaded.
         if not self.__imageItem: return(None)
         
@@ -103,7 +106,7 @@ class ImageViewScene(QGraphicsScene):
             transform = self.__imageItem.transform()
             localTrs = self.__imageItem.mapFromScene(scene_pos)
             transform.translate(localTrs.x(), localTrs.y()).scale(self.__zoom, self.__zoom).translate(-localTrs.x(), -localTrs.y())
-    
+            
             self.__imageItem.setTransform(transform)
         except Exception as e:
             print("Error in ImageViewScene::mousePressEvent(self, event)")
@@ -166,7 +169,7 @@ class ImageViewer(QGraphicsView):
         self.setScene(scene)
         
     def setFile(self, img_path):
-        print("ImageViewer::setFile(self, img_path):")
+        print("ImageViewer::setFile(self, " + img_path + ")")
         
         try:
             # Set the file and initialyze the scene.
@@ -177,8 +180,6 @@ class ImageViewer(QGraphicsView):
             print(str(e))
         
     def resizeEvent( self, event ):
-        print("ImageViewer::setFile(self, img_path):")
-        
         try:
             # Update the rectangle if the view had resized.
             super( ImageViewer, self ).resizeEvent( event )

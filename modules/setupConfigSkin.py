@@ -64,41 +64,54 @@ def setConfigWindowButtonText(parent):
     if parent.language == "ja":
         # Main menue
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_general), "一般")
+        parent.gbx_general.setTitle("テーマの設定")
+        parent.lbl_lang.setText("言語の設定")
+        parent.lbl_skin.setText("色の設定")
+        parent.lbl_tool_awb.setText("ホワイトバランス")
+        parent.lbl_tool_psp.setText("パンシャープン")
+        parent.lbl_flc_api.setText("APIキー")
+        parent.lbl_flc_sec.setText("Secret")
+        
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_geoinfo), "地理情報")
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_network), "ネットワーク")
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "カメラ接続")
         
         
-        parent.gbx_general.setTitle("テーマの設定")
+        
         parent.gbx_tool.setTitle("ツールの設定")
         parent.gbx_geospatial.setTitle("地理情報")
         parent.gbx_flickr.setTitle("flickrの設定")
         
-        parent.lbl_lang.setText("言語の設定")
-        parent.lbl_skin.setText("色の設定")
         parent.lbl_map_tile.setText("マップタイル")
-        parent.lbl_tool_awb.setText("ホワイトバランス")
-        parent.lbl_tool_psp.setText("パンシャープン")
+        
         
         parent.btn_cam_conn.setText("接続")
         
     elif parent.language == "en":
-        # Main menue
+        # General Tab
         parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_general), "General")
-        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_geoinfo), "Geographic Information")
-        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_network), "Network Settings")
-        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "Camera Connection")
-        
         parent.gbx_general.setTitle("Theme")
-        parent.gbx_tool.setTitle("Algorithm")
-        parent.gbx_geospatial.setTitle("Geospatial")
-        parent.gbx_flickr.setTitle("flickr")
-        
         parent.lbl_lang.setText("Language")
         parent.lbl_skin.setText("Color")
-        parent.lbl_map_tile.setText("map tile")
+        
+        parent.gbx_tool.setTitle("Algorithm")
         parent.lbl_tool_awb.setText("White Balance")
         parent.lbl_tool_psp.setText("Pansharpen")
+        
+        parent.gbx_flickr.setTitle("flickr")
+        parent.lbl_flc_api.setText("API Key")
+        parent.lbl_flc_sec.setText("Secret")
+        
+        # Geography Tab
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_geoinfo), "Geography")
+        parent.gbx_geospatial.setTitle("Geospatial")
+        parent.lbl_map_tile.setText("map tile")
+        
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_network), "Network")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "Camera")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_tesseractocr), "OCR")
+        parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_applications), "Application")
+        
         
         parent.btn_cam_conn.setText("Connect")
 
@@ -167,13 +180,19 @@ def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
         text_border = 'border-style: none; border-width: 0.5px; border-color: #4C4C4C;'
         text_background = "background-color: #6C6C6C;"
         
+        parent.tre_cam.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.lst_lang_available.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.lst_lang_selected.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        
         parent.cbx_lang.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_skin.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_tool_awb.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.cbx_tool_psp.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.cbx_psm.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
         parent.txt_flc_api.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.txt_flc_sec.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
+        parent.tbx_exe_textedit.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         
         parent.cbx_map_tile.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
         parent.txt_proxy.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
