@@ -22,20 +22,20 @@ def activate(ui_main):
     spl_main = QSplitter(Qt.Horizontal)
     spl_main.addWidget(ui_main.frm_left)
     spl_main.addWidget(ui_main.frm_right)
-    
+
     ui_main.frm_main_lay.addWidget(spl_main)
-    
-    # Create the graphic view item.        
+
+    # Create the graphic view item.
     ui_main.graphicsView = viewer.ImageViewer()
     ui_main.graphicsView.setObjectName("graphicsView")
     ui_main.verticalLayout_10.addWidget(ui_main.graphicsView)
-    
+
     # Add a splitter handle between the file list tree and preview screen.
     spl_fl = QSplitter(Qt.Horizontal)
     spl_fl.addWidget(ui_main.frm_fil_info_left)
     spl_fl.addWidget(ui_main.frm_fil_info_right)
     ui_main.frm_fil_info_lay.addWidget(spl_fl)
-    
+
     # Activate actions on the menu bar.
     ui_main.bar_menu.setNativeMenuBar(False)
     ui_main.act_prj_open.triggered.connect(ui_main.getTheRootDirectory)
@@ -50,22 +50,21 @@ def activate(ui_main):
     ui_main.act_exp_xml.triggered.connect(ui_main.exportAsXML)
     ui_main.act_reg_flickr.triggered.connect(ui_main.regFlickrKey)
     ui_main.act_exp_flickr.triggered.connect(ui_main.uploadToFlickr)
-    
+
     ui_main.act_conf.triggered.connect(ui_main.openConfigDialog)
-    
+
     ui_main.act_lan_en.triggered.connect(ui_main.setLangEn)
     ui_main.act_lan_ja.triggered.connect(ui_main.setLangJa)
-    
+
     ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)      # Handle current selection of consolidations and materials.
     ui_main.tre_fls.itemSelectionChanged.connect(ui_main.getCurrentFile)                    # Handle current selection of consolidations and materials.
     
-    ui_main.tab_control.setCurrentIndex(0) # Initialyze the tab for source tree view and camera setting.
     ui_main.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.
     ui_main.tab_src.setCurrentIndex(0)     # Initialyze the tab icons for source media tabs.
-    
+
     ui_main.tab_target.currentChanged.connect(ui_main.toggleCurrentObjectTab)
     ui_main.tab_src.currentChanged.connect(ui_main.toggleCurrentSourceTab)
-    
+
     # Initialyze objects for consolidation
     ui_main.btn_con_add.clicked.connect(ui_main.addConsolidation)         # Activate the adding a consolidation button.
     ui_main.btn_con_update.clicked.connect(ui_main.updateConsolidation)   # Activate the updating the selected consolidation button.
@@ -74,7 +73,7 @@ def activate(ui_main):
     ui_main.btn_con_txt.clicked.connect(ui_main.textEditWithPhoto)        # Activate the jotting a memo of the material button.
     ui_main.btn_con_imp.clicked.connect(ui_main.importExternalData)       # Activate the importing files of the consolidation button.
     ui_main.btn_con_rec.clicked.connect(ui_main.recordWithPhoto)          # Activate the opening recording dialog button.
-    
+
     # Initialyze objects for materials
     ui_main.btn_mat_add.clicked.connect(ui_main.addMaterial)          # Activate the adding a material button.
     ui_main.btn_mat_update.clicked.connect(ui_main.updateMaterial)    # Activate the updating the selected material button.
@@ -83,14 +82,14 @@ def activate(ui_main):
     ui_main.btn_mat_txt.clicked.connect(ui_main.textEditWithPhoto)    # Activate the jotting a memo of the material button.
     ui_main.btn_mat_imp.clicked.connect(ui_main.importExternalData)   # Activate the importing files of the consolidation button.
     ui_main.btn_mat_rec.clicked.connect(ui_main.recordWithPhoto)      # Activate the opening recording dialog button.
-    
+
     # Activate the check boxes for publishing mode.
     ui_main.cbx_fil_pub.setChecked(False)
     ui_main.cbx_fil_pub.clicked.connect(ui_main.updateFile)
     ui_main.cbx_fil_original.clicked.connect(ui_main.toggleShowFileMode)
     ui_main.cbx_fil_deleted.setChecked(False)
     ui_main.cbx_fil_deleted.clicked.connect(ui_main.toggleShowFileMode)
-    
+
     # Activate the image processing functions.
     ui_main.btn_open_gimp.clicked.connect(ui_main.openWithGimp)         # Activate the buttons for opening GIMP.
     ui_main.btn_img_cnt.clicked.connect(ui_main.extractContour)         # Activate the image proccessing tool button of cropping.
@@ -104,29 +103,28 @@ def activate(ui_main):
     ui_main.btn_img_sav.clicked.connect(ui_main.saveImageAs)            # Activating the image processing tool button for export the selected image.
     ui_main.btn_img_awb.clicked.connect(ui_main.adjustWhiteBalance)     # Activating the image processing tool button for adjusting image white balance.
     ui_main.btn_img_col.clicked.connect(ui_main.colorlize)              # Activating the image processing tool button for adjusting image white balance.
-    
+
     # Activate the map functions.
     ui_main.btn_geo_coding.clicked.connect(ui_main.addGeometryByGeocoding)
     ui_main.btn_map_reload.clicked.connect(ui_main.refreshMap)
     ui_main.btn_map_search.clicked.connect(ui_main.searchLocationOnMap)
-    
+
     # Activate the extra functions.
     ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation)  # Activate the editing the file informatin button.
-    
+
     #========================
     # Media player
     #========================
     ui_main.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-    
+
     ui_main.mlt_btn_play.setEnabled(False)
     ui_main.mlt_btn_play.clicked.connect(ui_main.playMedia)
-    
+
     ui_main.mlt_sld_play.setRange(0, 0)
     ui_main.mlt_sld_play.sliderMoved.connect(ui_main.setPosition)
-    
+
     ui_main.mediaPlayer.setVideoOutput(ui_main.mlt_video_widget)
     ui_main.mediaPlayer.stateChanged.connect(ui_main.mediaStateChanged)
     ui_main.mediaPlayer.positionChanged.connect(ui_main.positionChanged)
     ui_main.mediaPlayer.durationChanged.connect(ui_main.durationChanged)
     ui_main.mediaPlayer.error.connect(ui_main.handleError)
-    
