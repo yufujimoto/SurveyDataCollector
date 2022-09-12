@@ -3,6 +3,7 @@
 
 # Import general libraries.
 import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, exifread
+import pytesseract
 
 # Import the library for acquiring file information.
 from stat import *
@@ -47,6 +48,8 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
     def proxy(self, value): self._proxy = value
 
     def __init__(self, parent=None):
+        print("Start -> configuration::__init__(self, parent=None)")
+
         try:
             super(configurationDialog, self).__init__(parent)
             self.setupUi(self)
@@ -57,9 +60,67 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             # Get the parent.
             self._main = parent
 
-            # Refresh camera parameters.
-            self.refreshCameraParameters()
+            # ========================
+            # General Tab
+            # ========================
+            # Language setting.
+            self._language = parent.language
+            print("## Set the UI language as" + parent.language)
+            if self._language == "ja":
+                self.cbx_thm_lang.setCurrentIndex(0)
+            elif self._language == "en":
+                self.cbx_thm_lang.setCurrentIndex(1)
 
+            # Skin color setting.
+            self._skin = parent.skin
+            print("## Set the UI theme as" + self._skin)
+            if self._skin == "grey":
+                self.cbx_skin.setCurrentIndex(0)
+            elif self._skin == "white":
+                self.cbx_skin.setCurrentIndex(1)
+            # Apply skin to the window.
+            self.setSkin(parent.icon_directory)
+
+            # Set default auto white balance algorithms.
+            print("## Set the algorithm for Auto White Balance as " + parent._awb_algo)
+            if parent._awb_algo == "retinex_adjusted": self.cbx_tool_awb.setCurrentIndex(0)
+            elif parent._awb_algo == "stretch": self.cbx_tool_awb.setCurrentIndex(1)
+            elif parent._awb_algo == "gray_world": self.cbx_tool_awb.setCurrentIndex(2)
+            elif parent._awb_algo == "max_white": self.cbx_tool_awb.setCurrentIndex(3)
+            elif parent._awb_algo == "retinex": self.cbx_tool_awb.setCurrentIndex(4)
+            elif parent._awb_algo == "stdev_luminance": self.cbx_tool_awb.setCurrentIndex(5)
+            elif parent._awb_algo == "stdev_grey_world": self.cbx_tool_awb.setCurrentIndex(6)
+            elif parent._awb_algo == "luminance_weighted": self.cbx_tool_awb.setCurrentIndex(7)
+            elif parent._awb_algo == "automatic": self.cbx_tool_awb.setCurrentIndex(8)
+            else: print("### Invalid AWB algorithm"); self.cbx_tool_awb.setCurrentIndex(0)
+
+            # Set default pan-sharpening algorithms.
+            print("## Set the algorithm for Pan-Sharpening as " + parent.psp_algo)
+            if parent.psp_algo == "ihsConvert": self.cbx_tool_psp.setCurrentIndex(0)
+            elif parent.psp_algo == "simpleMeanConvert": self.cbx_tool_psp.setCurrentIndex(1)
+            elif parent.psp_algo == "broveyConvert": self.cbx_tool_psp.setCurrentIndex(2)
+            else: print("### Invalid PSP algorithm"); self.cbx_tool_psp.setCurrentIndex(0)
+
+            #Default application setting.
+            print("## Set the default text editor as " + parent.app_textEdit)
+            self.tbx_exe_textedit.setText(parent.app_textEdit)
+
+            # Set the Proxy setting.
+            self._proxy = parent.proxy
+
+            if parent.proxy == "No Proxy":
+                self.proxySettingsFalse()
+                print("## No Proxy settings")
+            else:
+                self.proxySettingsTrue()
+                self.txt_proxy.setText(self._proxy)
+                print("## HTTP_PROXY: " + self._proxy)
+
+            # ========================
+            # Camera setting Tab
+            # ========================
+            # Initialize camera parameters.
+            print("## Set the camera")
             if not parent.current_camera == None:
                 # Set the current camera.
                 cam_nam = parent.current_camera.camera_name
@@ -67,6 +128,7 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
 
                 # Set the current camera name.
                 self.lbl_cur_cam_nam.setText(cam_nam + " (" + cam_prt + ")")
+                print('### Currently ' + cam_nam + " (" + cam_prt + ")" + " is connected.")
 
                 # Set parameters to comboboxes.
                 if not parent.current_camera.imagesize == None:
@@ -88,18 +150,24 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 if not parent.current_camera.capturemode == None:
                     self.setCamParamCbx(self.cbx_cam_cpt, parent.current_camera.capturemode)
             else:
+                # Refresh camera parameters.
+                self.refreshCameraParameters()
+
+                # Set no camear informaiton.
                 self.lbl_cur_cam_nam.setText("Currently, no camera is connected...")
+                print("### Currently, no camera is connected...")
 
             # Detect the cameras automatically and listing up them.
             camera_list = list(gp.Camera.autodetect())
             if not camera_list:
-                print('No camera detected')
-
+                print('### None of camera detected')
             else:
+                # Get the list of connected cameras.
                 camera_list.sort(key=lambda x: x[0])
 
                 # Add each camera to the camera list.
                 for index, (name, addr) in enumerate(camera_list):
+                    print("#### New Camera, " + name + "(" + addr + ") is detected...")
                     tre_cam_item_ = QTreeWidgetItem(self.tre_cam)
                     tre_cam_item_.setText(0, addr)
                     tre_cam_item_.setText(1, name)
@@ -108,70 +176,73 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 self.tre_cam.resizeColumnToContents(0)
                 self.tre_cam.resizeColumnToContents(1)
 
-            # Set the dialog button size.
-            dlg_btn_size = QSize(125, 30)
-            self.bbx_conf_res.buttons()[0].setMinimumSize(dlg_btn_size)
-            self.bbx_conf_res.buttons()[1].setMinimumSize(dlg_btn_size)
+            # ========================
+            # OCR setting Tab
+            # ========================
+            # Set the Page Segmentation Mode.
+            print("## Set the OCR parameter of the Page Segmentation Mode as " + str(int(parent.ocr_psm)+1))
+            self.cbx_psm.setCurrentIndex(int(parent.ocr_psm)+1)
 
-            self._language = parent.language
-            self._skin = parent.skin
+            # Get OCR languages.
+            print("## Set the OCR languages")
+            ocr_langs_ave = pytesseract.get_languages(config='')
+            ocr_langs_use = parent.ocr_lang.split("+")
 
-            if self._language == "ja":
-                self.cbx_thm_lang.setCurrentIndex(0)
-            elif self._language == "en":
-                self.cbx_thm_lang.setCurrentIndex(1)
+            for ocr_lang_use in ocr_langs_use:
+                print("### Currently " + ocr_lang_use + " is selected as OCR language...")
+                ocr_langs_ave.remove(ocr_lang_use)
 
-            if self._skin == "grey":
-                self.cbx_skin.setCurrentIndex(0)
-            elif self._skin == "white":
-                self.cbx_skin.setCurrentIndex(1)
+                ocr_lng_use_item = QListWidgetItem(ocr_lang_use)
+                self.lst_lang_selected.addItem(ocr_lng_use_item)
+            for ocr_lang_ave in ocr_langs_ave:
+                print("### Currently " + ocr_lang_ave + " is available...")
+                ocr_lng_ave_item = QListWidgetItem(ocr_lang_ave)
+                self.lst_lang_available.addItem(ocr_lng_ave_item)
 
-            # Set default auto white balance algorithms.
-            if parent._awb_algo == "retinex_adjusted": self.cbx_tool_awb.setCurrentIndex(0)
-            elif parent._awb_algo == "stretch": self.cbx_tool_awb.setCurrentIndex(1)
-            elif parent._awb_algo == "gray_world": self.cbx_tool_awb.setCurrentIndex(2)
-            elif parent._awb_algo == "max_white": self.cbx_tool_awb.setCurrentIndex(3)
-            elif parent._awb_algo == "retinex": self.cbx_tool_awb.setCurrentIndex(4)
-            elif parent._awb_algo == "stdev_luminance": self.cbx_tool_awb.setCurrentIndex(5)
-            elif parent._awb_algo == "stdev_grey_world": self.cbx_tool_awb.setCurrentIndex(6)
-            elif parent._awb_algo == "luminance_weighted": self.cbx_tool_awb.setCurrentIndex(7)
-            elif parent._awb_algo == "automatic": self.cbx_tool_awb.setCurrentIndex(8)
-
-            # Set default pan-sharpening algorithms.
-            if parent.psp_algo == "ihsConvert": self.cbx_tool_psp.setCurrentIndex(0)
-            elif parent.psp_algo == "simpleMeanConvert": self.cbx_tool_psp.setCurrentIndex(1)
-            elif parent.psp_algo == "broveyConvert": self.cbx_tool_psp.setCurrentIndex(2)
-
+            # ========================
+            # Third party service setting Tab
+            # ========================
+            print("## Set the back gound map for Geospatial data.")
             if parent.map_tile == "OpenStreetMap": self.cbx_map_tile.setCurrentIndex(0)
             elif parent.map_tile == "Google Streets": self.cbx_map_tile.setCurrentIndex(1)
             elif parent.map_tile == "Google Hybrid": self.cbx_map_tile.setCurrentIndex(2)
             elif parent.map_tile == "Google Satellite": self.cbx_map_tile.setCurrentIndex(3)
             elif parent.map_tile == "Google Terrain": self.cbx_map_tile.setCurrentIndex(4)
             elif parent.map_tile == u"地理院タイル": self.cbx_map_tile.setCurrentIndex(5)
+            else: parent.map_tile = "OpenStreetMap"
+            print("### " + parent.map_tile + " is set to the default.")
 
-            self._proxy = parent.proxy
+            # Set Flickr API and Secret Key.
+            if not parent.flickr_apikey == None:
+                print("## Set the Flickr API: " + parent.flickr_apikey)
+                self.txt_flc_api.setText(parent.flickr_apikey)
+            if not parent.flickr_secret == None:
+                print("## Set the Flickr API: **********")
+                self.txt_flc_sec.setText(parent.flickr_secret)
 
+            # ========================
+            # Activate UI objects.
+            # ========================
             self.rbtn_proxy.clicked.connect(self.proxySettingsTrue)
             self.rbtn_no_proxy.clicked.connect(self.proxySettingsFalse)
             self.btn_cam_conn.clicked.connect(self.detectCamera)
 
-            if parent.proxy == "No Proxy":
-                self.proxySettingsFalse()
-            else:
-                self.proxySettingsTrue()
-
-            # Set Flickr API and Secret Key.
-            self.txt_flc_api.setText(parent.flickr_apikey)
-            self.txt_flc_sec.setText(parent.flickr_secret)
-
-            # Apply skin to the window.
-            self.setSkin(parent.icon_directory)
+            # Set the dialog button size.
+            dlg_btn_size = QSize(125, 30)
+            self.bbx_conf_res.buttons()[0].setMinimumSize(dlg_btn_size)
+            self.bbx_conf_res.buttons()[1].setMinimumSize(dlg_btn_size)
 
         except Exception as e:
+            print("Error occured in configuration::__init__(self, parent=None)")
             print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+
+        finally:
+            print("End -> configuration::__init__")
 
     def refreshCameraParameters(self):
-        print("configuration::refreshCameraParameters(self)")
+        print("## configuration::refreshCameraParameters(self)")
 
         try:
             # Clear comboboxes for camera parameters.
@@ -186,58 +257,61 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             self.cbx_cam_cpt.clear()
             self.cbx_cam_met.clear()
         except Exception as e:
-            print("Error occured in main::refreshCameraParameters(self)")
+            print("Error occured in configuration::refreshCameraParameters(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
     def setSkin(self, icon_path):
-        print("configuration::setSkin(self, icon_path)")
-
+        print("Start -> configuration::setSkin(self, icon_path)")
         try:
             # Apply the new skin.
             setupConfigSkin.applyConfigWindowSkin(self, icon_path, skin=self._skin)
             setupConfigSkin.setConfigWindowButtonText(self)
 
-            # Set the tool tips with the specific language.
-            #setupConfigSkin.setMainWindowToolTips(self)
         except Exception as e:
             print("Error occured in configuration::setSkin(self, icon_path)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
+        finally:
+            print("End -> configuration::setSkin")
+
     def proxySettingsTrue(self):
-        print("configuration::toggleProxySettingsTrue(self)")
+        print("# Set Proxy as True.")
 
         try:
             self.rbtn_proxy.setChecked(True)
+            self.rbtn_no_proxy.setChecked(False)
 
             self.txt_proxy.setEnabled(True)
-            self.txt_proxy.setText(self._proxy)
+            self.txt_proxy.setText("")
+
         except Exception as e:
-            print("Error occured in configuration::setSkin(self, icon_path)")
+            print("Error occured in configuration::proxySettingsTrue(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
     def proxySettingsFalse(self):
-        print("configuration::toggleProxySettingsFalse(self)")
+        print("# Set Proxy as False.")
 
         try:
             self.rbtn_no_proxy.setChecked(True)
+            self.rbtn_proxy.setChecked(False)
 
             self.txt_proxy.setEnabled(False)
             self.txt_proxy.setText("No Proxy")
 
         except Exception as e:
-            print("Error occured in configuration::setSkin(self, icon_path)")
+            print("Error occured in configuration::proxySettingsFalse(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
     def detectCamera(self):
-        print("configuration::detectCamera(self)")
+        print("Start -> configuration::detectCamera(self)")
 
         try:
             parent = self._main
@@ -300,15 +374,19 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
 
         except Exception as e:
-            print("Error occured in main::detectCamera(self)")
+            print("Error occured in configuration::detectCamera(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)
 
+        finally:
+            print("Start -> configuration::detectCamera")
+
     def setCamParamCbx(self, cbx, param):
-        print("configuration::setCamParamCbx(self)")
         # Clear the combobox.
         cbx.clear()
+
+        current = "Not selected..."
 
         try:
             # Add the first position for the combobox as the current value.
@@ -322,7 +400,10 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
 
                 cbx.addItem(opt_txt)
         except Exception as e:
-            print("Error occured in main::setCamParamCbx(self)")
+            print("Error occured in configuration::setCamParamCbx(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)
+
+        finally:
+            print("#### Camera Prameter:" + current + ": configuration::setCamParamCbx")

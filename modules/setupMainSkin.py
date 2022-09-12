@@ -668,6 +668,14 @@ def applyMainWindowSkin(parent, icon_path="", skin="grey"):
             parent.btn_mat_take.setFont(font)
             parent.btn_mat_update.setFont(font)
             parent.btn_open_gimp.setFont(font)
+
+            # Set Check box style
+            check_on = "QCheckBox::indicator:unchecked {image: url(" + os.path.join(icon_path,"check_off_s.png") + ");}\n"
+            check_off = "QCheckBox::indicator:checked {image: url(" + os.path.join(icon_path,"check_on_s.png") + ");}"
+            parent.cbx_fil_deleted.setStyleSheet(check_off + check_on)
+            parent.cbx_fil_original.setStyleSheet(check_off + check_on)
+            parent.cbx_fil_pub.setStyleSheet(check_off + check_on)
+            parent.cbx_fil_edit.setStyleSheet(check_off + check_on)
     except Exception as e:
             print("Error occured in applyMainWindowSkin(parent, icon_path="", skin='grey')")
             print(str(e))

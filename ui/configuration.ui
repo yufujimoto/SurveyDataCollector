@@ -100,7 +100,7 @@
              <item>
               <layout class="QHBoxLayout" name="lay_h_thm_skin">
                <item>
-                <widget class="QLabel" name="lbl_skin">
+                <widget class="QLabel" name="lbl_thm_skin">
                  <property name="minimumSize">
                   <size>
                    <width>150</width>
@@ -336,18 +336,6 @@
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QToolButton" name="btn_browse_textedit">
-                 <property name="font">
-                  <font>
-                   <kerning>true</kerning>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>...</string>
-                 </property>
-                </widget>
-               </item>
               </layout>
              </item>
             </layout>
@@ -360,29 +348,21 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <property name="spacing">
-              <number>10</number>
+              <number>0</number>
              </property>
              <item>
-              <widget class="QRadioButton" name="rbtn_no_proxy">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <property name="topMargin">
+                <number>10</number>
                </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>NO PRO&amp;XY</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
+               <item>
+                <widget class="QCheckBox" name="rbtn_no_proxy">
+                 <property name="text">
+                  <string>NO PROXY</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -395,21 +375,9 @@
                   <number>6</number>
                  </property>
                  <item>
-                  <widget class="QRadioButton" name="rbtn_proxy">
-                   <property name="minimumSize">
-                    <size>
-                     <width>100</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>30</height>
-                    </size>
-                   </property>
+                  <widget class="QCheckBox" name="rbtn_proxy">
                    <property name="text">
-                    <string>HTTP PROX&amp;Y</string>
+                    <string>HTT_PROXY</string>
                    </property>
                   </widget>
                  </item>
@@ -929,73 +897,8 @@
                <item>
                 <widget class="QComboBox" name="cbx_psm">
                  <property name="currentIndex">
-                  <number>10</number>
+                  <number>-1</number>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>0:Orientation and script detection (OSD) only.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2:Automatic page segmentation, but no OSD, or OCR. </string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3:Fully automatic page segmentation, but no OSD. </string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>4:Assume a single column of text of variable sizes.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>5:Assume a single uniform block of vertically aligned text.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>6:Assume a single uniform block of text. </string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>7:Treat the image as a single text line.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>8:Treat the image as a single word.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>9:Treat the image as a single word in a circle. </string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>10:Treat the image as a single character.</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>11:Sparse text. Find as much text as possible in no particular order. (Default)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>12:Sparse text with OSD. </string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>13:Raw line. Treat the image as a single text line,bypassing hacks that are Tesseract-specific. </string>
-                  </property>
-                 </item>
                 </widget>
                </item>
               </layout>
@@ -1004,7 +907,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="grp_lang">
+           <widget class="QGroupBox" name="grp_ocr_lang">
             <property name="title">
              <string>使用言語</string>
             </property>
@@ -1031,7 +934,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QListView" name="lst_lang_available"/>
+                <widget class="QListWidget" name="lst_lang_available"/>
                </item>
               </layout>
              </item>
@@ -1041,7 +944,7 @@
                 <number>0</number>
                </property>
                <item>
-                <widget class="QPushButton" name="pushButton_2">
+                <widget class="QPushButton" name="btn_ocr_lang_on">
                  <property name="minimumSize">
                   <size>
                    <width>20</width>
@@ -1055,7 +958,7 @@
                   </size>
                  </property>
                  <property name="text">
-                  <string>-&gt;</string>
+                  <string/>
                  </property>
                  <property name="flat">
                   <bool>true</bool>
@@ -1063,7 +966,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton">
+                <widget class="QPushButton" name="btn_ocr_lang_off">
                  <property name="minimumSize">
                   <size>
                    <width>20</width>
@@ -1077,7 +980,7 @@
                   </size>
                  </property>
                  <property name="text">
-                  <string>&lt;-</string>
+                  <string/>
                  </property>
                  <property name="flat">
                   <bool>true</bool>
@@ -1105,7 +1008,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QListView" name="lst_lang_selected"/>
+                <widget class="QListWidget" name="lst_lang_selected"/>
                </item>
               </layout>
              </item>
@@ -1113,7 +1016,7 @@
            </widget>
           </item>
          </layout>
-         <zorder>grp_lang</zorder>
+         <zorder>grp_ocr_lang</zorder>
          <zorder>grp_ocr</zorder>
         </widget>
         <widget class="QWidget" name="tab_thirdparty">
@@ -1258,6 +1161,16 @@
               </layout>
              </item>
             </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="dummy_0001">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
            </widget>
           </item>
          </layout>
