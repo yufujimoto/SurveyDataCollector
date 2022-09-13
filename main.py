@@ -417,17 +417,26 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 # Apply pansharpening algorithm
                 self._psp_algo = self.dialog_Config.cbx_tool_psp.currentText()
 
-                # Apply map tile source.
-                self._map_tile = self.dialog_Config.cbx_map_tile.currentText()
-                self.setDefaultMap()
+                # Apply default text editor.
+                self._app_textEdit = self.dialog_Config.tbx_exe_textedit.text()
 
                 # Apply proxy setting.
-                self._proxy = self.dialog_Config.txt_proxy.text()
-                self.setProxy()
+                proxy_setting = self.dialog_Config.txt_proxy.text()
+                if proxy_setting == "No Proxy" or proxy_setting == "":
+                    proxy_setting = "No Proxy"
+                self._proxy = proxy_setting
+                self.setProxy(self.dialog_Config.txt_proxy.text())
+
+                print(self.dialog_Config.cbx_psm.currentText())
+                #print(self.dialog_Config.lst_lang_selected)
 
                 # Apply Flickr setting.
                 self._flickr_apikey = self.dialog_Config.txt_flc_api.text()
                 self._flickr_secret = self.dialog_Config.txt_flc_sec.text()
+
+                # Apply map tile source.
+                self._map_tile = self.dialog_Config.cbx_map_tile.currentText()
+                self.setDefaultMap()
 
                 # Save the current setting.
                 general.changeConfig(self)
