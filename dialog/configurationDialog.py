@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/git/SurveyDataCollector/ui/configuration.ui'
+# Form implementation generated from reading ui file '/home/yfujimoto/git/SurveyDataCollector/ui/configuration.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -182,6 +182,9 @@ class Ui_configurationDialog(object):
         self.lbl_cur_cam_nam.setIndent(0)
         self.lbl_cur_cam_nam.setObjectName("lbl_cur_cam_nam")
         self.verticalLayout_9.addWidget(self.lbl_cur_cam_nam)
+        self.btn_cam_detect = QtWidgets.QPushButton(self.frm_cam_list)
+        self.btn_cam_detect.setObjectName("btn_cam_detect")
+        self.verticalLayout_9.addWidget(self.btn_cam_detect)
         self.tre_cam = QtWidgets.QTreeWidget(self.frm_cam_list)
         self.tre_cam.setObjectName("tre_cam")
         self.verticalLayout_9.addWidget(self.tre_cam)
@@ -515,6 +518,7 @@ class Ui_configurationDialog(object):
         self.tab_conf_main.setTabText(self.tab_conf_main.indexOf(self.tab_general), _translate("configurationDialog", "一般"))
         self.lbl_cur_cam.setText(_translate("configurationDialog", "Current Camera:"))
         self.lbl_cur_cam_nam.setText(_translate("configurationDialog", "No Camera"))
+        self.btn_cam_detect.setText(_translate("configurationDialog", "カメラの検出"))
         self.tre_cam.headerItem().setText(0, _translate("configurationDialog", "port"))
         self.tre_cam.headerItem().setText(1, _translate("configurationDialog", "name"))
         self.btn_cam_conn.setText(_translate("configurationDialog", "接続"))

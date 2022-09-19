@@ -87,6 +87,7 @@ def setConfigWindowButtonText(parent):
             print("### camera Tab...")
             parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "カメラ接続")
             parent.btn_cam_conn.setText("接続")
+            parent.btn_cam_detect.setText("カメラの検出")
 
             parent.lbl_cur_cam.setText("接続中：")
             parent.lbl_cur_cam_nam.setText("接続されていません")
@@ -159,6 +160,7 @@ def setConfigWindowButtonText(parent):
             print("### Camera Tab...")
             parent.tab_conf_main.setTabText(parent.tab_conf_main.indexOf(parent.tab_camera), "Camera")
             parent.btn_cam_conn.setText("Connect")
+            parent.btn_cam_detect.setText("Detect Cameras")
 
             parent.lbl_cur_cam.setText("Current Camera:")
             parent.lbl_cur_cam_nam.setText("No Camera selected...")
@@ -216,6 +218,7 @@ def setConfigWindowIcons(parent, icon_path):
     print("## setupConfigSkin::setConfigWindowIcons(parent, icon_path)")
 
     try:
+        # Set the skin and icon.
         icon_size = getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
@@ -229,6 +232,9 @@ def setConfigWindowIcons(parent, icon_path):
 
         parent.btn_ocr_lang_on.setIcon(getIconFromPath(os.path.join(icon_path, 'to_right.png')))
         parent.btn_ocr_lang_on.setIconSize(qicon_size)
+
+        parent.btn_cam_conn.setIcon(getIconFromPath(os.path.join(icon_path, 'network.png')))
+        parent.btn_cam_detect.setIcon(getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
 
         # Set the skin and icon.
         parent.bbx_conf_res.buttons()[0].setIcon(getIconFromPath(os.path.join(icon_path, 'check.png')))

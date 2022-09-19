@@ -117,6 +117,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     @property
     def psp_algo(self): return self._psp_algo
     @property
+    def ocr_lang_available(self): return self._ocr_lang_available
+    @property
     def ocr_lang(self): return self._ocr_lang
     @property
     def ocr_psm(self): return self._ocr_psm
@@ -185,6 +187,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def awb_algo(self, value): self._awb_algo = value
     @psp_algo.setter
     def psp_algo(self, value): self._psp_algo = value
+    @ocr_lang_available.setter
+    def ocr_lang_available(self, value): self._ocr_lang_available = value
     @ocr_lang.setter
     def ocr_lang(self, value): self._ocr_lang = value
     @ocr_psm.setter
@@ -395,6 +399,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("main::openConfigDialog(self)")
 
         try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+
             # Initialize the configuration dialog.
             self.dialog_Config = configurationDialog.configurationDialog(parent=self)
 
@@ -425,10 +432,17 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 if proxy_setting == "No Proxy" or proxy_setting == "":
                     proxy_setting = "No Proxy"
                 self._proxy = proxy_setting
-                self.setProxy(self.dialog_Config.txt_proxy.text())
+                self.setProxy()
 
-                print(self.dialog_Config.cbx_psm.currentText())
-                #print(self.dialog_Config.lst_lang_selected)
+                # Apply OCR page Segmentation Mode.
+                self._ocr_psm = str(int(self.dialog_Config.cbx_psm.currentText().split(":")[0])-1)
+
+                # Apply OCR languages.
+                if not self.dialog_Config.lst_lang_selected == None:
+                    if self.dialog_Config.lst_lang_selected.count() > 0:
+                        ocr_langs = [str(self.dialog_Config.lst_lang_selected.item(i).text()) for i in range(self.dialog_Config.lst_lang_selected.count())]
+                        self._ocr_lang = "+".join(ocr_langs)
+                print(self._ocr_lang)
 
                 # Apply Flickr setting.
                 self._flickr_apikey = self.dialog_Config.txt_flc_api.text()
@@ -2700,25 +2714,27 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.mediaPlayer.play()
 
     def mediaStateChanged(self, state):
-        print("main::mediaStateChanged(self, " + state + ")")
+        print("main::mediaStateChanged(self, state)")
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             setupMainSkin.setPauseButtonIcon(icon_path=self._icon_directory, btn_pause=self.mlt_btn_play, skin=self._skin)
         else:
             setupMainSkin.setPlayingIcon(icon_path=self._icon_directory, btn_play=self.mlt_btn_play, skin=self._skin)
 
     def positionChanged(self, position):
-        print("main::positionChanged(self, " + state + ")")
+        print("main::positionChanged(self, state)")
         self.mlt_sld_play.setValue(position)
 
     def durationChanged(self, duration):
+        print("main::durationChanged(self, duration)")
         self.mlt_sld_play.setRange(0, duration)
 
     def setPosition(self, position):
+        print("main::setPosition(self, position)")
         self.mediaPlayer.setPosition(position)
 
     def handleError(self):
+        print("main::setPosition(self, handleError)")
         self.mlt_btn_play.setEnabled(False)
-
         e = self.mediaPlayer.errorString()
 
         print("Error occured in main::openMultimediaFile(self)")
@@ -3959,8 +3975,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.dialog_camera = cameraSelectDialog.SelectCameraDialog(self)
             if self.dialog_camera.exec_() == True:
                 # Set the selected camera as the current
-                # self._current_camera = self.dialog_camera.camera
-
                 cam_name = self.dialog_camera.camera_name
                 cam_port = self.dialog_camera.camera_port
 

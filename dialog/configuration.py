@@ -157,21 +157,6 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 self.lbl_cur_cam_nam.setText("Currently, no camera is connected...")
                 print("### Currently, no camera is connected...")
 
-            # Detect the cameras automatically and listing up them.
-            camera_list = list(gp.Camera.autodetect())
-            if not camera_list:
-                print('### None of camera detected')
-            else:
-                # Get the list of connected cameras.
-                camera_list.sort(key=lambda x: x[0])
-
-                # Add each camera to the camera list.
-                for index, (name, addr) in enumerate(camera_list):
-                    print("#### New Camera, " + name + "(" + addr + ") is detected...")
-                    tre_cam_item_ = QTreeWidgetItem(self.tre_cam)
-                    tre_cam_item_.setText(0, addr)
-                    tre_cam_item_.setText(1, name)
-
                 # Resize the header width with contents.
                 self.tre_cam.resizeColumnToContents(0)
                 self.tre_cam.resizeColumnToContents(1)
@@ -185,7 +170,7 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
 
             # Get OCR languages.
             print("## Set the OCR languages")
-            ocr_langs_ave = pytesseract.get_languages(config='')
+            ocr_langs_ave = parent.ocr_lang_available.split("+")
             ocr_langs_use = parent.ocr_lang.split("+")
 
             for ocr_lang_use in ocr_langs_use:
@@ -225,7 +210,10 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             # ========================
             self.rbtn_proxy.clicked.connect(self.proxySettingsTrue)
             self.rbtn_no_proxy.clicked.connect(self.proxySettingsFalse)
-            self.btn_cam_conn.clicked.connect(self.detectCamera)
+            self.btn_cam_conn.clicked.connect(self.connectCamera)
+            self.btn_cam_detect.clicked.connect(self.detectCamera)
+            self.btn_ocr_lang_on.clicked.connect(self.addOcrLanguage)
+            self.btn_ocr_lang_off.clicked.connect(self.removeOcrLanguage)
 
             # Set the dialog button size.
             dlg_btn_size = QSize(125, 30)
@@ -310,8 +298,71 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
+    def addOcrLanguage(self):
+        try:
+            selected = self.lst_lang_available.selectedItems()
+            for selection in selected:
+                ocr_lng_use_item = QListWidgetItem(selection)
+                self.lst_lang_selected.addItem(ocr_lng_use_item)
+                self.lst_lang_available.takeItem(self.lst_lang_available.row(selection))
+        except Exception as e:
+            print("Error occured in configuration::addOcrLanguage")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+        finally:
+            print("## Add an OCR language.")
+
+    def removeOcrLanguage(self):
+        try:
+            selected = self.lst_lang_selected.selectedItems()
+            for selection in selected:
+                ocr_lng_ave_item = QListWidgetItem(selection)
+                self.lst_lang_available.addItem(ocr_lng_ave_item)
+                self.lst_lang_selected.takeItem(self.lst_lang_selected.row(selection))
+        except Exception as e:
+            print("Error occured in configuration::removeOcrLanguage")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+        finally:
+            print("## Remove an OCR language.")
+
     def detectCamera(self):
         print("Start -> configuration::detectCamera(self)")
+
+        # Clear Camera list.
+        self.tre_cam.clear()
+
+        # Refresh camera parameters.
+        self.refreshCameraParameters()
+
+        try:
+            # Detect the cameras automatically and listing up them.
+            camera_list = list(gp.Camera.autodetect())
+            if not camera_list:
+                print('### None of camera detected')
+            else:
+                # Get the list of connected cameras.
+                camera_list.sort(key=lambda x: x[0])
+
+                # Add each camera to the camera list.
+                for index, (name, addr) in enumerate(camera_list):
+                    print("#### New Camera, " + name + "(" + addr + ") is detected...")
+                    tre_cam_item_ = QTreeWidgetItem(self.tre_cam)
+                    tre_cam_item_.setText(0, addr)
+                    tre_cam_item_.setText(1, name)
+        except Exception as e:
+            print("Error occured in configuration::detectCamera(self)")
+            print(str(e))
+            error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
+            return(None)
+
+        finally:
+            print("End -> configuration::connectCamera")
+
+    def connectCamera(self):
+        print("Start -> configuration::connectCamera(self)")
 
         try:
             parent = self._main
@@ -361,7 +412,11 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 if not parent.current_camera.capturemode == None:
                     self.setCamParamCbx(self.cbx_cam_cpt, parent.current_camera.capturemode)
 
-                print("Camera successfully detected.")
+                print("## Camera successfully connected.")
+
+                # Set the current camera name.
+                self.lbl_cur_cam_nam.setText(cam_name + " (" + cam_port + ")")
+                print('## Currently ' + cam_name + " (" + cam_port + ")" + " is connected.")
 
             else:
                 error_title = "No camera is selected."
@@ -374,13 +429,13 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
                 general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
 
         except Exception as e:
-            print("Error occured in configuration::detectCamera(self)")
+            print("Error occured in configuration::connectCamera(self)")
             print(str(e))
             error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
             return(None)
 
         finally:
-            print("Start -> configuration::detectCamera")
+            print("End -> configuration::connectCamera")
 
     def setCamParamCbx(self, cbx, param):
         # Clear the combobox.

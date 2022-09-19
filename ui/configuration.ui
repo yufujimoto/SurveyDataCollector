@@ -468,6 +468,13 @@
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="btn_cam_detect">
+               <property name="text">
+                <string>カメラの検出</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QTreeWidget" name="tre_cam">
                <column>
                 <property name="text">
