@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/git/SurveyDataCollector/ui/cameraSelectDialog.ui'
+# Form implementation generated from reading ui file '/home/yfujimoto/git/SurveyDataCollector/ui/cameraSelectDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -17,14 +17,17 @@ class Ui_CameraSelectDialog(object):
         CameraSelectDialog.resize(400, 300)
         self.gridLayout = QtWidgets.QGridLayout(CameraSelectDialog)
         self.gridLayout.setObjectName("gridLayout")
-        self.tre_cam = QtWidgets.QTreeWidget(CameraSelectDialog)
-        self.tre_cam.setObjectName("tre_cam")
-        self.gridLayout.addWidget(self.tre_cam, 0, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(CameraSelectDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
-        self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.buttonBox, 2, 0, 1, 1)
+        self.tre_cam = QtWidgets.QTreeWidget(CameraSelectDialog)
+        self.tre_cam.setObjectName("tre_cam")
+        self.gridLayout.addWidget(self.tre_cam, 0, 0, 1, 1)
+        self.btn_cam_detect = QtWidgets.QPushButton(CameraSelectDialog)
+        self.btn_cam_detect.setObjectName("btn_cam_detect")
+        self.gridLayout.addWidget(self.btn_cam_detect, 1, 0, 1, 1)
 
         self.retranslateUi(CameraSelectDialog)
         self.buttonBox.accepted.connect(CameraSelectDialog.accept) # type: ignore
@@ -36,3 +39,4 @@ class Ui_CameraSelectDialog(object):
         CameraSelectDialog.setWindowTitle(_translate("CameraSelectDialog", "Dialog"))
         self.tre_cam.headerItem().setText(0, _translate("CameraSelectDialog", "port"))
         self.tre_cam.headerItem().setText(1, _translate("CameraSelectDialog", "name"))
+        self.btn_cam_detect.setText(_translate("CameraSelectDialog", "Detect Camera"))

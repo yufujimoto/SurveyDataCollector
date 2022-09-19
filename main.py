@@ -136,6 +136,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def map_tile(self): return self._map_tile
     @property
     def app_textEdit(self): return self._app_textEdit
+    @property
+    def image_file_operation(self): return self._image_file_operation
 
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
@@ -207,6 +209,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def map_tile(self, value): self._map_tile = value
     @app_textEdit.setter
     def app_textEdit(self, value): self._app_textEdit = value
+    @image_file_operation.setter
+    def image_file_operation(self, value): self._image_file_operation = value
 
     def __init__(self, parent=None):
         print("Start -> main::__init__(self, parent=None)")
@@ -223,49 +227,50 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
 
             # Activate modules.
+            print("## Initialize UI objects and functions.")
             setupMainUi.activate(self)
 
             # Initialyze the source paths.
-            self._source_directory = os.path.dirname(os.path.abspath(__file__))
-            self._config_file = os.path.join(self._source_directory, "config.xml")
-            self._lib_directory = os.path.join(self._source_directory, "lib")
-            self._siggraph_directory = os.path.join(os.path.expanduser("~"),"siggraph")
-            self._map_directory = os.path.join(self._source_directory, "map")
-            self._temporal_directory = os.path.join(self._source_directory, "temp")
-            self._icon_directory = os.path.join(self._source_directory, "icon")
+            print("## Initialize parameters.")
+            print("### Paths for souces...")
+            dir_src = os.path.dirname(os.path.abspath(__file__))
+            dir_lib = os.path.join(dir_src, "lib")
+            dir_sig = os.path.join(os.path.expanduser("~"),"siggraph")
+            dir_map = os.path.join(dir_src, "map")
+            dir_tmp = os.path.join(dir_src, "temp")
+            dir_icn = os.path.join(dir_src, "icon")
+            fil_cnf = os.path.join(dir_src, "config.xml")
 
             # Initialyze properties.
-            general.initAll(self)
+            print("### Parameters...")
+            general.initAll(self, dir_src, dir_lib, dir_sig, dir_map, dir_tmp, dir_icn, fil_cnf)
 
-            # Check whether configutation exists or not. And create the configuration if not exists.
-            if not os.path.exists(self._config_file):
-                general.initConfig(self)
-            else:
-                if not general.loadConfig(self, self._config_file) == None:
-                    # Open the previous project.
+            # Set the default skin.
+            print("### UI Skin...")
+            self.setSkin(lang=self._language, theme=self._skin)
+
+            # Initialyze the proxy setting
+            print("### Proxy...")
+            self.setProxy()
+
+            # Initialyze the map viewer
+            print("### Map...")
+            self.setDefaultMap()
+
+            # Open the previous project.
+            print("## Now opening the project...")
+            if not self._database == None:
+                if os.path.exists(self._database):
                     self.openProject()
 
-                    # Initialyze the proxy setting
-                    self.setProxy()
-                else:
-                    general.initAll(self)
-
-            # Detect the camera automatically.
+            # Detect the camera automatically
+            print("## Set Camera...")
             self._gp_context = gp.Context()
             self._gp_camera = gp.Camera()
             self.detectCamera()
 
-            # Initialyze the map viewer
-            self.setDefaultMap()
-
-            # Set the default skin.
-            self.setSkin(lang=self._language, theme=self._skin)
-
-            # Set the initial image to thumbnail viewer.
-            img_file_path = os.path.join(os.path.join(self._source_directory, "images"),"noimage.jpg")
-            self.showImage(img_file_path)
-
             # Set the default file if the count of items are more than 1.
+            print("## Set a top element...")
             if self.tre_fls.topLevelItemCount() > 0:
                 # Set the top item of the file list.
                 self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
@@ -287,23 +292,20 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         print("Start -> main::openProject(self)")
 
         try:
-            # Create a sqLite file if not exists.
-            if os.path.exists(self._database):
+            # Establish the connection to the self._database file.
+            conn = sqlite.connect(self._database)
 
-                # Establish the connection to the self._database file.
-                conn = sqlite.connect(self._database)
+            if conn is not None:
+                # Check whether table exists or not.
+                general.checkExistenceOfTables(self._database)
 
-                if conn is not None:
-                    # Check whether table exists or not.
-                    general.checkExistenceOfTables(self._database)
+                # Check wether columns exists or not.
+                general.checkFieldsOfTables(self.database)
 
-                    # Check wether columns exists or not.
-                    general.checkFieldsOfTables(self.database)
-
-                    # Reconstruct the tree view for project items.
-                    self.retriveProjectItems()
+                # Reconstruct the tree view for project items.
+                self.retriveProjectItems()
         except sqlite.DatabaseError as e:
-            print("Error occured inn main::openProject(self)")
+            print("Error occured in main::openProject(self)")
             print(str(e))
             error.ErrorMessageDbConnection(details=str(e), language=self._language)
             return(None)

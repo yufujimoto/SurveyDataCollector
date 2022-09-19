@@ -20,10 +20,9 @@ from PyQt5.QtCore import QThread, pyqtSignal
 # Import general operations.
 import modules.general as general
 import modules.features as features
-
-# Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
-import modules.setupConfigSkin as skin
+import modules.error as error
+import modules.setupTwpSkin as skin
 
 import dialog.textEditWithPhotoDialog as textEditWithPhotoDialog
 
@@ -35,6 +34,10 @@ import viewer.imageViewer as viewer
 
 class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
     # Default paths.
+    @property
+    def language(self): return self._language
+    @property
+    def skin(self): return self._skin
     @property
     def database(self): return self._database
     @property
@@ -64,6 +67,10 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
     @property
     def app_textEdit(self): return self._app_textEdit
 
+    @language.setter
+    def language(self, value): self._language = value
+    @skin.setter
+    def skin(self, value): self._skin = value
     @database.setter
     def database(self, value): self._database = value
     @source_directory.setter
@@ -100,6 +107,8 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         self.setupUi(self)
 
         # Set the source directory which this program located.
+        self._skin = parent.skin
+        self._language = parent.language
         self._database = parent.database
         self._source_directory = parent.source_directory
         self._root_directory = parent.root_directory
@@ -116,115 +125,50 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         self._app_textEdit = parent.app_textEdit
 
         # Initialize the window.
-        self.setWindowTitle(self.tr("Jotting memo with obser"))
         self.setWindowState(Qt.WindowMaximized)
-
-        # Setup labels with designated language.
-        if parent.language == "ja":
-            self.lbl_img.setText("画像一覧")
-            self.lbl_fl_txt.setText("テキストファイル一覧")
-            self.btn_new_txt.setText("新規作成")
-            self.btn_sav.setText("保存")
-            self.btn_bar.setText("バーコード")
-        elif parent.language == "en":
-            self.lbl_img.setText("Image Slector")
-            self.lbl_fl_txt.setText("Text Files")
-            self.btn_new_txt.setText("New")
-            self.btn_sav.setText("Save")
-            self.btn_bar.setText("Barcode")
-
-        # Initialyze the list view of the thumbnails.
-        self.lst_img_icon.setIconSize(QSize(200,200))
-        self.lst_img_icon.setMovement(QListView.Static)
-        self.lst_img_icon.setModel(QStandardItemModel())
 
         # Create the graphic view item.
         self.graphicsView = viewer.ImageViewer()
         self.graphicsView.setObjectName("graphicsView")
         self.verticalLayout.addWidget(self.graphicsView)
 
-        # Initialyze the thumbnail selector.
-        self.lst_img_icon.selectionModel().selectionChanged.connect(self.showImage)
-
-        # Initialyze the text file selector.
-        self.lst_txt_fls.selectionModel().selectionChanged.connect(self.showText)
+        self.setSkin(self._icon_directory)
 
         # Get tethered image files.
         self.getImageFiles()
         self.getTextFiles()
 
-        # Initialyze the user interface.
-        # Get the proper font size from the display size and set the font size.
-        font_size = skin.getFontSize()
-
-        # Make the style sheet.
-        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
-
-        # Define the font object for Qt.
-        font = QFont()
-        font.setPointSize(font_size)
-        self.setFont(font)
-
-        if parent.skin == "grey":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "white")
-
-            # Set the default background and front color.
-            back_color = 'background-color: #2C2C2C;'
-            font_style_color = 'color: #FFFFFF;'
-            font_style = font_style_color + font_style_size
-
-            # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-style: none; border-color: #4C4C4C;')
-            #self.frm_photo_view.setStyleSheet('border-style: solid; border-width: 0.5px; border-color: #FFFFFF;')
-            self.graphicsView.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
-
-            self.lst_txt_fls.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
-            self.lst_img_icon.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
-
-            self.textEdit.setStyleSheet('border-style: outset; border-width: 0.5px; border-color: #FFFFFF;')
-        elif skin == "white":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "black")
-
-        # Initialyze the new document button.
-        self.btn_new_txt.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'new_document.png'))))
-        self.btn_new_txt.setIconSize(QSize(24,24))
-
-        # Initialyze the save button.
-        self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'save.png'))))
-        self.btn_sav.setIconSize(QSize(24,24))
-
-        # Initialyze the OCR button.
-        self.btn_ocr.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'ocr.png'))))
-        self.btn_ocr.setIconSize(QSize(24,24))
-
-        # Initialyze the barcode button.
-        self.btn_bar.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'barcode.png'))))
-        self.btn_bar.setIconSize(QSize(24,24))
-
-        # Set the dialog button size.
-        dlg_btn_size = QSize(125, 30)
-        self.bbx_rec_pht.buttons()[0].setMinimumSize(dlg_btn_size)
-        self.bbx_rec_pht.buttons()[1].setMinimumSize(dlg_btn_size)
-
-        # Set the skin and icon.
-        self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
-        self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
-
         #===============================
         # Connect to the slot.
         #===============================
-        self.chk_edit.stateChanged.connect(self.enableEditMode)     # Handle the edit mode.
-        self.btn_new_txt.clicked.connect(self.createNewTextFile)    # Create a new empty file.
-        self.btn_ocr.clicked.connect(self.createTextByOcr)             # Create a new text file by OCR.
-        self.btn_bar.clicked.connect(self.createTextByBarcode)         # Create a new text file by barcodes.
-        self.btn_sav.clicked.connect(self.saveText)                 # Save modification.
-        self.btn_opn_app.clicked.connect(self.openByApp)            # Open and edit by the other app.
+        self.lst_img_icon.selectionModel().selectionChanged.connect(self.showImage) # Initialyze the thumbnail selector.
+        self.lst_txt_fls.selectionModel().selectionChanged.connect(self.showText)   # Initialyze the text file selector.
+        self.chk_edit.stateChanged.connect(self.enableEditMode)                     # Handle the edit mode.
+        self.btn_new_txt.clicked.connect(self.createNewTextFile)                    # Create a new empty file.
+        self.btn_ocr.clicked.connect(self.createTextByOcr)                          # Create a new text file by OCR.
+        self.btn_bar.clicked.connect(self.createTextByBarcode)                      # Create a new text file by barcodes.
+        self.btn_sav.clicked.connect(self.saveText)                                 # Save modification.
+        self.btn_opn_app.clicked.connect(self.openByApp)                            # Open and edit by the other app.
 
         # Define the return values.
         self.bbx_rec_pht.accepted.connect(self.accept)
         self.bbx_rec_pht.rejected.connect(self.reject)
+
+    def setSkin(self, icon_path):
+        print("Start -> textEditWithPhotoDialog::setSkin(self, icon_path)")
+        try:
+            # Apply the new skin.
+            skin.setSkin(self, icon_path, skin=self._skin)
+            skin.setText(self)
+
+        except Exception as e:
+            print("Error occured in textEditWithPhotoDialog::setSkin(self, icon_path)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
+            return(None)
+
+        finally:
+            print("End -> textEditWithPhotoDialog::setSkin")
 
     def createTextFileInstance(self, obj_body, obj_status, obj_src, obj_app, obj_ope, obj_lock, obj_capt, obj_uuid=None, obj_cdate=None, obj_mdate=None):
         print("Start -> textEditWithPhotoDialog::createTextFileInstance")
@@ -461,29 +405,26 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
                     subprocess.check_output(cmd_editor)
                     mdate = datetime.datetime.utcnow().isoformat()
 
-                    # Properties for instance of SOP File object.
-                    with open(new_file) as f: body = f.read()
-                    status = "Original"
-                    src = old_uuid
-                    app = self._app_textEdit
-                    ope = "Edit with " + self._app_textEdit
-                    lock = False
-                    capt = "Manually Edited"
+                    # Instantiate the File class.
+                    sop_txt_file = features.File(is_new=True, uuid=new_uuid, dbfile=None)
+                    sop_txt_file.material = self._mat_uuid
+                    sop_txt_file.consolidation = self._con_uuid
+                    sop_txt_file.filename = general.getRelativePath(new_file, "Consolidation")
+                    sop_txt_file.created_date = cdate
+                    sop_txt_file.modified_date = mdate
+                    sop_txt_file.file_type = "text"
+                    sop_txt_file.alias = "Edit with " + self._app_textEdit
+                    sop_txt_file.status = "Edited"
+                    sop_txt_file.lock = lock = False
+                    sop_txt_file.public = False
+                    sop_txt_file.source = old_uuid
+                    sop_txt_file.operation = "Edit with " + self._app_textEdit
+                    sop_txt_file.operating_application = self._app_textEdit
+                    sop_txt_file.caption = "Manually Edited"
+                    sop_txt_file.description = ""
 
-                    # Create a text file by OCR.
-                    self.createTextFileInstance(
-                        obj_body=body,
-                        obj_status=status,
-                        obj_src=src,
-                        obj_app=app,
-                        obj_ope=ope,
-                        obj_lock=lock,
-                        obj_capt=capt,
-                        obj_uuid = new_uuid,
-                        obj_cdate = cdate,
-                        obj_mdate = mdate
-                    )
-
+                    # Insert the new entry into the self._database.
+                    sop_txt_file.dbInsert(self._database)
             else:
                 error.ErrorMessageFileNotExist()
 
@@ -494,6 +435,9 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
+        finally:
+            # Update the text file list.
+            self.getTextFiles()
 
     def getTextFiles(self):
         print("textEditWithPhotoDialog::getTextFiles")
@@ -566,7 +510,7 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
 
         if self.chk_edit.isChecked():
             # Set the default background and front color.
-            text_border = 'border-style: outset; border-width: 1.0px; border-color: #FFFFFF'
+            text_border = 'border-style: outset; border-width: 1.0px; border-color: #DDDDDD'
             back_color = "background-color: #6C6C6C;"
             font_style_color = 'color: #FF0000;'
 
@@ -576,13 +520,23 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
             # Set the save button.
             btn_style_color = 'color: #FF0000;'
 
+            # Set the skin and icon.
             self.btn_sav.setDisabled(False)
-            self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'save_active.png'))))
-            self.btn_sav.setStyleSheet(btn_style_color)
+
+            if self.skin == "grey":
+                icon_path = os.path.join(self._icon_directory, "white")
+                self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'save_active.png'))))
+            else:
+                icon_path = os.path.join(self._icon_directory, "black")
+                self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'save_active.png'))))
+
+            icon_size = general.getIconSize()
+            qicon_size = QSize(icon_size, icon_size)
+            self.btn_sav.setIconSize(qicon_size)
 
         else:
             # Set the default background and front color.
-            text_border = 'border-style: outset; border-width: 1.0px; border-color: #FFFFFF'
+            text_border = 'border-style: outset; border-width: 1.0px; border-color: #DDDDDD'
             back_color = 'background-color: #2C2C2C;'
             font_style_color = 'color: #FFFFFF;'
 
@@ -592,9 +546,22 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
             # Set the save button.
             btn_style_color = 'color: #FFFFFF;'
 
+            # Set the skin and icon.
+            icon_size = general.getIconSize()
+            qicon_size = QSize(icon_size, icon_size)
+
             self.btn_sav.setDisabled(True)
-            self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'save.png'))))
-            self.btn_sav.setStyleSheet(btn_style_color)
+
+            if self.skin == "grey":
+                icon_path = os.path.join(self._icon_directory, "white")
+                self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'save.png'))))
+            else:
+                icon_path = os.path.join(self._icon_directory, "black")
+                self.btn_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'save.png'))))
+
+            icon_size = general.getIconSize()
+            qicon_size = QSize(icon_size, icon_size)
+            self.btn_sav.setIconSize(qicon_size)
 
     def showText(self):
         print("Start -> textEditWithPhotoDialog::showText(self)")

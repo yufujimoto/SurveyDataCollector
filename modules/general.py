@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, time, pyexiv2, shutil, pytesseract
+import sys, os, time, pyexiv2, shutil, pytesseract, subprocess
 import sqlite3 as sqlite
 import xml.etree.cElementTree as ET
 
@@ -35,19 +35,51 @@ def createPathIfNotExists(path):
         error.ErrorMessageUnknown(details=str(e), show=True, language="en")
         return(False)
 
-def initAll(parent):
+def initAll(parent,dir_src, dir_lib, dir_sig, dir_map, dir_tmp, dir_icn, fil_cnf):
+    print("Start -> general::createPathIfNotExists(path)")
     try:
         # Define paths
+        parent.source_directory = dir_src
+        parent.lib_directory = dir_lib
+        parent.siggraph_directory = dir_sig
+        parent.map_directory = dir_map
+        parent.temporal_directory = dir_tmp
+        parent.icon_directory = dir_icn
+        parent.config_file = fil_cnf
+
+        # Define the project.
         parent.root_directory = None
         parent.table_directory = None
         parent.consolidation_directory = None
         parent.database = None
 
         # Define the default extensions.
-        parent.qt_image = [".BMP", ".GIF", ".JPG", ".JPEG", ".PNG", ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"]
-        parent.image_extensions = [".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG", ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"]
+        parent.qt_image = [
+            ".BMP", ".GIF", ".JPG", ".JPEG", ".PNG",
+            ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"
+        ]
+        parent.image_extensions = [
+            ".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG",
+            ".JP2", ".J2K", ".JPF", ".JPX", ".JPM"
+        ]
         parent.raw_image_extensions = [".RAW", ".ARW"]
         parent.sound_extensions = [".WAV"]
+
+        # Define the default file operations.
+        parent.image_file_operation = [
+            "Editing on GIMP",
+            "Rotating",
+            "Grayscaling",
+            "White balance adjusting",
+            "Normalizing",
+            "Cropping",
+            "Color inverting",
+            "Removing",
+            "Colorlizing",
+            "Importing",
+            "Unknown",
+            "Other"
+        ]
 
         # Difine the current objects
         parent.current_consolidation = None
@@ -87,6 +119,14 @@ def initAll(parent):
             shutil.rmtree(parent.temporal_directory)
             os.mkdir(parent.temporal_directory)
 
+        # Load the configuration.
+        if not os.path.exists(parent.config_file): initConfig(parent)
+        loadConfig(parent)
+
+        # Set the initial image to thumbnail viewer.
+        img_file_path = os.path.join(os.path.join(parent.source_directory, "images"),"noimage.jpg")
+        parent.showImage(img_file_path)
+
     except Exception as e:
         print("Error occured in general::initAll(parent)")
         print(str(e))
@@ -94,7 +134,7 @@ def initAll(parent):
         return(None)
 
     finally:
-        print("# Initialyzing parameter: general::initAll")
+        print("End -> general::createPathIfNotExists")
 
 def initConfig(parent):
     try:
@@ -145,7 +185,9 @@ def initConfig(parent):
     finally:
         print("# Initialyzing configuration: general::initConfig")
 
-def loadConfig(parent, file_config):
+def loadConfig(parent):
+    file_config = parent._config_file
+
     if os.path.exists(file_config):
         try:
             xml_config = ET.parse(file_config).getroot()
@@ -1005,3 +1047,52 @@ def copyExif(org_file, dst_file):
         print(str(e))
 
         return(None)
+
+def getIconFromPath(file_path):
+    print("### general::general.getIconFromPath(file_path)")
+    return(QIcon(QPixmap(file_path)))
+
+def getFontSize():
+    print("### general::getFontSize()")
+
+    # Get the screen size and setting up font size.
+    screen_size = getScreenSize()
+    font_size = 10
+
+    if int(screen_size[0]) >= 1200:
+        font_size = 10
+    elif int(screen_size[0]) < 1200:
+        font_size = 7
+    return(font_size)
+
+def getIconSize():
+    print("### general::general.getIconSize()")
+
+    # Get the screen size and setting up font size.
+    screen_size = getScreenSize()
+    icon_size = 24
+
+    if int(screen_size[0]) >= 1200:
+        icon_size = 24
+    elif int(screen_size[0]) < 1200:
+        icon_size = 14
+
+    return(icon_size)
+
+def getScreenSize():
+    print("### general::getScreenSize()")
+
+    pop = subprocess.Popen('xrandr | grep "\*"',shell=True, stdout=subprocess.PIPE)
+    pop.wait()
+
+    screen = pop.communicate()[0].decode("UTF-8").split()[0].split("x")
+    return(screen)
+
+def getImagePreviewSize():
+    print("### general::getImagePreviewSize()")
+    screen_size = getScreenSize()
+
+    if int(screen_size[0]) >= 1200:
+        return(300, 400)
+    elif int(screen_size[0]) < 1200:
+        return(200,150)

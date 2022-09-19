@@ -4,62 +4,16 @@
 # Import general libraries.
 import sys, os, subprocess
 
+# Import general operations.
+import modules.general as general
+
 # Import PyQt5 libraries for generating the GUI application.
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-def getIconFromPath(file_path):
-    print("### setupConfigSkin::getIconFromPath(file_path)")
-    return(QIcon(QPixmap(file_path)))
-
-def getFontSize():
-    print("### setupConfigSkin::getFontSize()")
-
-    # Get the screen size and setting up font size.
-    screen_size = getScreenSize()
-    font_size = 10
-
-    if int(screen_size[0]) >= 1200:
-        font_size = 10
-    elif int(screen_size[0]) < 1200:
-        font_size = 7
-    return(font_size)
-
-def getIconSize():
-    print("### setupConfigSkin::getIconSize()")
-
-    # Get the screen size and setting up font size.
-    screen_size = getScreenSize()
-    icon_size = 24
-
-    if int(screen_size[0]) >= 1200:
-        icon_size = 24
-    elif int(screen_size[0]) < 1200:
-        icon_size = 14
-
-    return(icon_size)
-
-def getScreenSize():
-    print("### setupConfigSkin::getScreenSize()")
-
-    pop = subprocess.Popen('xrandr | grep "\*"',shell=True, stdout=subprocess.PIPE)
-    pop.wait()
-
-    screen = pop.communicate()[0].decode("UTF-8").split()[0].split("x")
-    return(screen)
-
-def getImagePreviewSize():
-    print("### setupConfigSkin::getImagePreviewSize()")
-    screen_size = getScreenSize()
-
-    if int(screen_size[0]) >= 1200:
-        return(300, 400)
-    elif int(screen_size[0]) < 1200:
-        return(200,150)
-
-def setConfigWindowButtonText(parent):
-    print("## setupConfigSkin::setConfigWindowButtonText(parent)")
+def setText(parent):
+    print("## setupConfigSkin::setText(parent)")
 
     try:
         if parent.language == "ja":
@@ -209,52 +163,58 @@ def setConfigWindowButtonText(parent):
             parent.lbl_flc_api.setText("API Key")
             parent.lbl_flc_sec.setText("Secret")
     except Exception as e:
-        print("Error occured in setupConfigSkin::setConfigWindowButtonText(parent)")
+        print("Error occured in setupConfigSkin::setText(parent)")
         print(str(e))
         error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
         return(None)
 
-def setConfigWindowIcons(parent, icon_path):
-    print("## setupConfigSkin::setConfigWindowIcons(parent, icon_path)")
+def setIcons(parent, icon_path):
+    print("## setupConfigSkin::setIcons(parent, icon_path)")
 
     try:
         # Set the skin and icon.
-        icon_size = getIconSize()
+        icon_size = general.getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
-        parent.tab_conf_main.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'apps.png')))
-        parent.tab_conf_main.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
-        parent.tab_conf_main.setTabIcon(2, getIconFromPath(os.path.join(icon_path, 'ocr.png')))
-        parent.tab_conf_main.setTabIcon(3, getIconFromPath(os.path.join(icon_path, 'plugin.png')))
+        parent.tab_conf_main.setTabIcon(0, general.getIconFromPath(os.path.join(icon_path, 'apps.png')))
+        parent.tab_conf_main.setTabIcon(1, general.getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
+        parent.tab_conf_main.setTabIcon(2, general.getIconFromPath(os.path.join(icon_path, 'ocr.png')))
+        parent.tab_conf_main.setTabIcon(3, general.getIconFromPath(os.path.join(icon_path, 'plugin.png')))
 
-        parent.btn_ocr_lang_off.setIcon(getIconFromPath(os.path.join(icon_path, 'to_left.png')))
+        parent.btn_ocr_lang_off.setIcon(general.getIconFromPath(os.path.join(icon_path, 'to_left.png')))
         parent.btn_ocr_lang_off.setIconSize(qicon_size)
 
-        parent.btn_ocr_lang_on.setIcon(getIconFromPath(os.path.join(icon_path, 'to_right.png')))
+        parent.btn_ocr_lang_on.setIcon(general.getIconFromPath(os.path.join(icon_path, 'to_right.png')))
         parent.btn_ocr_lang_on.setIconSize(qicon_size)
 
-        parent.btn_cam_conn.setIcon(getIconFromPath(os.path.join(icon_path, 'network.png')))
-        parent.btn_cam_detect.setIcon(getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
+        parent.btn_cam_conn.setIcon(general.getIconFromPath(os.path.join(icon_path, 'network.png')))
+        parent.btn_cam_detect.setIcon(general.getIconFromPath(os.path.join(icon_path, 'camera_sync.png')))
 
         # Set the skin and icon.
-        parent.bbx_conf_res.buttons()[0].setIcon(getIconFromPath(os.path.join(icon_path, 'check.png')))
-        parent.bbx_conf_res.buttons()[1].setIcon(getIconFromPath(os.path.join(icon_path, 'close.png')))
+        parent.bbx_conf_res.buttons()[0].setIcon(general.getIconFromPath(os.path.join(icon_path, 'check.png')))
+        parent.bbx_conf_res.buttons()[1].setIcon(general.getIconFromPath(os.path.join(icon_path, 'close.png')))
+
+        # Set Check box style
+        check_on = "QCheckBox::indicator:unchecked {image: url(" + os.path.join(icon_path,"check_off_s.png") + ");}\n"
+        check_off = "QCheckBox::indicator:checked {image: url(" + os.path.join(icon_path,"check_on_s.png") + ");}"
+        parent.rbtn_no_proxy.setStyleSheet(check_off + check_on)
+        parent.rbtn_proxy.setStyleSheet(check_off + check_on)
 
     except Exception as e:
-        print("Error occured in setupConfigSkin::setConfigWindowIcons(parent, icon_path)")
+        print("Error occured in setupConfigSkin::setIcons(parent, icon_path)")
         print(str(e))
         error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
         return(None)
 
-def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
-    print("## setupConfigSkin::applyConfigWindowSkin(parent, icon_directory, skin='grey')")
+def setSkin(parent, icon_directory, skin="grey"):
+    print("## setupConfigSkin::setSkin(parent, icon_directory, skin='grey')")
 
     try:
         # Get the proper font size from the display size and set the font size.
-        font_size = getFontSize()
+        font_size = general.getFontSize()
 
         # Make the style sheet.
-        font_style_size = 'font: regular ' + str(getFontSize()) + 'px;'
+        font_style_size = 'font: regular ' + str(font_size) + 'px;'
 
         # Define the font object for Qt.
         font = QFont()
@@ -268,7 +228,7 @@ def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
         if parent.skin == "grey":
             # Set the icon path.
             icon_path = os.path.join(icon_directory, "white")
-            setConfigWindowIcons(parent, icon_path)
+            setIcons(parent, icon_path)
 
             # Set the default background and front color.
             back_color = 'background-color: #2C2C2C;'
@@ -339,24 +299,12 @@ def applyConfigWindowSkin(parent, icon_directory, skin="grey"):
             parent.cbx_cam_cpt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
             parent.cbx_cam_met.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
 
-            # Set Check box style
-            check_on = "QCheckBox::indicator:unchecked {image: url(" + os.path.join(icon_path,"check_off_s.png") + ");}\n"
-            check_off = "QCheckBox::indicator:checked {image: url(" + os.path.join(icon_path,"check_on_s.png") + ");}"
-            parent.rbtn_no_proxy.setStyleSheet(check_off + check_on)
-            parent.rbtn_proxy.setStyleSheet(check_off + check_on)
-
         elif skin == "white":
             icon_path = os.path.join(icon_path, "black")
-            setConfigWindowIcons(parent, icon_path)
-
-            # Set Check box style
-            check_on = "QCheckBox::indicator:unchecked {image: url(" + os.path.join(icon_path,"check_off_s.png") + ");}\n"
-            check_off = "QCheckBox::indicator:checked {image: url(" + os.path.join(icon_path,"check_on_s.png") + ");}"
-            parent.rbtn_no_proxy.setStyleSheet(check_off + check_on)
-            parent.rbtn_proxy.setStyleSheet(check_off + check_on)
+            setIcons(parent, icon_path)
 
     except Exception as e:
-        print("Error occured in setupConfigSkin::applyConfigWindowSkin(parent, icon_directory, skin='grey')")
+        print("Error occured in setupConfigSkin::setSkin(parent, icon_directory, skin='grey')")
         print(str(e))
         error.ErrorMessageCameraDetection(details=str(e), show=True, language=self._language)
         return(None)

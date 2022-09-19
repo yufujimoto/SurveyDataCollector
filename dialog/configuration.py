@@ -22,7 +22,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import modules.general as general
 import modules.features as features
 import modules.error as error
-import modules.setupConfigSkin as setupConfigSkin
+import modules.setupConfigSkin as skin
 import modules.camera as camera
 
 # Import camera and image processing library.
@@ -254,8 +254,8 @@ class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
         print("Start -> configuration::setSkin(self, icon_path)")
         try:
             # Apply the new skin.
-            setupConfigSkin.applyConfigWindowSkin(self, icon_path, skin=self._skin)
-            setupConfigSkin.setConfigWindowButtonText(self)
+            skin.setSkin(self, icon_path, skin=self._skin)
+            skin.setText(self)
 
         except Exception as e:
             print("Error occured in configuration::setSkin(self, icon_path)")

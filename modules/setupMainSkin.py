@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, subprocess
+import sys, os
 from screeninfo import get_monitors
 
 # Import PyQt5 libraries for generating the GUI application.
@@ -10,95 +10,15 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+# Import general operations.
+import modules.general as general
 import modules.error as error
-
-def getIconFromPath(file_path):
-    try:
-        return(QIcon(QPixmap(file_path)))
-    except Exception as e:
-        print("Error occured in getIconFromPath(file_path)")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
-    finally:
-        print("# Get Icon from " + file_path +": setMainSkin::getIconFromPath")
-
-def getFontSize():
-    # Set the default value.
-    font_size = 10
-
-    # Get the screen size and setting up font size.
-    try:
-        screen_size = getScreenSize()
-
-        if int(screen_size[0]) >= 1200:
-            font_size = 10
-        elif int(screen_size[0]) < 1200:
-            font_size = 7
-
-        return(font_size)
-    except Exception as e:
-        print("Error occured in getFontSize()")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
-    finally:
-        print("# Font size is " + str(font_size) +". setMainSkin::getFontSize")
-
-def getIconSize():
-    try:
-        # Get the screen size and setting up font size.
-        screen_size = getScreenSize()
-        icon_size = 24
-
-        if int(screen_size[0]) >= 1200:
-            icon_size = 24
-        elif int(screen_size[0]) < 1200:
-            icon_size = 14
-
-        return(icon_size)
-    except Exception as e:
-        print("Error occured in getIconSize()")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
-    finally:
-        print("# Icon size is " + str(icon_size) +". setMainSkin::getIconSize")
-
-def getScreenSize(select=0):
-    try:
-        screen = []
-        for m in get_monitors():
-            screen.append(m)
-        return(screen[0].width,screen[0].height)
-    except Exception as e:
-        print("Error occured in getScreenSize()")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
-    finally:
-        print("# Screen size is " + str(screen[0].width) + "x" + str(screen[0].height) + ":setMainSkin::getScreenSize")
-
-def getImagePreviewSize():
-    print("setMainSkin::getImagePreviewSize()")
-
-    try:
-        screen_size = getScreenSize()
-        if int(screen_size[0]) >= 1200:
-            return(300, 400)
-        elif int(screen_size[0]) < 1200:
-            return(200,150)
-    except Exception as e:
-        print("Error occured in getImagePreviewSize()")
-        print(str(e))
-        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
-        return(None)
 
 def setPlayingIcon(icon_path, btn_play, skin):
     print("setMainSkin::setPlayingIcon(icon_path, btn_play, skin)")
 
     try:
-        icon_size = getIconSize()
+        icon_size = general.getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
         if skin == "grey":
@@ -107,7 +27,7 @@ def setPlayingIcon(icon_path, btn_play, skin):
         elif skin == "white":
             icon_path = os.path.join(icon_path, "black")
 
-        btn_play.setIcon(getIconFromPath(os.path.join(icon_path, 'playing.png')))
+        btn_play.setIcon(general.getIconFromPath(os.path.join(icon_path, 'playing.png')))
         btn_play.setIconSize(qicon_size)
     except Exception as e:
         print("Error occured in setPlayingIcon(icon_path, btn_stop, skin)")
@@ -119,7 +39,7 @@ def setStopButtonIcon(icon_path, btn_stop, skin):
     print("setMainSkin::setStopButtonIcon(icon_path, btn_play, skin)")
 
     try:
-        icon_size = getIconSize()
+        icon_size = general.getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
         if skin == "grey":
@@ -128,7 +48,7 @@ def setStopButtonIcon(icon_path, btn_stop, skin):
         elif skin == "white":
             icon_path = os.path.join(icon_path, "black")
 
-        btn_stop.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
+        btn_stop.setIcon(general.getIconFromPath(os.path.join(icon_path, 'play.png')))
         btn_stop.setIconSize(qicon_size)
     except Exception as e:
         print("Error occured in setStopButtonIcon(icon_path, btn_stop, skin)")
@@ -140,7 +60,7 @@ def setPauseButtonIcon(icon_path, btn_pause, skin):
     print("setMainSkin::setPauseButtonIcon(icon_path, btn_pause, skin)")
 
     try:
-        icon_size = getIconSize()
+        icon_size = general.getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
         if skin == "grey":
@@ -149,7 +69,7 @@ def setPauseButtonIcon(icon_path, btn_pause, skin):
         elif skin == "white":
             icon_path = os.path.join(icon_path, "black")
 
-        btn_pause.setIcon(getIconFromPath(os.path.join(icon_path, 'pause.png')))
+        btn_pause.setIcon(general.getIconFromPath(os.path.join(icon_path, 'pause.png')))
         btn_pause.setIconSize(qicon_size)
     except Exception as e:
         print("Error occured in setPauseButtonIcon(icon_path, btn_stop, skin)")
@@ -364,110 +284,110 @@ def setMainWindowToolTips(parent):
 
 def setMainWindowIcons(parent, icon_path):
     try:
-        icon_size = getIconSize()
+        icon_size = general.getIconSize()
         qicon_size = QSize(icon_size, icon_size)
 
-        parent.act_prj_open.setIcon(getIconFromPath(os.path.join(icon_path, 'folder_open.png')))
+        parent.act_prj_open.setIcon(general.getIconFromPath(os.path.join(icon_path, 'folder_open.png')))
 
-        parent.tab_target.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'apps.png')))
-        parent.tab_target.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'insert_photo.png')))
+        parent.tab_target.setTabIcon(0, general.getIconFromPath(os.path.join(icon_path, 'apps.png')))
+        parent.tab_target.setTabIcon(1, general.getIconFromPath(os.path.join(icon_path, 'insert_photo.png')))
 
-        parent.tab_src.setTabIcon(0, getIconFromPath(os.path.join(icon_path, 'collections.png')))
-        parent.tab_src.setTabIcon(1, getIconFromPath(os.path.join(icon_path, 'sounds.png')))
-        parent.tab_src.setTabIcon(2, getIconFromPath(os.path.join(icon_path, 'create.png')))
-        parent.tab_src.setTabIcon(3, getIconFromPath(os.path.join(icon_path, 'place.png')))
+        parent.tab_src.setTabIcon(0, general.getIconFromPath(os.path.join(icon_path, 'collections.png')))
+        parent.tab_src.setTabIcon(1, general.getIconFromPath(os.path.join(icon_path, 'sounds.png')))
+        parent.tab_src.setTabIcon(2, general.getIconFromPath(os.path.join(icon_path, 'create.png')))
+        parent.tab_src.setTabIcon(3, general.getIconFromPath(os.path.join(icon_path, 'place.png')))
 
-        parent.btn_con_add.setIcon(getIconFromPath(os.path.join(icon_path, 'add_box.png')))
+        parent.btn_con_add.setIcon(general.getIconFromPath(os.path.join(icon_path, 'add_box.png')))
         parent.btn_con_add.setIconSize(qicon_size)
 
-        parent.btn_con_del.setIcon(getIconFromPath(os.path.join(icon_path, 'remove_box.png')))
+        parent.btn_con_del.setIcon(general.getIconFromPath(os.path.join(icon_path, 'remove_box.png')))
         parent.btn_con_del.setIconSize(qicon_size)
 
-        parent.btn_con_imp.setIcon(getIconFromPath(os.path.join(icon_path, 'file_download.png')))
+        parent.btn_con_imp.setIcon(general.getIconFromPath(os.path.join(icon_path, 'file_download.png')))
         parent.btn_con_imp.setIconSize(qicon_size)
 
-        parent.btn_con_txt.setIcon(getIconFromPath(os.path.join(icon_path, 'file.png')))
+        parent.btn_con_txt.setIcon(general.getIconFromPath(os.path.join(icon_path, 'file.png')))
         parent.btn_con_txt.setIconSize(qicon_size)
 
-        parent.btn_con_rec.setIcon(getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
+        parent.btn_con_rec.setIcon(general.getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
         parent.btn_con_rec.setIconSize(qicon_size)
 
-        parent.btn_con_take.setIcon(getIconFromPath(os.path.join(icon_path, 'camera.png')))
+        parent.btn_con_take.setIcon(general.getIconFromPath(os.path.join(icon_path, 'camera.png')))
         parent.btn_con_take.setIconSize(qicon_size)
 
-        parent.btn_con_update.setIcon(getIconFromPath(os.path.join(icon_path, 'check_box.png')))
+        parent.btn_con_update.setIcon(general.getIconFromPath(os.path.join(icon_path, 'check_box.png')))
         parent.btn_con_update.setIconSize(qicon_size)
 
-        parent.btn_mat_add.setIcon(getIconFromPath(os.path.join(icon_path, 'add_circle.png')))
+        parent.btn_mat_add.setIcon(general.getIconFromPath(os.path.join(icon_path, 'add_circle.png')))
         parent.btn_mat_add.setIconSize(qicon_size)
 
-        parent.btn_mat_del.setIcon(getIconFromPath(os.path.join(icon_path, 'remove_circle.png')))
+        parent.btn_mat_del.setIcon(general.getIconFromPath(os.path.join(icon_path, 'remove_circle.png')))
         parent.btn_mat_del.setIconSize(qicon_size)
 
-        parent.btn_mat_imp.setIcon(getIconFromPath(os.path.join(icon_path, 'file_download.png')))
+        parent.btn_mat_imp.setIcon(general.getIconFromPath(os.path.join(icon_path, 'file_download.png')))
         parent.btn_mat_imp.setIconSize(qicon_size)
 
-        parent.btn_mat_txt.setIcon(getIconFromPath(os.path.join(icon_path, 'file.png')))
+        parent.btn_mat_txt.setIcon(general.getIconFromPath(os.path.join(icon_path, 'file.png')))
         parent.btn_mat_txt.setIconSize(qicon_size)
 
-        parent.btn_mat_rec.setIcon(getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
+        parent.btn_mat_rec.setIcon(general.getIconFromPath(os.path.join(icon_path, 'voice_recorder.png')))
         parent.btn_mat_rec.setIconSize(qicon_size)
 
-        parent.btn_mat_take.setIcon(getIconFromPath(os.path.join(icon_path, 'camera.png')))
+        parent.btn_mat_take.setIcon(general.getIconFromPath(os.path.join(icon_path, 'camera.png')))
         parent.btn_mat_take.setIconSize(qicon_size)
 
-        parent.btn_mat_update.setIcon(getIconFromPath(os.path.join(icon_path, 'check_circle.png')))
+        parent.btn_mat_update.setIcon(general.getIconFromPath(os.path.join(icon_path, 'check_circle.png')))
         parent.btn_mat_update.setIconSize(qicon_size)
 
-        parent.btn_open_gimp.setIcon(getIconFromPath(os.path.join(icon_path, 'gimp-icon.png')))
+        parent.btn_open_gimp.setIcon(general.getIconFromPath(os.path.join(icon_path, 'gimp-icon.png')))
         parent.btn_open_gimp.setIconSize(qicon_size)
 
-        parent.btn_img_cnt.setIcon(getIconFromPath(os.path.join(icon_path, 'crop.png')))
+        parent.btn_img_cnt.setIcon(general.getIconFromPath(os.path.join(icon_path, 'crop.png')))
         parent.btn_img_cnt.setIconSize(qicon_size)
 
-        parent.btn_img_inv.setIcon(getIconFromPath(os.path.join(icon_path, 'invert.png')))
+        parent.btn_img_inv.setIcon(general.getIconFromPath(os.path.join(icon_path, 'invert.png')))
         parent.btn_img_inv.setIconSize(qicon_size)
 
-        parent.btn_img_del.setIcon(getIconFromPath(os.path.join(icon_path, 'delete.png')))
+        parent.btn_img_del.setIcon(general.getIconFromPath(os.path.join(icon_path, 'delete.png')))
         parent.btn_img_del.setIconSize(qicon_size)
 
-        parent.btn_img_rot_r.setIcon(getIconFromPath(os.path.join(icon_path, 'rotate_right.png')))
+        parent.btn_img_rot_r.setIcon(general.getIconFromPath(os.path.join(icon_path, 'rotate_right.png')))
         parent.btn_img_rot_r.setIconSize(qicon_size)
 
-        parent.btn_img_rot_l.setIcon(getIconFromPath(os.path.join(icon_path, 'rotate_left.png')))
+        parent.btn_img_rot_l.setIcon(general.getIconFromPath(os.path.join(icon_path, 'rotate_left.png')))
         parent.btn_img_rot_l.setIconSize(qicon_size)
 
-        parent.btn_img_mno.setIcon(getIconFromPath(os.path.join(icon_path, 'monochrome.png')))
+        parent.btn_img_mno.setIcon(general.getIconFromPath(os.path.join(icon_path, 'monochrome.png')))
         parent.btn_img_mno.setIconSize(qicon_size)
 
-        parent.btn_img_rot_u.setIcon(getIconFromPath(os.path.join(icon_path, 'sync.png')))
+        parent.btn_img_rot_u.setIcon(general.getIconFromPath(os.path.join(icon_path, 'sync.png')))
         parent.btn_img_rot_u.setIconSize(qicon_size)
 
-        parent.btn_img_enh.setIcon(getIconFromPath(os.path.join(icon_path, 'photo_filter.png')))
+        parent.btn_img_enh.setIcon(general.getIconFromPath(os.path.join(icon_path, 'photo_filter.png')))
         parent.btn_img_enh.setIconSize(qicon_size)
 
-        parent.btn_fil_edit.setIcon(getIconFromPath(os.path.join(icon_path, 'create.png')))
+        parent.btn_fil_edit.setIcon(general.getIconFromPath(os.path.join(icon_path, 'create.png')))
         parent.btn_fil_edit.setIconSize(qicon_size)
 
-        parent.btn_img_sav.setIcon(getIconFromPath(os.path.join(icon_path, 'move_to_inbox.png')))
+        parent.btn_img_sav.setIcon(general.getIconFromPath(os.path.join(icon_path, 'move_to_inbox.png')))
         parent.btn_img_sav.setIconSize(qicon_size)
 
-        parent.btn_img_awb.setIcon(getIconFromPath(os.path.join(icon_path, 'auto_white_balance.png')))
+        parent.btn_img_awb.setIcon(general.getIconFromPath(os.path.join(icon_path, 'auto_white_balance.png')))
         parent.btn_img_awb.setIconSize(qicon_size)
 
-        parent.btn_img_col.setIcon(getIconFromPath(os.path.join(icon_path, 'colorlize.png')))
+        parent.btn_img_col.setIcon(general.getIconFromPath(os.path.join(icon_path, 'colorlize.png')))
         parent.btn_img_col.setIconSize(qicon_size)
 
-        parent.mlt_btn_play.setIcon(getIconFromPath(os.path.join(icon_path, 'play.png')))
+        parent.mlt_btn_play.setIcon(general.getIconFromPath(os.path.join(icon_path, 'play.png')))
         parent.mlt_btn_play.setIconSize(qicon_size)
 
-        parent.btn_geo_coding.setIcon(getIconFromPath(os.path.join(icon_path, 'location.png')))
+        parent.btn_geo_coding.setIcon(general.getIconFromPath(os.path.join(icon_path, 'location.png')))
         parent.btn_geo_coding.setIconSize(qicon_size)
 
-        parent.btn_map_reload.setIcon(getIconFromPath(os.path.join(icon_path, 'sync.png')))
+        parent.btn_map_reload.setIcon(general.getIconFromPath(os.path.join(icon_path, 'sync.png')))
         parent.btn_map_reload.setIconSize(qicon_size)
 
-        parent.btn_map_search.setIcon(getIconFromPath(os.path.join(icon_path, 'search.png')))
+        parent.btn_map_search.setIcon(general.getIconFromPath(os.path.join(icon_path, 'search.png')))
         parent.btn_map_search.setIconSize(qicon_size)
     except Exception as e:
         print("Error occured in setMainWindowIcons(parent, icon_path)")
@@ -479,7 +399,8 @@ def setDefaultConsolidationText(parent, status, skin="grey"):
     print("skin::setDefaultConsolidationText(parent, status, skin='grey')")
 
     try:
-        font_style_size = "font: regular " + str(getFontSize()) + "px;"
+        font_size = general.getFontSize()
+        font_style_size = "font: regular " + str(font_size) + "px;"
         font_style_color = ""
 
         if skin == "grey":
@@ -512,7 +433,8 @@ def setDefaultConsolidationText(parent, status, skin="grey"):
 
 def setDefaultMaterialText(parent, status, skin="grey"):
     try:
-        font_style_size = "font: regular " + str(getFontSize()) + "px;"
+        font_size = general.getFontSize()
+        font_style_size = "font: regular " + str(font_size) + "px;"
 
         if skin == "grey":
             text_border = "border-style: outset; border-width: 0.5px; border-color: #4C4C4C;"
@@ -549,7 +471,8 @@ def setDefaultMaterialText(parent, status, skin="grey"):
 
 def setDefaultFileText(parent, status, skin="grey"):
     try:
-        font_style_size = 'font: regular ' + str(getFontSize()) + 'px;'
+        font_size = general.getFontSize()
+        font_style_size = 'font: regular ' + str(font_size) + 'px;'
 
         if skin == "grey":
             back_color_tree = 'QHeaderView::section {background-color: #2C2C2C;}'
@@ -574,10 +497,10 @@ def applyMainWindowSkin(parent, icon_path="", skin="grey"):
     try:
 
         # Get the proper font size from the display size and set the font size.
-        font_size = getFontSize()
+        font_size = general.getFontSize()
 
         # Make the style sheet.
-        font_style_size = 'font: regular ' + str(getFontSize()) + 'px;'
+        font_style_size = 'font: regular ' + str(font_size) + 'px;'
 
         # Define the font object for Qt.
         font = QFont()

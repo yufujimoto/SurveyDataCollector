@@ -231,8 +231,8 @@ class RecordWithImage(QDialog, recordWithPhotoDialog.Ui_testDialog):
         self.bbx_rec_pht.buttons()[1].setMinimumSize(dlg_btn_size)
 
         # Set the skin and icon.
-        self.bbx_rec_pht.buttons()[0].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
-        self.bbx_rec_pht.buttons()[1].setIcon(skin.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
+        self.bbx_rec_pht.buttons()[0].setIcon(general.getIconFromPath(os.path.join(self._icon_directory, 'check.png')))
+        self.bbx_rec_pht.buttons()[1].setIcon(general.getIconFromPath(os.path.join(self._icon_directory, 'close.png')))
 
         # Change the icon color red to black.
         self.btn_rec_start.setIcon(QIcon(QPixmap(os.path.join(self._icon_directory, 'record.png'))))
