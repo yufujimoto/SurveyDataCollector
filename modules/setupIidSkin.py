@@ -22,7 +22,7 @@ def setText(parent):
     try:
         if parent.language == "ja":
             parent.cbx_fil_pub.setText("公開設定")
-            parent.cbx_fil_edit.setText("削除可能")
+            parent.cbx_fil_edit.setText("ロック状態")
             parent.lab_fil_sta.setText("ステータス")
             parent.lab_fil_ali.setText("別　名 :")
             parent.lab_fil_dt_cr.setText("作成日時 :")
@@ -38,7 +38,7 @@ def setText(parent):
 
         elif parent.language == "en":
             parent.cbx_fil_pub.setText("Public")
-            parent.cbx_fil_edit.setText("Erasable")
+            parent.cbx_fil_edit.setText("Locked")
             parent.lab_fil_sta.setText("Status")
             parent.lab_fil_ali.setText("Alias :")
             parent.lab_fil_dt_cr.setText("Date of Create :")
@@ -54,8 +54,8 @@ def setText(parent):
     except Exception as e:
         print("Error occured in setupIidSkin::setText(parent)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
-        return(None)
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)
 
 def setIcons(parent, icon_path):
     print("## setupIidSkin::setIcons(parent, icon_path)")
@@ -92,8 +92,8 @@ def setIcons(parent, icon_path):
     except Exception as e:
         print("Error occured in setupIidSkin::setIcons(parent, icon_path)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
-        return(None)
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)
 
 def setSkin(parent, icon_directory, skin="grey"):
     print("## setupIidSkin::setSkin(parent, icon_directory, skin='grey')")
@@ -152,41 +152,73 @@ def setSkin(parent, icon_directory, skin="grey"):
     except Exception as e:
         print("Error occured in setupIidSkin::setSkin(parent, icon_directory, skin='grey')")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
-        return(None)
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)
 
 def setImageDataView(parent):
-    # Add a tab for the image viewer
-    tab_img_view = QWidget()
-    tab_img_view.setLayoutDirection(Qt.LeftToRight)
-    tab_img_view.setObjectName("tab_img_view")
+    try:
+        # Add a tab for the image viewer
+        tab_img_view = QWidget()
+        tab_img_view.setLayoutDirection(Qt.LeftToRight)
+        tab_img_view.setObjectName("tab_img_view")
 
-    # Add the layout for image viewer.
-    lay_img_view = QVBoxLayout(tab_img_view)
-    lay_img_view.setContentsMargins(0, 0, 0, 0)
-    lay_img_view.setObjectName("lay_img_view")
+        # Add the layout for image viewer.
+        lay_img_view = QVBoxLayout(tab_img_view)
+        lay_img_view.setContentsMargins(0, 0, 0, 0)
+        lay_img_view.setObjectName("lay_img_view")
 
-    # Create the graphic view item.
-    parent.graphicsView = viewer.ImageViewer()
-    parent.graphicsView.setObjectName("graphicsView")
-    lay_img_view.addWidget(parent.graphicsView)
+        # Create the graphic view item.
+        parent.graphicsView = viewer.ImageViewer()
+        parent.graphicsView.setObjectName("graphicsView")
+        lay_img_view.addWidget(parent.graphicsView)
 
-    # Add a tab for the thumbnail.
-    tab_img_exif = QWidget()
-    tab_img_exif.setLayoutDirection(Qt.LeftToRight)
-    tab_img_exif.setObjectName("tab_img_exif")
+        # Add a tab for the thumbnail.
+        tab_img_exif = QWidget()
+        tab_img_exif.setLayoutDirection(Qt.LeftToRight)
+        tab_img_exif.setObjectName("tab_img_exif")
 
-    # Add the layout for image viewer.
-    lay_img_exif = QVBoxLayout(tab_img_exif)
-    lay_img_exif.setContentsMargins(0, 0, 0, 0)
-    lay_img_exif.setObjectName("lay_img_exif")
+        # Add the layout for image viewer.
+        lay_img_exif = QVBoxLayout(tab_img_exif)
+        lay_img_exif.setContentsMargins(0, 0, 0, 0)
+        lay_img_exif.setObjectName("lay_img_exif")
 
-    parent.tre_img_exif = QTreeWidget()
-    parent.tre_img_exif.setObjectName("tre_img_exif")
-    tre_img_exif_header = QTreeWidgetItem(["Property","Values"])
-    parent.tre_img_exif.setHeaderItem(tre_img_exif_header)
-    lay_img_exif.addWidget(parent.tre_img_exif)
+        parent.tre_img_exif = QTreeWidget()
+        parent.tre_img_exif.setObjectName("tre_img_exif")
+        tre_img_exif_header = QTreeWidgetItem(["Property","Values"])
+        parent.tre_img_exif.setHeaderItem(tre_img_exif_header)
+        lay_img_exif.addWidget(parent.tre_img_exif)
 
-    # Add the layout to the tab.
-    parent.tab_src.addTab(tab_img_view, "Image Viewer")
-    parent.tab_src.addTab(tab_img_exif, "Exif Viewer")
+        # Add the layout to the tab.
+        parent.tab_src.addTab(tab_img_view, "Image Viewer")
+        parent.tab_src.addTab(tab_img_exif, "Exif Viewer")
+    except Exception as e:
+        print("Error occured in setupIidSkin::setImageDataView(parent)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)
+
+def setTextDataView(parent):
+    try:
+        # Add a tab for the image viewer
+        tab_txt_view = QWidget()
+        tab_txt_view.setLayoutDirection(Qt.LeftToRight)
+        tab_txt_view.setObjectName("tab_txt_view")
+
+        # Add the layout for image viewer.
+        lay_txt_view = QVBoxLayout(tab_txt_view)
+        lay_txt_view.setContentsMargins(0, 0, 0, 0)
+        lay_txt_view.setObjectName("tab_txt_view")
+
+        # Create the graphic view item.
+        parent.txt_edt = QTextEdit()
+        parent.txt_edt.setObjectName("txt_edt")
+        lay_txt_view.addWidget(parent.txt_edt)
+
+        # Add the layout to the tab.
+        parent.tab_src.addTab(tab_txt_view, "Text Viewer")
+
+    except Exception as e:
+        print("Error occured in setupIidSkin::setTextDataView(parent)")
+        print(str(e))
+        error.ErrorMessageUnknown(details=str(e), show=True, language="en")
+        return(False)

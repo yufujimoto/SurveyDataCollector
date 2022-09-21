@@ -47,8 +47,8 @@ import dialog.consolidation as consolidationDialog
 import dialog.material as materialDialog
 import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
-import dialog.imageInformation as imageInformationDialog
-#import dialog.textEdit as textEditDialog
+import dialog.fileInformation as fileInformationDialog
+import dialog.fileToObjects as fileToObjectsDialog
 import dialog.textEditWithPhoto as textEditWithPhoto
 import dialog.cameraSelect as cameraSelectDialog
 import dialog.flickr as flickrDialog
@@ -138,6 +138,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def app_textEdit(self): return self._app_textEdit
     @property
     def image_file_operation(self): return self._image_file_operation
+    @property
+    def text_file_operation(self): return self._text_file_operation
 
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
@@ -211,6 +213,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def app_textEdit(self, value): self._app_textEdit = value
     @image_file_operation.setter
     def image_file_operation(self, value): self._image_file_operation = value
+    @text_file_operation.setter
+    def text_file_operation(self, value): self._text_file_operation = value
 
     def __init__(self, parent=None):
         print("Start -> main::__init__(self, parent=None)")
@@ -245,10 +249,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print("### Parameters...")
             general.initAll(self, dir_src, dir_lib, dir_sig, dir_map, dir_tmp, dir_icn, fil_cnf)
 
-            # Set the default skin.
-            print("### UI Skin...")
-            self.setSkin(lang=self._language, theme=self._skin)
-
             # Initialyze the proxy setting
             print("### Proxy...")
             self.setProxy()
@@ -257,11 +257,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print("### Map...")
             self.setDefaultMap()
 
-            # Open the previous project.
-            print("## Now opening the project...")
-            if not self._database == None:
-                if os.path.exists(self._database):
-                    self.openProject()
+            # Set the default skin.
+            print("### UI Skin...")
+            self.setSkin(lang=self._language, theme=self._skin)
 
             # Detect the camera automatically
             print("## Set Camera...")
@@ -269,12 +267,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self._gp_camera = gp.Camera()
             self.detectCamera()
 
-            # Set the default file if the count of items are more than 1.
-            print("## Set a top element...")
-            if self.tre_fls.topLevelItemCount() > 0:
-                # Set the top item of the file list.
-                self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(0))
-                self.getCurrentFile()
+            # Open the previous project.
+            print("## Now opening the project...")
+            if not self._database == None:
+                if os.path.exists(self._database):
+                    self.openProject()
 
         except Exception as e:
             print("Error occured in main::__init__(self, parent=None)")
@@ -304,6 +301,13 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
                 # Reconstruct the tree view for project items.
                 self.retriveProjectItems()
+
+                # Update the configuration file.
+                general.changeConfig(self)
+
+                # Set the top item.
+                if self.tre_prj_item.topLevelItemCount() > 0:
+                    self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
         except sqlite.DatabaseError as e:
             print("Error occured in main::openProject(self)")
             print(str(e))
@@ -385,9 +389,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.tre_prj_item.resizeColumnToContents(0)
             self.tre_prj_item.resizeColumnToContents(1)
 
-            # Select the first entry as the default.
-            self.tre_prj_item.setCurrentItem(self.tre_prj_item.topLevelItem(0))
-
         except sqlite.DatabaseError as e:
             print("Error occured in main::retriveProjectItems(self)")
             print(staticmethod(e))
@@ -461,10 +462,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-
-    def saveCurrentSettings(self):
-        print("main::saveCurrentSettings(self)")
-        general.changeConfig(self)
 
     def setProxy(self):
         print("main::setProxy(self)")
@@ -928,6 +925,148 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
+
+    def importFileToObjects(self):
+        print("Start -> main::importFileToObjects(self)")
+
+        try:
+            # Exit if the root directory is not loaded.
+            if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
+
+            self.dialogFileToObjects = fileToObjectsDialog.fileToObjectsDialog(parent=self)
+
+            if self.dialogFileToObjects.exec_():
+                dir_fls = self.dialogFileToObjects.tbx_fnam.text()
+
+                # Check whether import directory is empty or not.
+                if dir_fls == "" or dir_fls == None: return(False)
+
+                # Create a new consolidation.
+                con_uuid = str(uuid.uuid4())
+
+                sop_consolidation = features.Consolidation(is_new=True, uuid=None, dbfile=None)
+                sop_consolidation.uuid = con_uuid
+                sop_consolidation.name = os.path.basename(dir_fls)
+
+                # Insert the consolidation.
+                sop_consolidation.dbInsert(self._database)
+
+                # Create a directory to store consolidation.
+                con_dir = os.path.join(self._consolidation_directory, sop_consolidation.uuid)
+                general.createDirectories(con_dir, True)
+
+                bgn = self.dialogFileToObjects.spn_pos_bgn.value()
+                end = self.dialogFileToObjects.spn_pos_end.value()
+
+                fl_nams = self.dialogFileToObjects.importedFiles
+                obj_dict = dict()
+
+                for fl_nam in fl_nams:
+                    obj_dict[fl_nam] = fl_nam[bgn:end]
+
+                for fl_nam in fl_nams:
+                    find = fl_nam[bgn:end]
+                    keys = [k for k, v in obj_dict.items() if v == find]
+
+                    if len(keys) > 0:
+                        # Create and insert Material.
+                        sop_material = features.Material(is_new=True, uuid=None, dbfile=None)
+                        sop_material.uuid = str(uuid.uuid4())
+                        sop_material.consolidation = con_uuid
+                        sop_material.name =find
+                        sop_material.material_number = find
+
+                        # Create a directory to store material
+                        mat_dir = os.path.join(con_dir, "Materials")
+                        itm_dir = os.path.join(mat_dir, sop_material.uuid)
+
+                        if self.dialogFileToObjects.cbx_ftyp.currentText() == "Image":
+                            # Define file type.
+                            fl_typ = "image"
+
+                            # Define the path for saving files.
+                            img_path = os.path.join(itm_dir, "Images")
+                            fl_path = os.path.join(img_path, "Main")
+
+                        elif self.dialogFileToObjects.cbx_ftyp.currentText() == "Text":
+                            # Define file type.
+                            fl_typ = "text"
+
+                            # Define the path for saving files.
+                            fl_path = os.path.join(itm_dir, "Texts")
+
+                        # Create a materials folder.
+                        mat_dir = os.path.join(con_dir, "Materials")
+
+                        # Create a directory for storing objects.
+                        general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
+
+                        for key in keys:
+                            # Add file and insert the file.
+                            # Get the original image path.
+                            fl_org = os.path.join(dir_fls, key)
+                            fl_ext = os.path.splitext(key)[1]
+
+                            # Generate the GUID for the consolidation
+                            fl_uuid = str(uuid.uuid4())
+
+                            # Get current time.
+                            now = datetime.datetime.utcnow().isoformat()
+
+                            # Define the destination file path.
+                            fl_dest = os.path.join(fl_path, fl_uuid + fl_ext)
+
+                            # Copy the original file.
+                            shutil.copy(fl_org, fl_dest)
+
+                            # Instantiate the File class.
+                            sop_file = features.File(is_new=True, uuid=None, dbfile=None)
+
+                            sop_file.material = sop_material.uuid
+                            sop_file.consolidation = sop_material.consolidation
+                            sop_file.filename = general.getRelativePath(fl_dest, "Consolidation")
+                            sop_file.created_date = now
+                            sop_file.modified_date = now
+                            sop_file.file_type = fl_typ
+                            sop_file.alias = "Imported"
+                            sop_file.status = "Original"
+                            sop_file.lock = False
+                            sop_file.public = False
+                            sop_file.source = "Nothing"
+                            sop_file.operation = "Imported"
+                            sop_file.operating_application = "Survey Data Collector"
+                            sop_file.caption = "Imported"
+                            sop_file.description = ""
+
+                            sop_file.dbInsert(self._database)
+
+                            # Add the image to the boject.
+                            sop_material.images.append(sop_file)
+
+                            obj_dict.pop(key)
+
+                        # Insert the consolidation.
+                        sop_material.dbInsert(self._database)
+
+            # Initialyze the tree view.
+            self.tre_prj_item.clear()
+
+            # Reflesh the last selection.
+            self.refreshConsolidationInfo()
+            self.refreshMaterialInfo()
+            self.refreshImageInfo()
+
+            # Refresh the tree view.
+            self.retriveProjectItems()
+
+        except Exception as e:
+            print("Error occured in main::importFileToObjects(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+
+        finally:
+            print("End -> main::importFileToObjects")
 
     # ==========================
     # Consolidation
@@ -1448,6 +1587,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                     mat_dir = os.path.join(con_dir, "Materials")
 
                                     # Create a directory for storing objects.
+                                    createPathIfNotExists(mat_dir)
                                     general.createDirectories(os.path.join(mat_dir, sop_material.uuid), False)
                                 elif mat_head[i] == "name": sop_material.name = entries[i]
                                 elif mat_head[i] == "material_number": sop_material.material_number = entries[i]
@@ -1496,7 +1636,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                         sop_img_file.lock = False
                                         sop_img_file.public = False
                                         sop_img_file.source = "Nothing"
-                                        sop_img_file.operation = "Importing"
+                                        sop_img_file.operation = "Imported"
                                         sop_img_file.operating_application = "Survey Data Collector"
                                         sop_img_file.caption = "Imported image"
                                         sop_img_file.description = ""
@@ -1543,7 +1683,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                                         sop_raw_file.lock = False
                                         sop_raw_file.public = False
                                         sop_raw_file.source = "Nothing"
-                                        sop_raw_file.operation = "Importing"
+                                        sop_raw_file.operation = "Imported"
                                         sop_raw_file.operating_application = "Survey Data Collector"
                                         sop_raw_file.caption = "Imported image"
                                         sop_raw_file.description = ""
@@ -2041,8 +2181,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         finally:
            print("End -> main::getCurrentFile")
 
-    def editImageInformation(self):
-        print("main::editImageInformation(self)")
+    def editFileInformation(self):
+        print("main::editFileInformation(self)")
 
         # Exit if the root directory is not loaded.
         if self._root_directory == None: error.ErrorMessageProjectOpen(language=self._language); return(None)
@@ -2054,11 +2194,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Exit if the none of a file is selected.
             if self.tre_fls.selectedItems() == None: return(None)
 
-            # Exit if the selected file is not image.
-            if not self._current_file.file_type == "image": return(None)
-
             # Check and edit file information.
-            dlg_img_fil = imageInformationDialog.imageInformationDialog(parent=self, sop_file=self._current_file)
+            dlg_img_fil = fileInformationDialog.fileInformationDialog(parent=self, sop_file=self._current_file)
 
             # Show the dialog.
             isAccepted = dlg_img_fil.exec_()
@@ -2109,7 +2246,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
                 self.tre_fls.setCurrentItem(self.tre_fls.topLevelItem(cur_tree_index))
         except Exception as e:
-            print("Error occured in main::editImageInformation(self)")
+            print("Error occured in main::editFileInformation(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
@@ -2602,7 +2739,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             if (selected == None or len(selected) == 0): return(None)
 
             # Exit if the selected file is locked.
-            if not self.cbx_fil_edit.isChecked(): error.ErrorMessageFileLocked(); return(None)
+            if not self.cbx_fil_edit.isChecked():
+                error.ErrorMessageFileLocked()
+                return(None)
 
             # Confirm deletion.
             if self._language == "ja":
@@ -2637,7 +2776,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self._current_file.status = "Removed"
             self._current_file.lock = True
             self._current_file.public = False
-            self._current_file.operation = "Removing"
+            self._current_file.operation = "Removed"
             self._current_file.operating_application = "Survey Data Collector"
             self._current_file.caption = "Removed"
 
@@ -2976,34 +3115,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
         return(map_path)
 
-    def createMapByLocationName(self, geo_name, wkt_path):
-        print("main::createMapByLocationName(self, wkt_path)")
-
-        try:
-            if not self._proxy == "No Proxy":
-                proxy = {'https': self._proxy}
-                latlon = geospatial.geoCoding(geo_name, proxy)
-            else:
-                latlon = geospatial.geoCoding(geo_name)
-
-            latitude = latlon[0]
-            longitude = latlon[1]
-
-            wkt_pt = "POINT (%s %s)\n" % (latitude, longitude)
-
-            marker = open(wkt_path, "w")
-            marker.write(wkt_pt)
-            marker.close()
-
-            self.publishMap(wkt_path)
-
-            return(wkt_path)
-        except Exception as e:
-            print("Error occured in main::createMapByLocationName(self)")
-            print(str(e))
-            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
-            return(None)
-
     def addGeometryByGeocoding(self):
         print("main::addGeometryByGeocoding(self)")
 
@@ -3137,8 +3248,37 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
 
+    def createMapByLocationName(self, geo_name, wkt_path):
+        print("main::createMapByLocationName(self, wkt_path)")
+
+        try:
+            if not self._proxy == "No Proxy":
+                proxy = {'https': self._proxy}
+                latlon = geospatial.geoCoding(geo_name, proxy)
+            else:
+                latlon = geospatial.geoCoding(geo_name)
+
+            latitude = latlon[0]
+            longitude = latlon[1]
+
+            wkt_pt = "POINT (%s %s)\n" % (latitude, longitude)
+
+            marker = open(wkt_path, "w")
+            marker.write(wkt_pt)
+            marker.close()
+
+            self.publishMap(wkt_path)
+
+            return(wkt_path)
+        except Exception as e:
+            print("Error occured in main::createMapByLocationName(self)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
+            return(None)
+
     def searchLocationOnMap(self):
         print("main::searchLocationOnMap(self)")
+        
         try:
             geo_name = self.txt_map_search.text()
             output = os.path.join(self._map_directory,"location.html")
@@ -3221,7 +3361,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         img_file.lock = False
                         img_file.public = False
                         img_file.source = self._current_file.uuid
-                        img_file.operation = "Editing on GIMP"
+                        img_file.operation = "Edited by GIMP"
                         img_file.operating_application = "GIMP"
                         img_file.caption = "Edited by GIMP"
                         img_file.description = "This file is edited by GIMP."
@@ -3418,7 +3558,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.lock = False
                 img_file.public = False
                 img_file.source = self._current_file.uuid
-                img_file.operation = "Grayscaling"
+                img_file.operation = "Grayscale"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Grayscale version"
                 img_file.description = "Make grayscale by this system."
@@ -3503,7 +3643,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.lock = False
                 img_file.public = False
                 img_file.source = self._current_file.uuid
-                img_file.operation = "White balance adjusting"
+                img_file.operation = "White Balance Adjustment"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "White balance adjusted"
                 img_file.description = "Make Auto White Balance with " + self._awb_algo +" by this system."
@@ -3589,7 +3729,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.lock = False
                 img_file.public = False
                 img_file.source = self._current_file.uuid
-                img_file.operation = "Normalizing"
+                img_file.operation = "Normalized"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Normalized version"
                 img_file.description = "Make normalized by this system."
@@ -3673,7 +3813,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.lock = False
                 img_file.public = False
                 img_file.source = self._current_file.uuid
-                img_file.operation = "Cropping"
+                img_file.operation = "Cropped"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Cropped version"
                 img_file.description = "Make cropped by this system."
@@ -3759,7 +3899,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                 img_file.lock = False
                 img_file.public = False
                 img_file.source = self._current_file.uuid
-                img_file.operation = "Color inverting"
+                img_file.operation = "Color invert"
                 img_file.operating_application = "Survey Data Collector"
                 img_file.caption = "Color inverted version"
                 img_file.description = "Make color inverting by this system."
@@ -3943,7 +4083,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             img_file.lock = False
             img_file.public = False
             img_file.source = self._current_file.uuid
-            img_file.operation = "Colorlizing"
+            img_file.operation = "Colorlized"
             img_file.operating_application = "siggraph 2016 Colorization"
             img_file.caption = "Colorlized by machine learning"
             img_file.description = "Colorlized by machine learning algorithm."
@@ -4924,6 +5064,11 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
             pass
+
+    # ==========================
+    # Geodata operation
+    # ==========================
+
 
 def main():
     app = QApplication(sys.argv)

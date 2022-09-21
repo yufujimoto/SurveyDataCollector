@@ -232,7 +232,7 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         status = "Original"
         src = "Nothing"
         app = "Survey Data Collector"
-        ope = "Created Manually"
+        ope = "Created"
         lock = False
         capt = "Original text"
 
@@ -350,8 +350,8 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         body = edt_txt
         status = "Edited"
         src = src_uuid
-        app = "Survey Data Collecto"
-        ope = "Manually Edited"
+        app = "Survey Data Collector"
+        ope = "Edited"
         lock = True
         capt = "Manually Edited"
 

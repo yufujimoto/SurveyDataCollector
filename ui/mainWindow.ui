@@ -2169,23 +2169,8 @@
      <property name="title">
       <string>インポート</string>
      </property>
-     <widget class="QMenu" name="men_imp_csv">
-      <property name="title">
-       <string>&amp;CSV File</string>
-      </property>
-      <addaction name="act_imp_csv_con"/>
-      <addaction name="act_imp_csv_mat"/>
-      <addaction name="act_imp_csv_fil"/>
-     </widget>
-     <widget class="QMenu" name="men_imp_xml">
-      <property name="title">
-       <string>&amp;XML File</string>
-      </property>
-      <addaction name="act_imp_gml"/>
-      <addaction name="act_imp_sop"/>
-     </widget>
-     <addaction name="men_imp_csv"/>
-     <addaction name="men_imp_xml"/>
+     <addaction name="separator"/>
+     <addaction name="act_imp_f2o"/>
     </widget>
     <widget class="QMenu" name="men_exp">
      <property name="title">
@@ -2353,6 +2338,11 @@
   <action name="act_prj_save">
    <property name="text">
     <string>保存</string>
+   </property>
+  </action>
+  <action name="act_imp_f2o">
+   <property name="text">
+    <string>File to Objects</string>
    </property>
   </action>
  </widget>

@@ -39,10 +39,10 @@ def activate(ui_main):
     # Activate actions on the menu bar.
     ui_main.bar_menu.setNativeMenuBar(False)
     ui_main.act_prj_open.triggered.connect(ui_main.getTheRootDirectory)
-    ui_main.act_prj_open.triggered.connect(ui_main.saveCurrentSettings)
     ui_main.act_imp_csv_con.triggered.connect(ui_main.importConsolidationCSV)
     ui_main.act_imp_csv_mat.triggered.connect(ui_main.importMaterialCSV)
     ui_main.act_imp_csv_fil.triggered.connect(ui_main.importFileCSV)
+    ui_main.act_imp_f2o.triggered.connect(ui_main.importFileToObjects)
     ui_main.act_exp_html.triggered.connect(ui_main.exportAsHtml)
     ui_main.act_exp_csv_con.triggered.connect(ui_main.exportConsolidationCSV)
     ui_main.act_exp_csv_mat.triggered.connect(ui_main.exportMaterialCSV)
@@ -58,7 +58,7 @@ def activate(ui_main):
 
     ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)      # Handle current selection of consolidations and materials.
     ui_main.tre_fls.itemSelectionChanged.connect(ui_main.getCurrentFile)                    # Handle current selection of consolidations and materials.
-    
+
     ui_main.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.
     ui_main.tab_src.setCurrentIndex(0)     # Initialyze the tab icons for source media tabs.
 
@@ -110,7 +110,7 @@ def activate(ui_main):
     ui_main.btn_map_search.clicked.connect(ui_main.searchLocationOnMap)
 
     # Activate the extra functions.
-    ui_main.btn_fil_edit.clicked.connect(ui_main.editImageInformation)  # Activate the editing the file informatin button.
+    ui_main.btn_fil_edit.clicked.connect(ui_main.editFileInformation)  # Activate the editing the file informatin button.
 
     #========================
     # Media player

@@ -55,6 +55,9 @@ def setIcons(parent, icon_path):
         parent.btn_sav.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'save.png'))))
         parent.btn_sav.setIconSize(qicon_size)
 
+        parent.btn_opn_app.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'create.png'))))
+        parent.btn_opn_app.setIconSize(qicon_size)
+
         # Initialyze the OCR button.
         parent.btn_ocr.setIcon(QIcon(QPixmap(os.path.join(icon_path, 'ocr.png'))))
         parent.btn_ocr.setIconSize(qicon_size)

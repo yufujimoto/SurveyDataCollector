@@ -67,16 +67,25 @@ def initAll(parent,dir_src, dir_lib, dir_sig, dir_map, dir_tmp, dir_icn, fil_cnf
 
         # Define the default file operations.
         parent.image_file_operation = [
-            "Editing on GIMP",
-            "Rotating",
-            "Grayscaling",
-            "White balance adjusting",
-            "Normalizing",
-            "Cropping",
-            "Color inverting",
-            "Removing",
-            "Colorlizing",
-            "Importing",
+            "Edited by GIMP",
+            "Rotation",
+            "Grayscale",
+            "White Balance Adjustment",
+            "Normalized",
+            "Cropped",
+            "Color invert",
+            "Removed",
+            "Colorlized",
+            "Imported",
+            "Unknown",
+            "Other"
+        ]
+
+        parent.text_file_operation = [
+            "Created",
+            "Edited",
+            "Imported",
+            "Optically Recoginzed",
             "Unknown",
             "Other"
         ]
@@ -973,15 +982,15 @@ def createDirectories(item_path, isConsolidation):
         os.mkdir(os.path.join(sop_dir_img, "Raw"))
         os.mkdir(os.path.join(sop_dir_img, "Thumbs"))
 
-        open(os.path.join(sop_dir_geo, "markers.txt", "w")).close()
-        open(os.path.join(sop_dir_geo, "lines.txt", "w")).close()
-        open(os.path.join(sop_dir_geo, "polygons.txt", "w")).close()
+        open(os.path.join(sop_dir_geo, "markers.txt"), "w").close()
+        open(os.path.join(sop_dir_geo, "lines.txt"), "w").close()
+        open(os.path.join(sop_dir_geo, "polygons.txt"), "w").close()
 
         # In case consolidation, create a directory for materials.
         if isConsolidation:
             os.mkdir(os.path.join(sop_dir_root, "Materials"))
     except Exception as e:
-        print("Error occured in general::checkAdditionalAttributeTableFields(dbfile)")
+        print("Error occured in general::createDirectories(dbfile)")
         print(str(e))
 
         return(None)

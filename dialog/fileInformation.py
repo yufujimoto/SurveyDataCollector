@@ -25,12 +25,12 @@ import modules.setupIidSkin as skin
 
 # Import camera and image processing library.
 import modules.imageProcessing as imageProcessing
-import dialog.imageInformationDialog as imageInformationDialog
+import dialog.fileInformationDialog as fileInformationDialog
 
 # Import image viewer object.
 import viewer.imageViewer as viewer
 
-class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformationDialog):
+class fileInformationDialog(QDialog, fileInformationDialog.Ui_fileInformationDialog):
     @property
     def sop_file(self): return self._sop_file
     @property
@@ -72,7 +72,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self._qt_image = parent.qt_image
 
         # Set the source directory which this program located.
-        super(imageInformationDialog, self).__init__(parent)
+        super(fileInformationDialog, self).__init__(parent)
         self.setupUi(self)
 
         # Initialize the window.
@@ -90,16 +90,14 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         self.box_fil_ope.rejected.connect(self.reject)
 
         # Get the image properties from the instance.
-        if self._sop_file.public == "1":
+        if int(self._sop_file.public) == 1:
             self.cbx_fil_pub.setChecked(True)
         else:
             self.cbx_fil_pub.setChecked(False)
 
-        if self._sop_file.lock == "1":
-            self.cbx_fil_edit.setChecked(False)
-            self.cbx_fil_edit.setDisabled(True)
-        else:
+        if int(self._sop_file.lock) == 1:
             self.cbx_fil_edit.setChecked(True)
+        else:
             self.cbx_fil_edit.setDisabled(False)
 
         # Set the alias name of the file object.
@@ -139,11 +137,11 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         if self._sop_file.file_type == "image":
             # Set the operation of the file object and option values.
             img_ope_list = parent.image_file_operation
+            self.cmb_fil_eope.addItem(self._sop_file.operation)
 
             if self._sop_file.operation in img_ope_list:
                 img_ope_list.remove(self._sop_file.operation)
 
-            self.cmb_fil_eope.addItem(self._sop_file.operation)
             for img_ope in img_ope_list:
                 self.cmb_fil_eope.addItem(img_ope)
 
@@ -155,6 +153,28 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
 
                 # Get the image file.
                 self.showImage(img_file_path)
+        elif self._sop_file.file_type == "text":
+            # Set the operation of the file object and option values.
+            txt_ope_list = parent.text_file_operation
+            self.cmb_fil_eope.addItem(self._sop_file.operation)
+
+            if self._sop_file.operation in txt_ope_list:
+                txt_ope_list.remove(self._sop_file.operation)
+            for txt_ope in txt_ope_list:
+                self.cmb_fil_eope.addItem(txt_ope)
+
+            # Get the path from selected image object.
+            txt_file_path = os.path.join(parent.root_directory, self._sop_file.filename)
+
+            # Create text viewer.
+            skin.setTextDataView(self)
+
+            # Open the text file.
+            txt_file_stream = open(txt_file_path, "r")
+
+            self.txt_edt.setText(txt_file_stream.read())
+
+            txt_file_stream.close()
 
         # Set skin for this UI.
         self.setSkin()
@@ -175,7 +195,6 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         finally:
             print("End -> imageInformation::setSkin")
 
-
     def toggleTab(self):
         print("information::toggleTab(self)")
         try:
@@ -195,7 +214,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             print(str(e))
 
     def showExif(self, img_file_path):
-        print("imageInformationDialog::showImage(self)")
+        print("fileInformationDialog::showImage(self)")
 
         self.tre_img_exif.clear()
 
@@ -214,7 +233,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
 
 
     def showImage(self, img_file_path):
-        print("imageInformationDialog::showImage(self)")
+        print("fileInformationDialog::showImage(self)")
 
         try:
             # Check whether the image is Raw image or not.
@@ -227,21 +246,8 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
 
             self.graphicsView.setFile(img_file_path)
 
-            # else:
-            #     # Create error messages.
-            #     error_title = "エラーが発生しました"
-            #     error_msg = "このファイルはプレビューに対応していません。"
-            #     error_info = "諦めてください。RAW + JPEG で撮影することをお勧めします。"
-            #     error_icon = QMessageBox.Critical
-            #     error_detailed = str(e)
-            #
-            #     # Handle error.
-            #     general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
-            #
-            #     # Returns nothing.
-            #     return(None)
         except Exception as e:
-            print("Error occured in imageInformationDialog::showImage(self)")
+            print("Error occured in fileInformationDialog::showImage(self)")
 
             # Show the error message.
             error.ErrorMessageUnknown(details=str(e))
@@ -250,7 +256,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             return(None)
 
     def setViewer(self):
-        print("imageInformationDialog::setViewer(self)")
+        print("fileInformationDialog::setViewer(self)")
 
         try:
             # Get the full path of the image.
@@ -266,7 +272,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             self.graphicsView.setFile(img_file_path)
 
         except Exception as e:
-            print("Error occured in imageInformationDialog::setViewer(self)")
+            print("Error occured in fileInformationDialog::setViewer(self)")
             print(str(e))
 
             return(None)
@@ -287,7 +293,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
         return(img_valid)
 
     def getCreateDateByExif(self):
-        print("imageInformationDialog::getCreateDateByExif(self)")
+        print("fileInformationDialog::getCreateDateByExif(self)")
 
         try:
             # Set dates of creation and modification.
@@ -296,7 +302,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             print(str(e))
 
     def getModifiedDateByExif(self):
-        print("imageInformationDialog::getModifiedDateByExif(self)")
+        print("fileInformationDialog::getModifiedDateByExif(self)")
 
         try:
             # Set dates of creation and modification.
@@ -305,7 +311,7 @@ class imageInformationDialog(QDialog, imageInformationDialog.Ui_imageInformation
             print(str(e))
 
     def getOriginalTime(self):
-        print("imageInformationDialog::getMetaInfo(self)")
+        print("fileInformationDialog::getMetaInfo(self)")
 
         try:
             # Get the full path of the image.

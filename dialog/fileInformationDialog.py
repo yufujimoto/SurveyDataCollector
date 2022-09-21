@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/imageInformationDialog.ui'
+# Form implementation generated from reading ui file '/home/yufujimoto/GitHub/SurveyDataCollector/ui/fileInformationDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.10.1
 #
@@ -8,19 +8,19 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_imageInformationDialog(object):
-    def setupUi(self, imageInformationDialog):
-        imageInformationDialog.setObjectName("imageInformationDialog")
-        imageInformationDialog.resize(854, 768)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(imageInformationDialog)
+class Ui_fileInformationDialog(object):
+    def setupUi(self, fileInformationDialog):
+        fileInformationDialog.setObjectName("fileInformationDialog")
+        fileInformationDialog.resize(854, 768)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(fileInformationDialog)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.tab_src = QtWidgets.QTabWidget(imageInformationDialog)
+        self.tab_src = QtWidgets.QTabWidget(fileInformationDialog)
         self.tab_src.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.tab_src.setObjectName("tab_src")
         self.verticalLayout_2.addWidget(self.tab_src)
-        self.frame = QtWidgets.QFrame(imageInformationDialog)
+        self.frame = QtWidgets.QFrame(fileInformationDialog)
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
@@ -146,27 +146,26 @@ class Ui_imageInformationDialog(object):
         self.verticalLayout.addWidget(self.box_fil_ope)
         self.verticalLayout_2.addWidget(self.frame)
 
-        self.retranslateUi(imageInformationDialog)
+        self.retranslateUi(fileInformationDialog)
         self.tab_src.setCurrentIndex(-1)
-        self.box_fil_ope.accepted.connect(imageInformationDialog.accept)
-        self.box_fil_ope.rejected.connect(imageInformationDialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(imageInformationDialog)
+        self.box_fil_ope.accepted.connect(fileInformationDialog.accept)
+        self.box_fil_ope.rejected.connect(fileInformationDialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(fileInformationDialog)
 
-    def retranslateUi(self, imageInformationDialog):
+    def retranslateUi(self, fileInformationDialog):
         _translate = QtCore.QCoreApplication.translate
-        imageInformationDialog.setWindowTitle(_translate("imageInformationDialog", "Dialog"))
-        self.cbx_fil_pub.setText(_translate("imageInformationDialog", "公開設定"))
-        self.cbx_fil_edit.setText(_translate("imageInformationDialog", "削除可能"))
-        self.lab_fil_sta.setText(_translate("imageInformationDialog", "ステータス："))
-        self.lab_fil_ali.setText(_translate("imageInformationDialog", "別　　名："))
-        self.lab_fil_dt_cr.setText(_translate("imageInformationDialog", "作成日時："))
-        self.dte_fil_dt_cre.setDisplayFormat(_translate("imageInformationDialog", "yyyy-MM-dd HH:mm:zz"))
-        self.btn_fil_dt_cre_exif.setText(_translate("imageInformationDialog", "Exifから取得"))
-        self.lab_fil_dt_mod.setText(_translate("imageInformationDialog", "編集日時："))
-        self.dte_fil_dt_mod.setDisplayFormat(_translate("imageInformationDialog", "yyyy-MM-dd HH:mm:zz"))
-        self.btn_fil_dt_mod_exif.setText(_translate("imageInformationDialog", "Exifから取得"))
-        self.lab_fil_ope.setText(_translate("imageInformationDialog", "操　　作："))
-        self.lab_fil_ope_app.setText(_translate("imageInformationDialog", "操作アプリ："))
-        self.lab_fil_cap.setText(_translate("imageInformationDialog", "キャプション："))
-        self.lbl_fil_dsc.setText(_translate("imageInformationDialog", "備　　考："))
-
+        fileInformationDialog.setWindowTitle(_translate("fileInformationDialog", "Dialog"))
+        self.cbx_fil_pub.setText(_translate("fileInformationDialog", "公開設定"))
+        self.cbx_fil_edit.setText(_translate("fileInformationDialog", "削除可能"))
+        self.lab_fil_sta.setText(_translate("fileInformationDialog", "ステータス："))
+        self.lab_fil_ali.setText(_translate("fileInformationDialog", "別　　名："))
+        self.lab_fil_dt_cr.setText(_translate("fileInformationDialog", "作成日時："))
+        self.dte_fil_dt_cre.setDisplayFormat(_translate("fileInformationDialog", "yyyy-MM-dd HH:mm:zz"))
+        self.btn_fil_dt_cre_exif.setText(_translate("fileInformationDialog", "Exifから取得"))
+        self.lab_fil_dt_mod.setText(_translate("fileInformationDialog", "編集日時："))
+        self.dte_fil_dt_mod.setDisplayFormat(_translate("fileInformationDialog", "yyyy-MM-dd HH:mm:zz"))
+        self.btn_fil_dt_mod_exif.setText(_translate("fileInformationDialog", "Exifから取得"))
+        self.lab_fil_ope.setText(_translate("fileInformationDialog", "操　　作："))
+        self.lab_fil_ope_app.setText(_translate("fileInformationDialog", "操作アプリ："))
+        self.lab_fil_cap.setText(_translate("fileInformationDialog", "キャプション："))
+        self.lbl_fil_dsc.setText(_translate("fileInformationDialog", "備　　考："))

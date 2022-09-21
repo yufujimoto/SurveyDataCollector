@@ -105,7 +105,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_img_file.lock = False
                 sop_img_file.public = False
                 sop_img_file.source = "Nothing"
-                sop_img_file.operation = "Importing"
+                sop_img_file.operation = "Imported"
                 sop_img_file.operating_application = "Survey Data Collector"
                 sop_img_file.caption = "Imported image"
                 sop_img_file.description = ""
@@ -153,7 +153,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_raw_file.lock = False
                 sop_raw_file.public = False
                 sop_raw_file.source = "Nothing"
-                sop_raw_file.operation = "Importing"
+                sop_raw_file.operation = "Imported"
                 sop_raw_file.operating_application = "Survey Data Collector"
                 sop_raw_file.caption = "Imported image"
                 sop_raw_file.description = ""
@@ -201,7 +201,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_snd_file.lock = False
                 sop_snd_file.public = False
                 sop_snd_file.source = "Nothing"
-                sop_snd_file.operation = "Importing"
+                sop_snd_file.operation = "Imported"
                 sop_snd_file.operating_application = "Survey Data Collector"
                 sop_snd_file.caption = "Original audio"
                 sop_snd_file.description = ""
@@ -249,7 +249,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_txt_file.lock = False
                 sop_txt_file.public = False
                 sop_txt_file.source = "Nothing"
-                sop_txt_file.operation = "Importing"
+                sop_txt_file.operation = "Imported"
                 sop_txt_file.operating_application = "Survey Data Collector"
                 sop_txt_file.caption = "Original text"
                 sop_txt_file.description = ""
@@ -297,7 +297,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_mov_file.lock = False
                 sop_mov_file.public = False
                 sop_mov_file.source = "Nothing"
-                sop_mov_file.operation = "Importing"
+                sop_mov_file.operation = "Imported"
                 sop_mov_file.operating_application = "Survey Data Collector"
                 sop_mov_file.caption = "Original text"
                 sop_mov_file.description = ""
@@ -342,7 +342,7 @@ def mediaImporter(sop_object, item_path, in_dir, mat_uuid, con_uuid, dbfile):
                 sop_geo_file.lock = False
                 sop_geo_file.public = False
                 sop_geo_file.source = "Nothing"
-                sop_geo_file.operation = "Importing"
+                sop_geo_file.operation = "Imported"
                 sop_geo_file.operating_application = "Survey Data Collector"
                 sop_geo_file.caption = "Original geometry"
                 sop_geo_file.description = ""

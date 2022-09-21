@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>863</width>
-    <height>601</height>
+    <width>954</width>
+    <height>628</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -39,6 +39,37 @@
           <property name="topMargin">
            <number>0</number>
           </property>
+          <item>
+           <widget class="QComboBox" name="cbx_type">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Plane Text(*.txt)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Comma Separated Values(*.csv)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Markdown(*.md)</string>
+             </property>
+            </item>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="btn_sav">
             <property name="enabled">
@@ -100,34 +131,15 @@
          </layout>
         </item>
         <item>
-         <widget class="QComboBox" name="cbx_type">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <item>
-           <property name="text">
-            <string>Plane Text(*.txt)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Comma Separated Values(*.csv)</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Markdown(*.md)</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
          <widget class="QTextEdit" name="textEdit">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="readOnly">
            <bool>true</bool>

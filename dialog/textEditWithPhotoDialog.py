@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/git/SurveyDataCollector/ui/textEditWithPhotoDialog.ui'
+# Form implementation generated from reading ui file '/home/yfujimoto/git/SurveyDataCollector/ui/textEditWithPhotoDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_textEditDialog(object):
     def setupUi(self, textEditDialog):
         textEditDialog.setObjectName("textEditDialog")
-        textEditDialog.resize(863, 601)
+        textEditDialog.resize(954, 628)
         textEditDialog.setMinimumSize(QtCore.QSize(800, 600))
         self.gridLayout_3 = QtWidgets.QGridLayout(textEditDialog)
         self.gridLayout_3.setObjectName("gridLayout_3")
@@ -30,6 +30,14 @@ class Ui_textEditDialog(object):
         self.lay_h_men = QtWidgets.QHBoxLayout()
         self.lay_h_men.setContentsMargins(-1, 0, -1, -1)
         self.lay_h_men.setObjectName("lay_h_men")
+        self.cbx_type = QtWidgets.QComboBox(self.frm_txt_edt)
+        self.cbx_type.setMinimumSize(QtCore.QSize(0, 0))
+        self.cbx_type.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.cbx_type.setObjectName("cbx_type")
+        self.cbx_type.addItem("")
+        self.cbx_type.addItem("")
+        self.cbx_type.addItem("")
+        self.lay_h_men.addWidget(self.cbx_type)
         self.btn_sav = QtWidgets.QPushButton(self.frm_txt_edt)
         self.btn_sav.setEnabled(False)
         self.btn_sav.setMaximumSize(QtCore.QSize(120, 16777215))
@@ -51,15 +59,9 @@ class Ui_textEditDialog(object):
         self.dummy_0000.setObjectName("dummy_0000")
         self.lay_h_men.addWidget(self.dummy_0000)
         self.lay_v_edt.addLayout(self.lay_h_men)
-        self.cbx_type = QtWidgets.QComboBox(self.frm_txt_edt)
-        self.cbx_type.setMinimumSize(QtCore.QSize(0, 0))
-        self.cbx_type.setObjectName("cbx_type")
-        self.cbx_type.addItem("")
-        self.cbx_type.addItem("")
-        self.cbx_type.addItem("")
-        self.lay_v_edt.addWidget(self.cbx_type)
         self.textEdit = QtWidgets.QTextEdit(self.frm_txt_edt)
         self.textEdit.setEnabled(True)
+        self.textEdit.setMinimumSize(QtCore.QSize(200, 0))
         self.textEdit.setReadOnly(True)
         self.textEdit.setObjectName("textEdit")
         self.lay_v_edt.addWidget(self.textEdit)
@@ -153,12 +155,12 @@ class Ui_textEditDialog(object):
     def retranslateUi(self, textEditDialog):
         _translate = QtCore.QCoreApplication.translate
         textEditDialog.setWindowTitle(_translate("textEditDialog", "Dialog"))
-        self.btn_sav.setText(_translate("textEditDialog", "Save"))
-        self.btn_opn_app.setText(_translate("textEditDialog", "Open By"))
-        self.chk_edit.setText(_translate("textEditDialog", "Edit Mode"))
         self.cbx_type.setItemText(0, _translate("textEditDialog", "Plane Text(*.txt)"))
         self.cbx_type.setItemText(1, _translate("textEditDialog", "Comma Separated Values(*.csv)"))
         self.cbx_type.setItemText(2, _translate("textEditDialog", "Markdown(*.md)"))
+        self.btn_sav.setText(_translate("textEditDialog", "Save"))
+        self.btn_opn_app.setText(_translate("textEditDialog", "Open By"))
+        self.chk_edit.setText(_translate("textEditDialog", "Edit Mode"))
         self.lbl_img.setText(_translate("textEditDialog", "Image Selector"))
         self.lbl_fl_txt.setText(_translate("textEditDialog", "Text Files"))
         self.btn_new_txt.setText(_translate("textEditDialog", "New"))

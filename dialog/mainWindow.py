@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/yufujimoto/git/SurveyDataCollector/ui/mainWindow.ui'
+# Form implementation generated from reading ui file '/home/yfujimoto/git/SurveyDataCollector/ui/mainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -19,7 +19,7 @@ class Ui_MainWindow(object):
         font.setPointSize(9)
         MainWindow.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("/home/yufujimoto/git/SurveyDataCollector/ui/../../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("/home/yfujimoto/git/SurveyDataCollector/ui/../../../../.designer/backup/icon/ic_add_a_photo_black_24dp_2x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.frm_main = QtWidgets.QWidget(MainWindow)
         self.frm_main.setObjectName("frm_main")
@@ -803,10 +803,6 @@ class Ui_MainWindow(object):
         self.men_dat.setObjectName("men_dat")
         self.men_imp = QtWidgets.QMenu(self.men_dat)
         self.men_imp.setObjectName("men_imp")
-        self.men_imp_csv = QtWidgets.QMenu(self.men_imp)
-        self.men_imp_csv.setObjectName("men_imp_csv")
-        self.men_imp_xml = QtWidgets.QMenu(self.men_imp)
-        self.men_imp_xml.setObjectName("men_imp_xml")
         self.men_exp = QtWidgets.QMenu(self.men_dat)
         self.men_exp.setObjectName("men_exp")
         self.men_exp_csv = QtWidgets.QMenu(self.men_exp)
@@ -869,19 +865,16 @@ class Ui_MainWindow(object):
         self.act_conf.setObjectName("act_conf")
         self.act_prj_save = QtWidgets.QAction(MainWindow)
         self.act_prj_save.setObjectName("act_prj_save")
+        self.act_imp_f2o = QtWidgets.QAction(MainWindow)
+        self.act_imp_f2o.setObjectName("act_imp_f2o")
         self.men_prj_exp.addAction(self.act_exp_html)
         self.men_prj_exp.addAction(self.act_exp_flickr)
         self.men_prj.addAction(self.act_prj_open)
         self.men_prj.addAction(self.act_prj_save)
         self.men_prj.addSeparator()
         self.men_prj.addAction(self.men_prj_exp.menuAction())
-        self.men_imp_csv.addAction(self.act_imp_csv_con)
-        self.men_imp_csv.addAction(self.act_imp_csv_mat)
-        self.men_imp_csv.addAction(self.act_imp_csv_fil)
-        self.men_imp_xml.addAction(self.act_imp_gml)
-        self.men_imp_xml.addAction(self.act_imp_sop)
-        self.men_imp.addAction(self.men_imp_csv.menuAction())
-        self.men_imp.addAction(self.men_imp_xml.menuAction())
+        self.men_imp.addSeparator()
+        self.men_imp.addAction(self.act_imp_f2o)
         self.men_exp_csv.addAction(self.act_exp_csv_con)
         self.men_exp_csv.addAction(self.act_exp_csv_mat)
         self.men_exp.addAction(self.men_exp_csv.menuAction())
@@ -986,8 +979,6 @@ class Ui_MainWindow(object):
         self.men_prj_exp.setTitle(_translate("MainWindow", "&Export"))
         self.men_dat.setTitle(_translate("MainWindow", "データ"))
         self.men_imp.setTitle(_translate("MainWindow", "インポート"))
-        self.men_imp_csv.setTitle(_translate("MainWindow", "&CSV File"))
-        self.men_imp_xml.setTitle(_translate("MainWindow", "&XML File"))
         self.men_exp.setTitle(_translate("MainWindow", "エクスポート"))
         self.men_exp_csv.setTitle(_translate("MainWindow", "&CSV File"))
         self.men_conf.setTitle(_translate("MainWindow", "設定"))
@@ -1019,5 +1010,6 @@ class Ui_MainWindow(object):
         self.act_lan_ja.setText(_translate("MainWindow", "日本語"))
         self.act_conf.setText(_translate("MainWindow", "環境設定"))
         self.act_prj_save.setText(_translate("MainWindow", "保存"))
+        self.act_imp_f2o.setText(_translate("MainWindow", "File to Objects"))
 from PyQt5 import QtWebKitWidgets
 from PyQt5.QtMultimediaWidgets import QVideoWidget
