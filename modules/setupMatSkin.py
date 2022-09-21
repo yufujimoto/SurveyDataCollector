@@ -47,7 +47,7 @@ def setText(parent):
     except Exception as e:
         print("Error occured in setupMatSkin::setText(parent)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
 
 def setIcons(parent, icon_path):
@@ -69,7 +69,7 @@ def setIcons(parent, icon_path):
         # Set the skin and icon.
         parent.bbx_mat_res.buttons()[0].setIcon(general.getIconFromPath(os.path.join(icon_path, 'check.png')))
         parent.bbx_mat_res.buttons()[1].setIcon(general.getIconFromPath(os.path.join(icon_path, 'close.png')))
-        
+
         # Set Check box style
         check_on = "QCheckBox::indicator:unchecked {image: url(" + os.path.join(icon_path,"check_off_s.png") + ");}\n"
         check_off = "QCheckBox::indicator:checked {image: url(" + os.path.join(icon_path,"check_on_s.png") + ");}"
@@ -79,7 +79,7 @@ def setIcons(parent, icon_path):
     except Exception as e:
         print("Error occured in setupMatSkin::setIcons(parent, icon_path)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
 
 def setSkin(parent, icon_directory, skin="grey"):
@@ -135,5 +135,5 @@ def setSkin(parent, icon_directory, skin="grey"):
     except Exception as e:
         print("Error occured in setupMatSkin::setSkin(parent, icon_directory, skin='grey')")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)

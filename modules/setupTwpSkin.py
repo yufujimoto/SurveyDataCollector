@@ -36,7 +36,7 @@ def setText(parent):
     except Exception as e:
         print("Error occured in setupTwpSkin::setText(parent)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
 
 def setIcons(parent, icon_path):
@@ -79,7 +79,7 @@ def setIcons(parent, icon_path):
     except Exception as e:
         print("Error occured in setupTwpSkin::setIcons(parent, icon_path)")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)
 
 def setSkin(parent, icon_directory, skin="grey"):
@@ -129,5 +129,5 @@ def setSkin(parent, icon_directory, skin="grey"):
     except Exception as e:
         print("Error occured in setupTwpSkin::setSkin(parent, icon_directory, skin='grey')")
         print(str(e))
-        error.ErrorMessageCameraDetection(details=str(e), show=True, language=parent.language)
+        error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
         return(None)

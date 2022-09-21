@@ -132,6 +132,7 @@ class jottingWithImage(QDialog, textEditWithPhotoDialog.Ui_textEditDialog):
         self.graphicsView.setObjectName("graphicsView")
         self.verticalLayout.addWidget(self.graphicsView)
 
+        # Set the Skin for this dialog.
         self.setSkin(self._icon_directory)
 
         # Get tethered image files.

@@ -12,8 +12,9 @@ from PyQt5.QtCore import *
 # Import general operations.
 import modules.general as general
 import modules.imageProcessing as imageProcessing
+
 #import modules.skin as skin
-import modules.setupConfigSkin as skin
+import modules.setupCtdSkin as skin
 import modules.error as error
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../viewer')
@@ -23,6 +24,10 @@ import dialog.checkTetheredImageDialog as checkTetheredImageDialog
 
 class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
     # Properties for default paths.
+    @property
+    def language(self): return self._language
+    @property
+    def skin(self): return self._skin
     @property
     def source_directory(self): return self._source_directory
     @property
@@ -53,6 +58,10 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
     def sound_extensions(self): return self._sound_extensions
 
     # Setter for default paths.
+    @language.setter
+    def language(self, value): self._language = value
+    @skin.setter
+    def skin(self, value): self._skin = value
     @source_directory.setter
     def source_directory(self, value): self._source_directory = value
     @siggraph_directory.setter
@@ -84,6 +93,8 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
 
     def __init__(self, parent=None, path=None):
         # Set the source directory which this program located.
+        self._skin = parent.skin
+        self._language = parent.language
         self._source_directory = parent.source_directory
         self._icon_directory = parent.icon_directory
         self._qt_image = parent.qt_image
@@ -103,35 +114,6 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
         self.setWindowTitle(self.tr("Check Tethered Image"))
         self.setWindowState(Qt.WindowMaximized)
 
-        # Initialyze the user interface.
-        # Get the proper font size from the display size and set the font size.
-        font_size = skin.getFontSize()
-
-        # Make the style sheet.
-        font_style_size = 'font: regular ' + str(skin.getFontSize()) + 'px;'
-
-        # Define the font object for Qt.
-        font = QFont()
-        font.setPointSize(font_size)
-
-        self.setFont(font)
-
-        if parent.skin == "grey":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "white")
-
-            # Set the default background and front color.
-            back_color = 'background-color: #2C2C2C;'
-            font_style_color = 'color: #FFFFFF;'
-            font_style = font_style_color + font_style_size
-
-            # Set the default skin for all components.
-            self.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
-
-        elif skin == "white":
-            # Set the icon path.
-            self._icon_directory = os.path.join(self._icon_directory, "black")
-
         # Get the path of the tethered image.
         self.tethered = path
 
@@ -148,6 +130,25 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
 
         # Get tethered image files.
         self.getImageFiles()
+
+        # Set the Skin for this dialog.
+        self.setSkin(self._icon_directory)
+
+    def setSkin(self, icon_path):
+        print("Start -> textEditWithPhotoDialog::setSkin(self, icon_path)")
+        try:
+            # Apply the new skin.
+            skin.setSkin(self, icon_path, skin=self._skin)
+            #skin.setText(self)
+
+        except Exception as e:
+            print("Error occured in textEditWithPhotoDialog::setSkin(self, icon_path)")
+            print(str(e))
+            error.ErrorMessageUnknown(details=str(e), show=True, language=parent.language)
+            return(None)
+
+        finally:
+            print("End -> textEditWithPhotoDialog::setSkin")
 
     def getImageFiles(self):
         print("CheckImageDialog::getImageFiles(self)")
