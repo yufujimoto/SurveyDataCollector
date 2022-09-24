@@ -40,32 +40,15 @@ brew install libopencv
 # Install OCR tools.
 brew install tesseract
 brew install tesseract-lang
-#brew install tesseract-ocr-jpn-vert
-#brew install libtesseract-dev
-#brew install libleptonica-dev
-#brew install tesseract-ocr-script-jpan
-#brew install tesseract-ocr-script-jpan-vert
-
-# Install Geography libraries.
-brew install libgeos
-brew install libproj
-
-# Install external application software.
-#brew install gimp
-#brew install audacity
-
-# Install video processing libraries.
-#brew install libavformat
-#brew install libswscale
-#brew install libv4l
-#brew install libxvidcore
-#brew install libx264
-
+brew install libleptonica
 
 # Install & Upgrade python3 -m pip.
 curl https://bootstrap.pypa.io/get-python3 -m pip.py -o get-python3 -m pip.py
 python3 get-python3 -m pip.py
 python3 -m pip install --upgrade python3 -m pip
+
+# install pyqt5
+python3 -m pip install PyQt5
 
 # Install general libraries.
 python3 -m pip install screeninfo
@@ -85,7 +68,7 @@ python3 -m pip install geocoder
 python3 -m pip install geodaisy
 
 # Install image processing libraries.
-python3 -m pip install py3exiv2
+python3 -m pip install pyexiv2
 python3 -m pip install piexif
 python3 -m pip install pillow
 python3 -m pip install rawpy
