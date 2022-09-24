@@ -14,8 +14,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWebKit import *
-from PyQt5.QtWebKitWidgets import *
+#from PyQt5.QtWebKit import *
+#from PyQt5.QtWebKitWidgets import *
+from PyQt5.QtWebEngine import *
+
 from PyQt5.QtNetwork import *
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
@@ -3278,7 +3280,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
     def searchLocationOnMap(self):
         print("main::searchLocationOnMap(self)")
-        
+
         try:
             geo_name = self.txt_map_search.text()
             output = os.path.join(self._map_directory,"location.html")

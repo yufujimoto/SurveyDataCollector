@@ -1,6 +1,9 @@
 ====================================
 # New Commands for Python 3 Series
 ====================================
+sudo port install geos
+sudo port install qt5-qtwebkit
+
 # Install Homebrew to install important packages.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
@@ -42,6 +45,10 @@ brew install tesseract
 brew install tesseract-lang
 brew install libleptonica
 
+# Install barcode reader.
+brew install ghostscript
+brew install zbar
+
 # Install & Upgrade python3 -m pip.
 curl https://bootstrap.pypa.io/get-python3 -m pip.py -o get-python3 -m pip.py
 python3 get-python3 -m pip.py
@@ -49,8 +56,10 @@ python3 -m pip install --upgrade python3 -m pip
 
 # install pyqt5
 python3 -m pip install PyQt5
+python3 -m pip install PyQtWebEngine
 
 # Install general libraries.
+python3 -m pip install python-dateutil
 python3 -m pip install screeninfo
 python3 -m pip install numpy
 python3 -m pip install scipy
@@ -68,6 +77,8 @@ python3 -m pip install geocoder
 python3 -m pip install geodaisy
 
 # Install image processing libraries.
+python3 -m pip install imutils
+python3 -m pip install colorcorrect
 python3 -m pip install pyexiv2
 python3 -m pip install piexif
 python3 -m pip install pillow
@@ -82,6 +93,7 @@ python3 -m pip install sounddevice
 python3 -m pip install soundfile
 
 # Install OpenCV.
+python3 -m pip install opencv-python
 python3 -m pip install opencv-python-headless
 
 # Install barcode tools.
