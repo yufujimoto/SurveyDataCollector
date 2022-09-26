@@ -896,6 +896,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # "Clear the file list view"
             self.tre_fls.clear()
 
+            # Clear current file.
+            self._current_file = None
+
             # Get images from the given class.
             images = sop_object.images
             sounds = sop_object.sounds
@@ -3022,14 +3025,22 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
     def setDefaultMap(self):
         print("main::setDefaultMap(self)")
 
-        location = os.path.join(self._map_directory,"location.html")
-        geospatial.writeHtml(self, location)
-        self.geo_view.setUrl(QUrl("file:///" + location))
+        try:
+            location = os.path.join(self._map_directory,"defaul.html")
+            geospatial.writeHtml(self, location)
+            self.geo_view.setUrl(QUrl("file:///" + location))
+        except Exception as e:
+            print("Error occured in main::refreshMap(self)")
+            print(str(e))
 
     def refreshMap(self):
         print("main::refreshMap(self)")
 
         try:
+            location = os.path.join(self._map_directory,"location.html")
+            geospatial.writeHtml(self, location)
+            self.geo_view.setUrl(QUrl("file:///" + location))
+
             if self.tab_target.currentIndex() == 0:
                 if not self._current_file == None:
                     if self._current_file.file_type == "geometry":
@@ -3057,6 +3068,8 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                             # Exit this proces
                             return(None)
                         else:
+                            print(wkt_path)
+
                             output = self.publishMap(wkt_path)
                             # Load a map.
                             self.geo_view.setUrl(QUrl("file:///" + output))
@@ -3078,10 +3091,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
                         self.setDefaultMap()
                 else:
                     self.setDefaultMap()
-            else:
-                location = os.path.join(self._map_directory,"location.html")
-                geospatial.writeHtml(self, location)
-                self.geo_view.setUrl(QUrl("file:///" + location))
         except Exception as e:
             print("Error occured in main::refreshMap(self)")
             print(str(e))
@@ -3093,7 +3102,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             return(None)
 
     def publishMap(self, wkt_path):
-        print("publishMap(self, wkt_path)")
+        print("main::publishMap(self, wkt_path)")
 
         dbl_Markers = []
         map_Markers = []
@@ -3134,10 +3143,31 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         mat_uuid = ""
         geo_name = ""
 
-        # Get the geoname from the text box.
-        geo_name = self.tbx_con_geoname.text()
-
         try:
+            # Get the geoname from the text box.
+            geo_name = self.tbx_con_geoname.text()
+            
+            if geo_name == None or geo_name == "":
+                if self._language == "en":
+                    # Create error messages.
+                    error_title = "Geocoding error"
+                    error_msg = "Location is not defined in consolidation"
+                    error_info = "Location is not defined in consolidation"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = "Geocoding function is applied for location entry of the consolidation."
+
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                elif self._language == "ja":
+                    # Create error messages.
+                    error_title = "ジオコーディングのエラー"
+                    error_msg = "検索するべき地名が「地理識別子」にセットされていません。"
+                    error_info = "この機能は統合体の「地理識別子」に適用されます。"
+                    error_icon = QMessageBox.Critical
+                    error_detailed = "この機能は統合体の「地理識別子」に適用されます。"
+
+                    general.alert(title=error_title, message=error_msg, icon=error_icon, info=error_info, detailed=error_detailed)
+                return(none)
+
             # Get item path of the current object.
             if self.tab_target.currentIndex() == 0:
                 # Exit if the current consolidation is not selected.

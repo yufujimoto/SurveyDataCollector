@@ -318,13 +318,15 @@ def moveMapTo(parent, geoname, output, proxies=None):
 
 def geoCoding(geoname, proxies=None):
     print("geospatial::geoCoding(geoname, proxies=None)")
-
+    print(geoname)
     try:
+
         if not proxies == None:
             g = geocoder.arcgis(geoname, proxies=proxies)
         else:
             g = geocoder.arcgis(geoname)
 
+        print(geoname, g.latlng)
         return(g.latlng)
     except Exception as e:
         print("Error occured in geospatial::geoCoding(geoname, proxies=None)")
