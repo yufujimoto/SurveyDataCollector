@@ -1,8 +1,8 @@
 ====================================
 # New Commands for Python 3 Series
 ====================================
+sudo port install qt5-qtwebengine
 sudo port install geos
-sudo port install qt5-qtwebkit
 
 # Install Homebrew to install important packages.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

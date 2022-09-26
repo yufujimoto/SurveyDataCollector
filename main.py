@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Import general libraries.
-import sys, os, uuid, shutil, time, math, tempfile, logging, pyexiv2, datetime, gc, json
+import sys, os, uuid, shutil, time, math, tempfile, logging, datetime, gc, json
 import xml.etree.cElementTree as ET
 import geodaisy.converters as convert
 import gphoto2 as gp
