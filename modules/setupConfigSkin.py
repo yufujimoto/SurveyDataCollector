@@ -241,7 +241,7 @@ def setSkin(parent, icon_directory, skin="grey"):
             parent.frm_conf_btns.setStyleSheet(back_color + font_style + border_color)
 
             # Set the default skin for tabs.
-            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
+            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C;}'
             back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
             parent.tab_conf_main.setStyleSheet(back_color_tab + back_color_tab_act)
 
@@ -251,8 +251,6 @@ def setSkin(parent, icon_directory, skin="grey"):
             parent.frm_conf_main.setStyleSheet(back_color + font_style + border_style)
 
             # Set the default skin for tabs.
-            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
-            back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
             parent.tab_general.setStyleSheet(back_color_tab + back_color_tab_act)
             parent.tab_camera.setStyleSheet(back_color_tab + back_color_tab_act)
 

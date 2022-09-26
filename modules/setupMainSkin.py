@@ -532,7 +532,7 @@ def applyMainWindowSkin(parent, icon_path="", skin="grey"):
             parent.frm_main.setStyleSheet(back_color + font_style + 'border-color: #4C4C4C;')
 
             # Set the default skin for tabs.
-            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
+            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C;}'
             back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
             parent.tab_target.setStyleSheet(back_color_tab + back_color_tab_act)
             parent.tab_img_info.setStyleSheet(back_color_tab + back_color_tab_act)

@@ -141,7 +141,7 @@ def setSkin(parent, icon_directory, skin="grey"):
             parent.tbx_fil_capt.setStyleSheet(font_style_color + font_style_size + text_border + text_background)
 
             # Set the default skin for tabs.
-            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C; }'
+            back_color_tab = 'QTabBar::tab {background-color: #2C2C2C;}'
             back_color_tab_act = 'QTabBar::tab::selected {background-color: #4C4C4C;}'
             parent.tab_src.setStyleSheet(back_color_tab + back_color_tab_act)
 
