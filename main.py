@@ -3146,7 +3146,7 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
         try:
             # Get the geoname from the text box.
             geo_name = self.tbx_con_geoname.text()
-            
+
             if geo_name == None or geo_name == "":
                 if self._language == "en":
                     # Create error messages.

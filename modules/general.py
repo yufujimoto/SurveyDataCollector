@@ -56,7 +56,8 @@ def initAll(parent,dir_src, dir_lib, dir_sig, dir_map, dir_tmp, dir_icn, fil_cnf
         # Define the default extensions.
         parent.qt_image = [
             ".BMP", ".GIF", ".JPG", ".JPEG", ".PNG",
-            ".PBM", ".PGM", ".PPM", ".XBM", ".XPM"
+            ".PBM", ".PGM", ".PPM", ".XBM", ".XPM",
+            ".TIFF",".TIF"
         ]
         parent.image_extensions = [
             ".JPG", ".TIF", ".JPEG", ".TIFF", ".PNG",

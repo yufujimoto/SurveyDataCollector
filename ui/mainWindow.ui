@@ -102,7 +102,52 @@
           <property name="spacing">
            <number>0</number>
           </property>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="btn_con_add">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border: none; margin: 0px; padding: 0px;</string>
+            </property>
+            <property name="text">
+             <string>統合体の追加</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
+           <widget class="QTreeWidget" name="tre_prj_item">
+            <property name="frameShape">
+             <enum>QFrame::HLine</enum>
+            </property>
+            <property name="lineWidth">
+             <number>0</number>
+            </property>
+            <property name="sortingEnabled">
+             <bool>false</bool>
+            </property>
+            <attribute name="headerDefaultSectionSize">
+             <number>150</number>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>UUID</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>名称</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+          <item row="0" column="0">
            <layout class="QHBoxLayout" name="lay_h_dir_root">
             <property name="spacing">
              <number>0</number>
@@ -137,32 +182,6 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item row="0" column="0">
-           <widget class="QTreeWidget" name="tre_prj_item">
-            <property name="frameShape">
-             <enum>QFrame::HLine</enum>
-            </property>
-            <property name="lineWidth">
-             <number>0</number>
-            </property>
-            <property name="sortingEnabled">
-             <bool>false</bool>
-            </property>
-            <attribute name="headerDefaultSectionSize">
-             <number>150</number>
-            </attribute>
-            <column>
-             <property name="text">
-              <string>UUID</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>名称</string>
-             </property>
-            </column>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -324,25 +343,6 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="btn_con_add">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">border: none; margin: 0px; padding: 0px;</string>
-               </property>
-               <property name="text">
-                <string>統合体の追加</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="btn_con_update">
                <property name="minimumSize">
                 <size>
@@ -352,6 +352,30 @@
                </property>
                <property name="text">
                 <string>統合体の更新</string>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_mat_add">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>資料の追加</string>
                </property>
                <property name="flat">
                 <bool>true</bool>
@@ -1196,30 +1220,6 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="btn_mat_add">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>9</pointsize>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-               <property name="text">
-                <string>資料の追加</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="btn_mat_update">
                <property name="minimumSize">
                 <size>
@@ -1611,7 +1611,7 @@
                 <enum>QTabWidget::Rounded</enum>
                </property>
                <property name="currentIndex">
-                <number>3</number>
+                <number>0</number>
                </property>
                <property name="iconSize">
                 <size>
@@ -2366,9 +2366,6 @@
   <tabstop>tbx_con_geoname</tabstop>
   <tabstop>tbx_con_temporal</tabstop>
   <tabstop>tbx_con_description</tabstop>
-  <tabstop>btn_con_add</tabstop>
-  <tabstop>btn_con_update</tabstop>
-  <tabstop>btn_con_take</tabstop>
   <tabstop>btn_con_rec</tabstop>
   <tabstop>btn_con_del</tabstop>
   <tabstop>tbx_mat_uuid</tabstop>
@@ -2381,7 +2378,6 @@
   <tabstop>tbx_mat_tmp_mid</tabstop>
   <tabstop>tbx_mat_tmp_end</tabstop>
   <tabstop>tbx_mat_description</tabstop>
-  <tabstop>btn_mat_add</tabstop>
   <tabstop>btn_mat_update</tabstop>
   <tabstop>btn_mat_take</tabstop>
   <tabstop>btn_mat_rec</tabstop>
