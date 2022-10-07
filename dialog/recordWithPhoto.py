@@ -12,7 +12,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import general operations.
 import modules.general as general
-import modules.features as features
+import objects.features as features
 import modules.error as error
 
 # Import camera and image processing library.

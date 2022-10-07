@@ -20,13 +20,13 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import general operations.
 import modules.general as general
-import modules.features as features
+import objects.features as features
 import modules.error as error
 import modules.setupConfigSkin as skin
 import modules.camera as camera
 
 # Import camera and image processing library.
-import dialog.configurationDialog as configurationDialog
+import objects.Configuration.dialogDialog as configurationDialog
 
 class configurationDialog(QDialog, configurationDialog.Ui_configurationDialog):
     @property

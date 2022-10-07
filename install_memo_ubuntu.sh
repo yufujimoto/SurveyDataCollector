@@ -13,11 +13,11 @@ pip install --upgrade pip
 
 #pip install pipes
 
-# Install essential libraries. 
+# Install essential libraries.
 apt install cmake
 apt install swig
-apt install python3-dev 
-apt install build-essential 
+apt install python3-dev
+apt install build-essential
 apt install pkg-config
 
 # Install general libraries.
@@ -50,8 +50,8 @@ pip install geodaisy
 
 # Install image processing libraries.
 apt install libjpeg8-dev
-apt install libtiff5-dev 
-apt install libjasper-dev 
+apt install libtiff5-dev
+apt install libjasper-dev
 apt install exiv2
 apt install libexiv2-dev
 apt install libboost-python-dev
@@ -63,22 +63,23 @@ pip install imageio
 pip install imutils
 pip install colorcorrect
 pip install exifread
+pip install focus-stack
 
 # Install Sound processing libraries.
 pip install sounddevice
 pip install soundfile
 
 # Install video processing libraries.
-apt install libavcodec-dev 
+apt install libavcodec-dev
 apt install libavformat-dev
-apt install libswscale-dev 
+apt install libswscale-dev
 apt install libv4l-dev
-apt install libxvidcore-dev 
+apt install libxvidcore-dev
 apt install libx264-dev
 
 # Install OpenCV.
-apt install opencv-data 
-apt install libopencv-dev 
+apt install opencv-data
+apt install libopencv-dev
 apt install python3-opencv
 pip install opencv-python-headless
 
@@ -116,12 +117,13 @@ pip install flickrapi
 apt install sqlite
 apt install sqlitebrowser
 
-
+# Install statisticcs tools.
+pip install sklearn
 
 
 
 # Install torch into home directory.
-apt-get install libreadline-dev 
+apt-get install libreadline-dev
 apt install torch-trepl
 
 git clone https://github.com/torch/distro.git ~/torch --recursive
@@ -130,4 +132,3 @@ git clone https://github.com/torch/distro.git ~/torch --recursive
 # Install siggraph.
 git clone https://github.com/satoshiiizuka/siggraph2016_colorization.git ~/siggraph --recursive
 (cd ~/siggraph; ./download_model.sh)
-

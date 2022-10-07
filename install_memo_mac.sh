@@ -87,6 +87,7 @@ python3 -m pip install imageio
 python3 -m pip install imutils
 python3 -m pip install colorcorrect
 python3 -m pip install exifread
+python3 -m install focus-stack
 
 # Install Sound processing libraries.
 python3 -m pip install sounddevice
@@ -110,6 +111,9 @@ python3 -m pip install pysony
 
 # Install Web tools.
 python3 -m pip install flickrapi
+
+# Install statistics tools.
+python3 -m pip install sklearn
 
 
 #git clone https://github.com/torch/distro.git ~/torch --recursive

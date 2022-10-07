@@ -32,7 +32,7 @@ from sqlite3 import Error as dbError
 # Import general operations.
 import modules.camera as camera
 import modules.general as general
-import modules.features as features
+import objects.features as features
 import modules.media as sop_media
 import modules.error as error
 import modules.setupMainUi as setupMainUi
@@ -44,8 +44,8 @@ import modules.flickr_upload as flickr
 
 # Import GUI window.
 import dialog.mainWindow as mainWindow
-import dialog.configuration as configurationDialog
-import dialog.consolidation as consolidationDialog
+import objects.Configuration.dialog as configurationDialog
+import objects.Consolidation.dialog as consolidationDialog
 import dialog.material as materialDialog
 import dialog.checkTetheredImage as checkTetheredImageDialog
 import dialog.recordWithPhoto as recordWithPhotoDiaolog
