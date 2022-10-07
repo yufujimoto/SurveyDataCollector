@@ -5,7 +5,7 @@
 import os, sys, subprocess, tempfile, pipes, getopt, uuid
 import shutil, time, math, tempfile, logging, pyexiv2, datetime
 
-import objects.features as features
+import modules.features as features
 import modules.general as general
 import modules.error as error
 

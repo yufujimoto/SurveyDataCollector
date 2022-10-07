@@ -16,14 +16,14 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import general operations.
 import modules.general as general
-import objects.features as features
+import modules.features as features
 import modules.error as error
 
 #import modules.skin as skin
 import modules.setupConSkin as skin
 
 # Import camera and image processing library.
-import objects.Consolidation.dialogDialog as consolidationDialog
+import dialog.consolidationDialog as consolidationDialog
 
 class consolidationDialog(QDialog, consolidationDialog.Ui_ConsolidationDialog):
     # Default paths.

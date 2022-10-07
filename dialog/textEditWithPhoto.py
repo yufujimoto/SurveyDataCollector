@@ -19,7 +19,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import general operations.
 import modules.general as general
-import objects.features as features
+import modules.features as features
 import modules.imageProcessing as imageProcessing
 import modules.error as error
 import modules.setupTwpSkin as skin
