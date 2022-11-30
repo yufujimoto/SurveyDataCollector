@@ -56,7 +56,7 @@ def activate(ui_main):
     ui_main.act_lan_en.triggered.connect(ui_main.setLangEn)
     ui_main.act_lan_ja.triggered.connect(ui_main.setLangJa)
 
-    ui_main.tre_prj_item.itemSelectionChanged.connect(ui_main.toggleCurrentTreeObject)      # Handle current selection of consolidations and materials.
+    ui_main.tre_prj_item.itemClicked.connect(ui_main.toggleCurrentTreeObject)      # Handle current selection of consolidations and materials.
     ui_main.tre_fls.itemSelectionChanged.connect(ui_main.getCurrentFile)                    # Handle current selection of consolidations and materials.
 
     ui_main.tab_target.setCurrentIndex(0)  # Initialyze the tab for the current object.

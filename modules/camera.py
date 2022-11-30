@@ -58,7 +58,7 @@ class Camera(object):
     def capturemode(self): return self._capturemode
     @property
     def exposuremetermode(self): return self._exposuremetermode
-    
+
     @camera_name.setter
     def camera_name(self, value): self._camera_name = value
     @port.setter
@@ -85,11 +85,11 @@ class Camera(object):
     def capturemode(self, value): self._capturemode = value
     @exposuremetermode.setter
     def exposuremetermode(self, value): self._exposuremetermode = value
-    
+
     def __init__(self, name, addr, gp_context, gp_camera):
         gp_config = gp_camera.get_config(gp_context)
         cnt = gp_config.count_children()
-        
+
         self._camera_name = name
         self._port = addr
         self._imagesize = None
@@ -103,7 +103,7 @@ class Camera(object):
         self._expprogram = None
         self._capturemode = None
         self._exposuremetermode = None
-        
+
         self._imagesize = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'imagesize'))
         self._iso = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'iso'))
         self._shutterspeed = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'shutterspeed'))
@@ -115,49 +115,76 @@ class Camera(object):
         self._expprogram = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'expprogram'))
         self._capturemode = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'capturemode'))
         self._exposuremetermode = gp.check_result(gp.gp_widget_get_child_by_name(gp_config,'exposuremetermode'))
-        
+
     def _do_capture(self, gp_context, gp_camera, save_path):
         print("camera::_do_capture(self)")
-        
+
         # Take two shots per one capture. The fisrt shot.
         self._capture(gp_context, gp_camera, save_path)
-        
+
         # Wait a second.
         time.sleep(1)
-        
+
         # The second shot.
         self._capture(gp_context, gp_camera, save_path)
-        
+
         # Wait a second.
         time.sleep(1)
-        
+
     def _capture(self, gp_context, gp_camera, save_path):
         print("camera::_capture(self)")
-        
+
+        timeout = 20
+        starttime = time.time()
+
         try:
             # capture actual image
-            OK, camera_file_path = gp.gp_camera_capture(gp_camera, gp.GP_CAPTURE_IMAGE, gp_context)
-            if OK < gp.GP_OK:
-                print('Failed to capture')
-                self.running = False
-                return
-            
-            # Get captured file and save the image to the designated path.
-            camera_file = gp_camera.file_get(camera_file_path.folder, camera_file_path.name, gp.GP_FILE_TYPE_NORMAL, gp_context)
-            
-            # Get the extension of the file
-            ext = pathlib.Path(camera_file_path.name).suffix
-            
-            # Save the image file
-            camera_file.save(save_path + ext)
-            
-            # Delete the temporal file.
-            gp_camera.file_delete(camera_file_path.folder, camera_file_path.name)
-            
+            gp.check_result(gp.gp_camera_trigger_capture(gp_camera, gp_context))
+            filefound = [False, False]
+
+            while filefound[1] != gp.GP_EVENT_FILE_ADDED:
+                filefound = gp.gp_camera_wait_for_event(gp_camera, 10000, gp_context)
+                if time.time() - starttime > timeout:
+                    print ('operation timed out')
+                    return False
+
+            campath = '/'
+            filelist = self.list_files(gp_camera, gp_context, campath)
+
+            for f in filelist:
+                filename = f.strip(campath)
+                camfile = gp.check_result(gp.gp_file_new())
+
+                camfile = gp.gp_camera_file_get(gp_camera, campath, filename, gp.GP_FILE_TYPE_NORMAL, gp_context)
+
+                ext = pathlib.Path(f).suffix
+
+                gp.gp_file_save(camfile[1], save_path + ext)
+                #gp.gp_file_unref(camfile)
+                gp.gp_camera_file_delete(gp_camera, campath, filename, gp_context)
+
+            endtime = round(time.time() - starttime, 2)
+            print ('capture complete in {}s'.format(endtime))
+
         except Exception as e:
             print("Error occured in camera::_capture(self)")
             print(str(e))
             error.ErrorMessageUnknown(details=str(e), show=True, language=self._language)
             return(None)
-        
-        
+
+    def list_files(self, camera, context, path='/'):
+        result = []
+        # get files
+        for name, value in gp.check_result(gp.gp_camera_folder_list_files(camera, path, context)):
+            result.append(os.path.join(path, name))
+
+        # read folders
+        folders = []
+
+        for name, value in gp.check_result(gp.gp_camera_folder_list_folders(camera, path, context)):
+            folders.append(name)
+
+        # recurse over subfolders
+        for name in folders:
+            result.extend(list_files(camera, context, os.path.join(path, name)))
+        return result

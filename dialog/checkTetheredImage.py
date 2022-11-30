@@ -187,6 +187,21 @@ class CheckImageDialog(QDialog, checkTetheredImageDialog.Ui_tetheredDialog):
             print("Error occured in CheckImageDialog::getImageFiles(self)")
             print(str(e))
 
+    def setImageFile(self, path_img):
+        print("CheckImageDialog::getImageFiles(self)")
+
+        try:
+            img_item = QListWidgetItem(path_img)
+            self.lst_fls.insertItem(0, img_item)
+
+            # Set the top item as the default.
+            self.lst_fls.setCurrentRow(0)
+
+            # Select the first file.
+        except Exception as e:
+            print("Error occured in CheckImageDialog::getImageFiles(self)")
+            print(str(e))
+
     def getImageFileInfo(self):
         print("CheckImageDialog::getImageFileInfo(self)")
 

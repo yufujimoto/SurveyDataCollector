@@ -232,6 +232,10 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             # Initialyze the window.
             self.setWindowState(Qt.WindowMaximized)     # Show as maximized.
 
+            # Hide uuid columns from tree widgets.
+            #self.tre_prj_item.hideColumn(0)
+            self.tre_fls.hideColumn(0)
+
             # Activate modules.
             print("## Initialize UI objects and functions.")
             setupMainUi.activate(self)
@@ -265,8 +269,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
 
             # Detect the camera automatically
             print("## Set Camera...")
-            self._gp_context = gp.Context()
-            self._gp_camera = gp.Camera()
             self.detectCamera()
 
             # Open the previous project.
@@ -4149,6 +4151,9 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             self.dialog_camera = cameraSelectDialog.SelectCameraDialog(self)
             if self.dialog_camera.exec_() == True:
                 # Set the selected camera as the current
+                self._gp_context = gp.Context()
+                self._gp_camera = gp.Camera()
+
                 cam_name = self.dialog_camera.camera_name
                 cam_port = self.dialog_camera.camera_port
 
@@ -4393,7 +4398,6 @@ class mainPanel(QMainWindow, mainWindow.Ui_MainWindow):
             img_quality = self._current_camera.imagequality.get_value()
 
             # Take a imge by using imageProcessing library.
-            # camera.takePhoto(tmp_path)
             self._current_camera._do_capture(self._gp_context,self._gp_camera, tmp_path)
 
             # Check the result of the tethered image.
